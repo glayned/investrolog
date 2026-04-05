@@ -1,0 +1,1415 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestroLog × DataMatrix — Dmitry Maltsev</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #0a0a0a;
+            --text-secondary: #666666;
+            --accent: #0a0a0a;
+            --border: #e0e0e0;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --grid-color: rgba(0,0,0,0.022);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #080808;
+            --bg-secondary: #141414;
+            --text-primary: #f0f0f0;
+            --text-secondary: #888888;
+            --accent: #f0f0f0;
+            --border: #222222;
+            --card-bg: #0f0f0f;
+            --shadow: rgba(0, 0, 0, 0.6);
+            --grid-color: rgba(255,255,255,0.016);
+        }
+
+        body {
+            font-family: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        body::-webkit-scrollbar { width: 5px; }
+        body::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        body::-webkit-scrollbar-thumb { background: var(--text-primary); border-radius: 10px; }
+        body::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+        body { scrollbar-width: thin; scrollbar-color: var(--text-primary) var(--bg-secondary); }
+
+        /* Subtle grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ── HEADER ── */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 40px 0;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            min-height: 60px;
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            position: relative;
+            width: 220px;
+            gap: 10px;
+        }
+
+        .logo:hover { opacity: 0.75; }
+
+        .logo-icon {
+            transition: opacity 0.3s ease;
+            opacity: 1;
+            visibility: visible;
+            flex-shrink: 0;
+        }
+
+        .logo-icon.hidden {
+            opacity: 0;
+            visibility: hidden;
+            position: absolute;
+        }
+
+        .code-text {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+            white-space: pre;
+            margin: 0;
+            opacity: 0;
+            line-height: 1.5;
+            will-change: opacity;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .theme-toggle, .music-toggle {
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            padding: 0;
+        }
+
+        .theme-toggle:hover, .music-toggle:hover {
+            transform: scale(1.15);
+            opacity: 0.7;
+        }
+
+        .theme-icon, .music-icon {
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 30px 0 60px;
+            animation: fadeIn 2s ease;
+        }
+
+        .hero-eyebrow {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            animation: slideInLeft 0.8s ease;
+        }
+
+        .hero h1 {
+            font-size: clamp(30px, 4.8vw, 52px);
+            font-weight: 800;
+            line-height: 1.05;
+            margin-bottom: 8px;
+            letter-spacing: -2px;
+            animation: slideInLeft 0.8s ease;
+        }
+
+        .hero h1 .cross {
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .hero .subtitle {
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            margin-bottom: 36px;
+            font-family: 'IBM Plex Mono', monospace;
+            animation: slideInLeft 0.8s ease 0.2s backwards;
+        }
+
+        .hero .description {
+            max-width: 540px;
+            font-size: 17px;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            margin-bottom: 44px;
+            animation: slideInLeft 0.8s ease 0.35s backwards;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.5s backwards;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            z-index: 10;
+            letter-spacing: 0.3px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--text-primary);
+            transform: translateX(-101%);
+            transition: transform 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before { transform: translateX(0); }
+        .btn:hover { color: var(--bg-primary); border-color: var(--text-primary); }
+
+        [data-theme="dark"] .btn { background: var(--bg-secondary); border-color: var(--border); }
+        [data-theme="dark"] .btn:hover { color: var(--bg-primary); }
+
+        /* ── SECTIONS ── */
+        .section {
+            padding: 60px 0;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        transform 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            font-size: clamp(26px, 3.5vw, 38px);
+            font-weight: 800;
+            margin-bottom: 56px;
+            letter-spacing: -1.0px;
+        }
+
+        .section-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        /* ── SKILLS ── */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+
+        .skill-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 32px;
+            border-radius: 16px;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .section.visible .skill-card:nth-child(1) { transition-delay: 0.05s; opacity: 1; transform: translateY(0); }
+        .section.visible .skill-card:nth-child(2) { transition-delay: 0.15s; opacity: 1; transform: translateY(0); }
+        .section.visible .skill-card:nth-child(3) { transition-delay: 0.25s; opacity: 1; transform: translateY(0); }
+
+        .skill-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: var(--text-primary);
+            transform: translateX(-100%);
+            transition: transform 0.35s ease;
+        }
+
+        .skill-card:hover::before { transform: translateX(0); }
+        .skill-card:hover { transform: translateY(-6px) !important; box-shadow: 0 16px 40px var(--shadow); }
+
+        .skill-number {
+            display: none;
+        }
+
+        .skill-card h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -0.3px;
+        }
+
+        .skill-card p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        [data-theme="dark"] .skill-card { border-color: var(--border); }
+
+        /* ── PROJECTS ── */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+        }
+
+        .project-card {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            background: var(--card-bg);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        .section.visible .project-card:nth-child(1) { transition: all 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.05s; opacity:1; transform:translateY(0); }
+        .section.visible .project-card:nth-child(2) { transition: all 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.15s; opacity:1; transform:translateY(0); }
+        .section.visible .project-card:nth-child(3) { transition: all 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.25s; opacity:1; transform:translateY(0); }
+        .section.visible .project-card:nth-child(4) { transition: all 0.8s cubic-bezier(0.25,0.46,0.45,0.94) 0.35s; opacity:1; transform:translateY(0); }
+
+        .project-card:hover {
+            transform: scale(1.02) translateY(-2px) !important;
+            box-shadow: 0 24px 48px var(--shadow);
+        }
+
+        [data-theme="dark"] .project-card { border-color: var(--border); }
+
+        /* Project visual area */
+        .project-visual {
+            width: 100%;
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* COT Terminal */
+        .visual-cot {
+            background: #060d1a;
+        }
+
+        /* VIX */
+        .visual-vix {
+            background: #03080f;
+        }
+
+        /* Options */
+        .visual-options {
+            background: #050505;
+        }
+
+        /* NG Weather */
+        .visual-ng {
+            background: #020a12;
+        }
+
+        .project-visual canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .project-visual-label {
+            position: absolute;
+            bottom: 135px;
+            right: 14px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+        }
+
+        .project-content {
+            padding: 26px 28px 28px;
+        }
+
+        .project-index {
+            display: none;
+        }
+
+        .project-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.4px;
+        }
+
+        .project-content p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+            color: var(--text-secondary);
+        }
+
+        .project-card:hover .tag {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        /* ── CONTACT ── */
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+            gap: 26px;
+        }
+
+        .contact-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.25s ease;
+            padding: 12px 0;
+            position: relative;
+            width: fit-content;
+        }
+
+        .contact-item::after {
+            content: '';
+            position: absolute;
+            bottom: 8px; left: 0;
+            width: 0; height: 1px;
+            background: var(--text-primary);
+            transition: width 0.3s ease;
+        }
+
+        .contact-item:hover::after { width: 100%; }
+        .contact-item:hover { color: var(--text-primary); transform: translateX(6px); }
+
+        /* ── FOOTER ── */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease 0.5s forwards;
+        }
+
+        .footer-tagline {
+            font-style: italic;
+            color: var(--text-secondary);
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-28px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            header { padding: 20px 0; }
+            .hero { padding: 40px 0 40px; }
+            .hero h1 { letter-spacing: -1px; }
+            .hero .subtitle { font-size: 14px; }
+            .hero .description { font-size: 15px; }
+            .section { padding: 40px 0; }
+            .section-title { margin-bottom: 36px; }
+            .skills-grid { grid-template-columns: 1fr; gap: 16px; }
+            .projects-grid { grid-template-columns: 1fr; gap: 20px; }
+            .contact-item { font-size: 15px; }
+            .cta-buttons { gap: 10px; }
+            .btn { padding: 11px 20px; font-size: 13px; flex: 1 1 calc(50% - 5px); text-align: center; }
+            footer { flex-direction: column; align-items: flex-start; margin-top: 60px; }
+            .contact-info {
+                flex-direction: column;
+                align-items: flex-start; /* если хочешь по центру — поставь center */
+                gap: 8px;   /* меньшее расстояние между ссылками на мобилке */
+            }
+            .contact-item {
+                width: 100%;
+                padding: 10px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { letter-spacing: -0.5px; }
+            .section-title { letter-spacing: -0.5px; }
+
+            .contact-item {
+                font-size: 15px;
+                padding: 12px 4px;
+            }
+            .contact-item svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="particles-canvas"></canvas>
+
+<div class="container">
+
+    <!-- ── HEADER ── -->
+    <header>
+        <div class="logo" onclick="triggerCodeAnimation()" title="Click me">
+            <svg class="logo-icon" width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Candlestick / chart icon -->
+                <rect x="4" y="14" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.8" fill="none"/>
+                <line x1="6" y1="10" x2="6" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="6" y1="24" x2="6" y2="27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <rect x="14" y="8" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.8" fill="none"/>
+                <line x1="16" y1="4" x2="16" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="16" y1="20" x2="16" y2="24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <rect x="24" y="11" width="4" height="9" rx="1" stroke="currentColor" stroke-width="1.8" fill="none"/>
+                <line x1="26" y1="7" x2="26" y2="11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="26" y1="20" x2="26" y2="23" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <pre class="code-text" id="codeText"></pre>
+        </div>
+
+        <div class="header-controls">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <svg class="theme-icon sun-icon" width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+                    <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 4V6M16 26V28M28 16H26M6 16H4M24.485 7.515L23.071 8.929M8.929 23.071L7.515 24.485M24.485 24.485L23.071 23.071M8.929 8.929L7.515 7.515" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg class="theme-icon moon-icon" width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M28 17.053A11 11 0 1 1 14.947 4 8.5 8.5 0 0 0 28 17.053z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="music-toggle" onclick="toggleMusic()" title="Toggle music">
+                <svg class="music-icon play-icon" width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 8L24 16L10 24V8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg class="music-icon pause-icon" width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none;">
+                    <path d="M12 8V24M20 8V24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+
+        <audio id="backgroundMusic" loop>
+            <source src="song.mp3" type="audio/mpeg">
+        </audio>
+    </header>
+
+    <!-- ── HERO ── -->
+    <section class="hero">
+        <p class="hero-eyebrow">Trading · AI · Automation</p>
+        <h1>InvestroLog<br><span class="cross">×</span> DataMatrix</h1>
+        <p class="subtitle">Practical trader Dmitry Maltsev</p>
+        <p class="description">
+            Специализирован по созданию ботов, AI-агентов и автоматизации процессов.
+        </p>
+        <div class="cta-buttons">
+            <a href="#projects" class="btn">Рабочие проекты</a>
+            <a href="#contact" class="btn">Связаться</a>
+            <a href="https://pay.cloudtips.ru/p/1f99d686" target="_blank" class="btn">Донат</a>
+        </div>
+    </section>
+
+    <!-- ── SKILLS ── -->
+    <section class="section" id="skills">
+        <span class="section-label">Компетенции</span>
+        <h2 class="section-title">Навыки</h2>
+        <div class="skills-grid">
+            <div class="skill-card">
+                <div class="skill-number">01 /</div>
+                <h3>Professional Trading & Research</h3>
+                <p>Практическая торговля с 8-летним стажем, включая опционы и криптовалюты. Анализ рыночных циклов и микроструктуры. Грамотное управление рисками, разработка и оптимизация стратегий. Результат последних 2 лет — стабильный рост эквити.</p>
+            </div>
+            <div class="skill-card">
+                <div class="skill-number">02 /</div>
+                <h3>Python Development</h3>
+                <p>Разработка Telegram ботов на aiogram, работа с JSON, SQLite и большими массивами данных, владею Docker, использую API, создаю системы логирования и автоматизированные решения.</p>
+            </div>
+            <div class="skill-card">
+                <div class="skill-number">03 /</div>
+                <h3>AI Agents Deployment</h3>
+                <p>Развертывание AI-агентов (например, OpenClaw) на VPS-серверах для интеграции в бизнес-процессы, тонкая настройка автоматизации. Консультирование и внедрение AI-решений в рабочие процессы.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── PROJECTS ── -->
+    <section class="section" id="projects">
+        <span class="section-label">Портфолио</span>
+        <h2 class="section-title">Рабочие проекты</h2>
+        <div class="projects-grid">
+
+            <!-- COT Terminal -->
+            <div class="project-card">
+                <div class="project-visual visual-cot">
+                    <canvas class="proj-canvas" data-type="cot"></canvas>
+                    <span class="project-visual-label">CFTC · COT</span>
+                </div>
+                <div class="project-content">
+                    <div class="project-index">01 /</div>
+                    <h3>COT Terminal</h3>
+                    <p>Бот, который за минуту делает то, что обычно занимает часы ручной работы — анализирует отчёты CFTC и выдаёт структурированную картину позиционирования. Сырые отчёты превращаются в понятные рыночные сигналы: кто двигает рынок, где стоят фонды и хеджеры.</p>
+                    <div class="project-tags">
+                        <span class="tag">Python</span>
+                        <span class="tag">aiogram</span>
+                        <span class="tag">CFTC API</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIX Term Structure -->
+            <div class="project-card">
+                <div class="project-visual visual-vix">
+                    <canvas class="proj-canvas" data-type="vix"></canvas>
+                    <span class="project-visual-label">VIX · IV</span>
+                </div>
+                <div class="project-content">
+                    <div class="project-index">02 /</div>
+                    <h3>VIX Term Structure</h3>
+                    <p>Проект показывает форму кривой волатильности в реальном времени: контанго, бэквордация, IV Crush, режим рынка и торговая стратегия. Так называемый индикатор — треугольник волатильности.</p>
+                    <div class="project-tags">
+                        <span class="tag">Python</span>
+                        <span class="tag">VIX</span>
+                        <span class="tag">Options</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options Aggregator -->
+            <div class="project-card">
+                <div class="project-visual visual-options">
+                    <canvas class="proj-canvas" data-type="options"></canvas>
+                    <span class="project-visual-label">Δ · UOA · IV</span>
+                </div>
+                <div class="project-content">
+                    <div class="project-index">03 /</div>
+                    <h3>Options Aggregator</h3>
+                    <p>Профессиональный модульный агрегатор и визуализатор опционов с продвинутой аналитикой: Delta metrics, UOA, Premium Flow, Rolling ΔOI Timeline, ATM IV, Max Pain, Pin Risk. Хранение исторических данных в SQLite.</p>
+                    <div class="project-tags">
+                        <span class="tag">SQLite</span>
+                        <span class="tag">Delta</span>
+                        <span class="tag">Max Pain</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NG Weather -->
+            <div class="project-card">
+                <div class="project-visual visual-ng">
+                    <canvas class="proj-canvas" data-type="ng"></canvas>
+                    <span class="project-visual-label">ECMWF · CME</span>
+                </div>
+                <div class="project-content">
+                    <div class="project-index">04 /</div>
+                    <h3>NG Weather Volatility</h3>
+                    <p>Автоматизированная система генерации торговых сигналов для рынка природного газа (Henry Hub, CME) на основе анализа ensemble-неопределённости метеорологических прогнозов ECMWF.</p>
+                    <div class="project-tags">
+                        <span class="tag">SQLite</span>
+                        <span class="tag">ECMWF</span>
+                        <span class="tag">CME</span>
+                        <span class="tag">Signals</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── CONTACT ── -->
+    <section class="section" id="contact">
+        <span class="section-label">Связь</span>
+        <h2 class="section-title">Контакты</h2>
+        <div class="contact-info">
+            <a href="https://t.me/investrolog" target="_blank" class="contact-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 2L14 21L10 13L2 9L21 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 13L21 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Telegram</span>
+            </a>
+            <a href="https://t.me/+B1HexV7AX1Q1ZDRi" target="_blank" class="contact-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45768C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Наш чат</span>
+            </a>
+            <a href="https://teletype.in/@dm1trymaltsev" target="_blank" class="contact-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Teletype</span>
+            </a>
+            <a href="https://bastyon.com/dimaltcev" target="_blank" class="contact-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Bastyon</span>
+            </a>
+            <a href="mailto:dmitry.maltcev@icloud.com" class="contact-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/>
+                    <path d="M22 7L12 13L2 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>dmitry.maltcev@icloud.com</span>
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <span>© 2026 InvestroLog × DataMatrix</span>
+        <span class="footer-tagline">Трейдинг, словно симфония чисел.</span>
+    </footer>
+
+</div><!-- /container -->
+
+<script>
+/* ════════════════════════════════════════
+   TYPING SOUND
+════════════════════════════════════════ */
+let audioContext;
+
+function initAudio() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playTypingSound() {
+    if (!audioContext) return;
+    const osc1 = audioContext.createOscillator();
+    const osc2 = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 900;
+    osc1.connect(gain); osc2.connect(gain);
+    gain.connect(filter); filter.connect(audioContext.destination);
+    osc1.type = 'triangle';
+    osc1.frequency.setValueAtTime(110 + Math.random() * 50, audioContext.currentTime);
+    osc1.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 0.06);
+    osc2.type = 'triangle';
+    osc2.frequency.setValueAtTime(550 + Math.random() * 200, audioContext.currentTime);
+    osc2.frequency.exponentialRampToValueAtTime(120, audioContext.currentTime + 0.025);
+    gain.gain.setValueAtTime(0, audioContext.currentTime);
+    gain.gain.linearRampToValueAtTime(0.013, audioContext.currentTime + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.002, audioContext.currentTime + 0.08);
+    osc1.start(audioContext.currentTime); osc1.stop(audioContext.currentTime + 0.08);
+    osc2.start(audioContext.currentTime); osc2.stop(audioContext.currentTime + 0.03);
+}
+
+/* ════════════════════════════════════════
+   CODE ANIMATION (logo click)
+════════════════════════════════════════ */
+let isAnimating = false;
+
+function triggerCodeAnimation() {
+    if (isAnimating) return;
+    isAnimating = true;
+    initAudio();
+
+    const logoIcon = document.querySelector('.logo-icon');
+    const codeText = document.getElementById('codeText');
+    const code = `def analyze(report):\n    signals = parse(report)\n    return signals`;
+
+    logoIcon.classList.add('hidden');
+    codeText.textContent = '';
+    codeText.style.display = 'inline-block';
+    codeText.style.visibility = 'visible';
+    codeText.style.opacity = '1';
+
+    let i = 0;
+    const iv = setInterval(() => {
+        if (i < code.length) {
+            codeText.textContent += code[i];
+            if (code[i] !== ' ' && code[i] !== '\n') playTypingSound();
+            i++;
+        } else {
+            clearInterval(iv);
+            setTimeout(() => {
+                codeText.style.transition = 'opacity 0.5s ease';
+                codeText.style.opacity = '0';
+                setTimeout(() => {
+                    codeText.textContent = '';
+                    codeText.style.display = 'none';
+                    codeText.style.visibility = 'hidden';
+                    codeText.style.transition = 'none';
+                    logoIcon.classList.remove('hidden');
+                    isAnimating = false;
+                }, 500);
+            }, 4000);
+        }
+    }, 45);
+}
+
+/* ════════════════════════════════════════
+   PARTICLES
+════════════════════════════════════════ */
+class Particle {
+    constructor(canvas) {
+        this.canvas = canvas;
+        this.reset();
+    }
+    reset() {
+        this.x = Math.random() * this.canvas.width;
+        this.y = Math.random() * this.canvas.height;
+        this.baseX = this.x;
+        this.baseY = this.y;
+        this.size = Math.random() * 2.2 + 0.8;
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+    }
+    update(mouse) {
+        if (mouse.x != null && mouse.y != null) {
+            const dx = mouse.x - this.x, dy = mouse.y - this.y;
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < mouse.radius) {
+                const f = (mouse.radius - d) / mouse.radius;
+                this.x -= (dx/d) * f * 3;
+                this.y -= (dy/d) * f * 3;
+            }
+        }
+        this.x += (this.baseX - this.x) * 0.05;
+        this.y += (this.baseY - this.y) * 0.05;
+        this.baseX += this.speedX;
+        this.baseY += this.speedY;
+        if (this.baseX < 0 || this.baseX > this.canvas.width) this.speedX *= -1;
+        if (this.baseY < 0 || this.baseY > this.canvas.height) this.speedY *= -1;
+    }
+    draw(ctx, isDark) {
+        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        ctx.fill();
+    }
+}
+
+class ParticlesSystem {
+    constructor() {
+        this.canvas = document.getElementById('particles-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.particles = [];
+        this.mouse = { x: null, y: null, radius: 140 };
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
+        window.addEventListener('mouseout', () => { this.mouse.x = null; this.mouse.y = null; });
+        this.animate();
+    }
+    resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        const target = Math.floor((this.canvas.width * this.canvas.height) / 16000);
+        while (this.particles.length < target) this.particles.push(new Particle(this.canvas));
+        if (this.particles.length > target) this.particles.length = target;
+    }
+    animate() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.particles.forEach((p, i) => {
+            p.update(this.mouse);
+            p.draw(this.ctx, isDark);
+            for (let j = i+1; j < this.particles.length; j++) {
+                const dx = this.particles[j].x - p.x, dy = this.particles[j].y - p.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 110) {
+                    const op = (1 - d/110) * 0.25;
+                    this.ctx.strokeStyle = isDark ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
+                    this.ctx.lineWidth = 0.5;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(p.x, p.y);
+                    this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                    this.ctx.stroke();
+                }
+            }
+        });
+        requestAnimationFrame(() => this.animate());
+    }
+}
+
+/* ════════════════════════════════════════
+   PROJECT CANVAS ANIMATIONS
+════════════════════════════════════════ */
+function initProjectCanvases(lite = false) {
+    document.querySelectorAll('.proj-canvas').forEach(canvas => {
+        const type = canvas.dataset.type;
+        const parent = canvas.parentElement;
+        canvas.width = parent.offsetWidth;
+        canvas.height = parent.offsetHeight;
+
+        if (lite) {
+            drawStatic(canvas, type);
+            return;
+        }
+
+        if (type === 'cot') animateCOT(canvas);
+        else if (type === 'vix') animateVIX(canvas);
+        else if (type === 'options') animateOptions(canvas);
+        else if (type === 'ng') animateNG(canvas);
+    });
+}
+
+function drawStatic(canvas, type) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    ctx.clearRect(0, 0, W, H);
+
+    if (type === 'cot') {
+        const t = 0.5;
+        const bars = 20;
+        const bw = W / (bars * 1.6);
+        const gap = W / bars;
+
+        for (let i = 0; i < bars; i++) {
+            const x = i * gap + gap * 0.3;
+            const h = (0.35 + 0.45 * Math.abs(Math.sin(i * 0.7 + t))) * H * 0.7;
+            const isUp = Math.sin(i * 0.9 + t * 0.3) > 0;
+            const color = isUp ? '#2ecc71' : '#e74c3c';
+
+            ctx.fillStyle = color + '99';
+            ctx.fillRect(x, H - h - H * 0.1, bw, h);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, H - h - H * 0.1, bw, h);
+        }
+
+        ctx.beginPath();
+        ctx.strokeStyle = '#f39c1299';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < W; i++) {
+            const y = H * 0.45 + Math.sin(i * 0.04 + t) * H * 0.12;
+            if (i === 0) ctx.moveTo(i, y);
+            else ctx.lineTo(i, y);
+        }
+        ctx.stroke();
+    }
+
+    else if (type === 'vix') {
+        const t = 0.5;
+
+        ctx.beginPath();
+        const grad = ctx.createLinearGradient(0, 0, W, 0);
+        grad.addColorStop(0, '#3498db');
+        grad.addColorStop(1, '#9b59b6');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2;
+
+        for (let x = 0; x < W; x++) {
+            const pct = x / W;
+            const base = H * 0.65;
+            const curve = -pct * H * 0.35 + Math.sin(pct * 6 + t) * H * 0.04;
+            const y = base + curve;
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    else if (type === 'options') {
+        const t = 0.5;
+        const strikes = 14;
+        const sw = W / (strikes + 1);
+        const maxPainIdx = 7;
+
+        ctx.fillStyle = 'rgba(243,156,18,0.08)';
+        ctx.fillRect(maxPainIdx * sw - sw / 2, 0, sw, H);
+
+        for (let i = 1; i <= strikes; i++) {
+            const x = i * sw;
+            const callH = (0.1 + 0.6 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx) / 6), 1.4)) * H * 0.75;
+            const putH = (0.08 + 0.5 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx + 1) / 6), 1.3)) * H * 0.75;
+
+            ctx.fillStyle = 'rgba(46,204,113,0.55)';
+            ctx.fillRect(x - sw * 0.28, H - callH - H * 0.08, sw * 0.25, callH);
+
+            ctx.fillStyle = 'rgba(231,76,60,0.55)';
+            ctx.fillRect(x + sw * 0.03, H - putH - H * 0.08, sw * 0.25, putH);
+        }
+    }
+
+    else if (type === 'ng') {
+        const t = 0.5;
+        const ensembles = 12;
+
+        for (let e = 0; e < ensembles; e++) {
+            ctx.beginPath();
+            const isMean = e === Math.floor(ensembles / 2);
+            const alpha = 0.12 + (isMean ? 0.5 : 0);
+            ctx.strokeStyle = isMean ? 'rgba(52,152,219,0.8)' : `rgba(100,180,255,${alpha})`;
+            ctx.lineWidth = isMean ? 2 : 1;
+
+            for (let x = 0; x < W; x++) {
+                const pct = x / W;
+                const base = H * 0.5;
+                const trend = -pct * H * 0.1;
+                const wave = Math.sin(pct * 5 + t + e * 0.6) * H * (0.08 + e * 0.012);
+                const y = base + trend + wave;
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+    }
+}
+
+function animateCOT(canvas) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const bars = 20;
+    let t = 0;
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        const bw = W / (bars * 1.6);
+        const gap = W / bars;
+        for (let i = 0; i < bars; i++) {
+            const x = i * gap + gap * 0.3;
+            const h = (0.35 + 0.45 * Math.abs(Math.sin(i * 0.7 + t))) * H * 0.7;
+            const isUp = Math.sin(i * 0.9 + t * 0.3) > 0;
+            const color = isUp ? '#2ecc71' : '#e74c3c';
+            ctx.fillStyle = color + '99';
+            ctx.fillRect(x, H - h - H*0.1, bw, h);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, H - h - H*0.1, bw, h);
+        }
+        // Moving average line
+        ctx.beginPath();
+        ctx.strokeStyle = '#f39c1299';
+        ctx.lineWidth = 1.5;
+        for (let i = 0; i < W; i++) {
+            const y = H * 0.45 + Math.sin(i * 0.04 + t) * H * 0.12;
+            if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+        }
+        ctx.stroke();
+        t += 0.015;
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+function animateVIX(canvas) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        // Contango curve
+        ctx.beginPath();
+        const grad = ctx.createLinearGradient(0, 0, W, 0);
+        grad.addColorStop(0, '#3498db');
+        grad.addColorStop(1, '#9b59b6');
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 2;
+        for (let x = 0; x < W; x++) {
+            const pct = x / W;
+            const base = H * 0.65;
+            const curve = -pct * H * 0.35 + Math.sin(pct * 6 + t) * H * 0.04;
+            const y = base + curve;
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        // Fill under curve
+        ctx.beginPath();
+        const gradFill = ctx.createLinearGradient(0, 0, 0, H);
+        gradFill.addColorStop(0, 'rgba(52,152,219,0.15)');
+        gradFill.addColorStop(1, 'rgba(52,152,219,0)');
+        ctx.fillStyle = gradFill;
+        for (let x = 0; x < W; x++) {
+            const pct = x / W;
+            const base = H * 0.65;
+            const curve = -pct * H * 0.35 + Math.sin(pct * 6 + t) * H * 0.04;
+            const y = base + curve;
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+        // Scatter dots (term structure nodes)
+        const months = 6;
+        for (let i = 0; i < months; i++) {
+            const pct = (i + 0.5) / months;
+            const base = H * 0.65;
+            const y = base - pct * H * 0.35 + Math.sin(pct * 6 + t) * H * 0.04;
+            ctx.beginPath();
+            ctx.arc(pct * W, y, 4, 0, Math.PI*2);
+            ctx.fillStyle = '#3498db';
+            ctx.fill();
+            ctx.strokeStyle = '#fff3';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+        t += 0.01;
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+function animateOptions(canvas) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        const strikes = 14;
+        const sw = W / (strikes + 1);
+        // Max pain highlight
+        const maxPainIdx = 7;
+        ctx.fillStyle = 'rgba(243,156,18,0.08)';
+        ctx.fillRect(maxPainIdx * sw - sw/2, 0, sw, H);
+
+        for (let i = 1; i <= strikes; i++) {
+            const x = i * sw;
+            // Calls (green)
+            const callH = (0.1 + 0.6 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx) / 6), 1.4) + Math.sin(t + i) * 0.03) * H * 0.75;
+            ctx.fillStyle = 'rgba(46,204,113,0.55)';
+            ctx.fillRect(x - sw*0.28, H - callH - H*0.08, sw*0.25, callH);
+            // Puts (red)
+            const putH = (0.08 + 0.5 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx + 1) / 6), 1.3) + Math.cos(t * 1.1 + i) * 0.03) * H * 0.75;
+            ctx.fillStyle = 'rgba(231,76,60,0.55)';
+            ctx.fillRect(x + sw*0.03, H - putH - H*0.08, sw*0.25, putH);
+        }
+        // IV smile curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#f39c1288';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4,4]);
+        for (let x = 0; x < W; x++) {
+            const pct = x / W;
+            const smile = H*0.55 - H*0.3*Math.exp(-Math.pow((pct-0.5)*3.5,2)) + Math.sin(t*0.8)*H*0.015;
+            if (x === 0) ctx.moveTo(x, smile); else ctx.lineTo(x, smile);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+        t += 0.02;
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+function animateNG(canvas) {
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    let t = 0;
+    const ensembles = 12;
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+        // Ensemble forecast paths
+        for (let e = 0; e < ensembles; e++) {
+            ctx.beginPath();
+            const alpha = 0.12 + (e === Math.floor(ensembles/2) ? 0.5 : 0);
+            const isMean = e === Math.floor(ensembles/2);
+            ctx.strokeStyle = isMean ? `rgba(52,152,219,0.8)` : `rgba(100,180,255,${alpha})`;
+            ctx.lineWidth = isMean ? 2 : 1;
+            for (let x = 0; x < W; x++) {
+                const pct = x / W;
+                const base = H * 0.5;
+                const trend = -pct * H * 0.1;
+                const wave = Math.sin(pct * 5 + t + e * 0.6) * H * (0.08 + e * 0.012);
+                const y = base + trend + wave;
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+        // Signal markers
+        const sigX = [(W*0.25), (W*0.5), (W*0.78)];
+        sigX.forEach((sx, idx) => {
+            const sy = H * 0.5 - H * 0.1 * (sx/W) + Math.sin(sx/W * 5 + t) * H * 0.08;
+            const isLong = idx % 2 === 0;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 5, 0, Math.PI*2);
+            ctx.fillStyle = isLong ? '#2ecc71' : '#e74c3c';
+            ctx.fill();
+            ctx.strokeStyle = '#fff2';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        });
+        t += 0.012;
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
+
+/* ════════════════════════════════════════
+   THEME
+════════════════════════════════════════ */
+function getStoredTheme() {
+    try {
+        return localStorage.getItem('theme');
+    } catch (e) {
+        return null;
+    }
+}
+
+function setStoredTheme(value) {
+    try {
+        localStorage.setItem('theme', value);
+    } catch (e) {}
+}
+
+function applyTheme() {
+    const html = document.documentElement;
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+    const stored = getStoredTheme();
+    const darkMode = stored ? stored === 'dark' : true;
+
+    if (darkMode) {
+        html.setAttribute('data-theme', 'dark');
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    } else {
+        html.removeAttribute('data-theme');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    }
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    const sunIcon = document.querySelector('.sun-icon');
+    const moonIcon = document.querySelector('.moon-icon');
+
+    if (isDark) {
+        html.removeAttribute('data-theme');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+        setStoredTheme('light');
+    } else {
+        html.setAttribute('data-theme', 'dark');
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+        setStoredTheme('dark');
+    }
+}
+
+/* ════════════════════════════════════════
+   MUSIC
+════════════════════════════════════════ */
+function toggleMusic() {
+    const music = document.getElementById('backgroundMusic');
+    const playIcon = document.querySelector('.play-icon');
+    const pauseIcon = document.querySelector('.pause-icon');
+    music.volume = 0.3;
+    if (music.paused) {
+        music.play();
+        playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
+    } else {
+        music.pause();
+        playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+    }
+}
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+    applyTheme();
+
+const sections = document.querySelectorAll('.section');
+
+if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, {
+        threshold: 0.01,
+        rootMargin: '0px 0px 120px 0px'
+    });
+
+    sections.forEach(section => observer.observe(section));
+} else {
+    sections.forEach(section => section.classList.add('visible'));
+}
+
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+            e.preventDefault();
+            const t = document.querySelector(a.getAttribute('href'));
+            if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    if (!isMobile() && !isTelegramIOS()) {
+        triggerCodeAnimation();
+    }
+});
+
+function isMobile() {
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function isTelegramIOS() {
+    const ua = navigator.userAgent || '';
+    const isIOSDevice = /iPhone|iPad|iPod/i.test(ua);
+    const isTelegram = ua.includes('Telegram') || typeof window.TelegramWebviewProxy !== 'undefined';
+    return isIOSDevice && isTelegram;
+}
+
+window.addEventListener('load', () => {
+    const mobile = isMobile();
+    const telegramIOS = isTelegramIOS();
+    const liteMode = mobile || telegramIOS;
+
+    if (!liteMode) {
+        new ParticlesSystem();
+    }
+
+    initProjectCanvases(liteMode);
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            initProjectCanvases(liteMode);
+        }, 400);
+    });
+});
+</script>
+</body>
+</html>
