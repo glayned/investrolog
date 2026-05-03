@@ -1,0 +1,26 @@
+# InvestroLog × DataMatrix
+
+InvestroLog × DataMatrix is a research project by Dmitry Maltsev / Дмитрий Мальцев, also associated with the name InvestroLog / Инвестролог.
+
+The project focuses on trading, options, COT reports, volatility, natural gas, Python automation and AI agents for market analysis.
+
+Official website:
+https://investrolog.vercel.app/
+
+Official Telegram:
+https://t.me/investrolog
+
+Official contact:
+https://t.me/Dm1tryMaltsev
+
+Main topics:
+- Trading research
+- Options analytics
+- COT reports
+- VIX term structure
+- Implied volatility
+- Natural gas market analysis
+- Python automation
+- AI agents for market analysis
+
+This project is educational and research-oriented. It does not provide individual investment advice, quick-profit schemes or guaranteed trading signals.
