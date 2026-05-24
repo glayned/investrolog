@@ -217,6 +217,32 @@
         .hero {
             padding: 30px 0 60px;
             animation: fadeIn 2s ease;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 48px;
+        }
+
+        .hero-content { flex: 1; min-width: 0; }
+
+        .hero-widget {
+            flex: 0 0 320px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            animation: fadeIn 2s ease 0.5s backwards;
+        }
+
+        .sessions-clock { position: relative; width: 300px; height: 300px; }
+        .sessions-clock canvas { width: 100%; height: 100%; }
+
+        .clock-title {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px; letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
         }
 
         .hero-eyebrow {
@@ -599,6 +625,9 @@
             .contact-item { font-size: 15px; }
             .cta-buttons { gap: 10px; }
             .btn { padding: 11px 20px; font-size: 13px; flex: 1 1 calc(50% - 5px); text-align: center; }
+            .hero { flex-direction: column; gap: 24px; }
+            .hero-widget { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 0; }
+            .sessions-clock { width: 260px; height: 260px; }
             footer { flex-direction: column; align-items: flex-start; margin-top: 60px; }
             .contact-info {
                 flex-direction: column;
@@ -677,16 +706,24 @@
 
     <!-- ── HERO ── -->
     <section class="hero">
-        <p class="hero-eyebrow">Trading · AI · Automation</p>
-        <h1>InvestroLog<br><span class="cross">×</span> DataMatrix</h1>
-        <p class="subtitle">Practical trader Dmitry Maltsev</p>
-        <p class="description">
-            Трейдер-исследователь и Python-разработчик. Создаю аналитические системы для COT, опционов, волатильности, природного газа и AI-автоматизации рыночного анализа.
-        </p>
-        <div class="cta-buttons">
-            <a href="#projects" class="btn">Рабочие проекты</a>
-            <a href="#contact" class="btn">Связаться</a>
-            <a href="https://pay.cloudtips.ru/p/1f99d686" target="_blank" class="btn">Донат</a>
+        <div class="hero-content">
+            <p class="hero-eyebrow">Trading · AI · Automation</p>
+            <h1>InvestroLog<br><span class="cross">×</span> DataMatrix</h1>
+            <p class="subtitle">Practical trader Dmitry Maltsev</p>
+            <p class="description">
+                Трейдер-исследователь и Python-разработчик. Создаю аналитические системы для COT, опционов, волатильности, природного газа и AI-автоматизации рыночного анализа.
+            </p>
+            <div class="cta-buttons">
+                <a href="#projects" class="btn">Рабочие проекты</a>
+                <a href="#contact" class="btn">Связаться</a>
+                <a href="https://pay.cloudtips.ru/p/1f99d686" target="_blank" class="btn">Донат</a>
+            </div>
+        </div>
+        <div class="hero-widget">
+            <div class="clock-title">Market Sessions</div>
+            <div class="sessions-clock">
+                <canvas id="sessionsCanvas" width="600" height="600"></canvas>
+            </div>
         </div>
     </section>
 
@@ -1279,9 +1316,187 @@ window.addEventListener('DOMContentLoaded', () => {
     triggerCodeAnimation();
 });
 
+/* ════════════════════════════════════════
+   MARKET SESSIONS CLOCK
+════════════════════════════════════════ */
+function initSessionsClock() {
+    const canvas = document.getElementById('sessionsCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const sessions = [
+        { name: 'SYDNEY',    start: 1,  end: 10, ring: 0 },
+        { name: 'TOKYO',     start: 3,  end: 12, ring: 1 },
+        { name: 'MOSCOW',    start: 10, end: 19, ring: 2 },
+        { name: 'LONDON',    start: 11, end: 20, ring: 3 },
+        { name: 'NEW YORK',  start: 16, end: 1,  ring: 4 }
+    ];
+
+    function hourToAngle(h) {
+        return ((h / 24) * Math.PI * 2) - Math.PI / 2;
+    }
+
+    function isActive(s, h) {
+        if (s.start < s.end) return h >= s.start && h < s.end;
+        return h >= s.start || h < s.end;
+    }
+
+    function drawTextAlongArc(str, cx, cy, radius, startH, endH, color) {
+        let sA = hourToAngle(startH);
+        let eA = hourToAngle(endH);
+        if (endH <= startH) eA += Math.PI * 2;
+        const midAngle = (sA + eA) / 2;
+        const arcLen = radius * (eA - sA);
+        const normMid = ((midAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const flip = normMid > Math.PI / 6 && normMid < Math.PI * 5 / 6;
+        const text = str;
+        const dir = flip ? -1 : 1;
+        const rotOff = flip ? -Math.PI / 2 : Math.PI / 2;
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.font = '700 22px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const totalWidth = ctx.measureText(str).width;
+        const anglePerPx = (eA - sA) / arcLen;
+        let curAngle = midAngle - dir * (totalWidth / 2) * anglePerPx;
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            const chW = ctx.measureText(ch).width;
+            curAngle += dir * (chW / 2) * anglePerPx;
+            ctx.save();
+            ctx.translate(cx + Math.cos(curAngle) * radius, cy + Math.sin(curAngle) * radius);
+            ctx.rotate(curAngle + rotOff);
+            ctx.fillText(ch, 0, 0);
+            ctx.restore();
+            curAngle += dir * (chW / 2) * anglePerPx;
+        }
+        ctx.restore();
+    }
+
+    function draw() {
+        const W = canvas.width, H = canvas.height;
+        const cx = W / 2, cy = H / 2;
+        const outerR = Math.min(W, H) * 0.42;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const textColor = isDark ? '#f0f0f0' : '#0a0a0a';
+        const dimColor = isDark ? '#2a2a2a' : '#e0e0e0';
+        const midColor = isDark ? '#666' : '#999';
+        const faintArc = isDark ? '#222' : '#eee';
+
+        ctx.clearRect(0, 0, W, H);
+
+        const now = new Date();
+        const mskH = (now.getUTCHours() + 3) % 24;
+        const mskM = now.getUTCMinutes();
+        const mskS = now.getUTCSeconds();
+        const mskFrac = mskH + mskM / 60 + mskS / 3600;
+
+        // Outer hour ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+        ctx.strokeStyle = dimColor;
+        ctx.lineWidth = 24;
+        ctx.stroke();
+
+        // Hour numbers on outer ring (every 3rd hour only)
+        ctx.font = '600 22px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let h = 3; h <= 24; h += 3) {
+            const angle = hourToAngle(h % 24);
+            const numR = outerR + 28;
+            ctx.fillStyle = midColor;
+            ctx.fillText(String(h).padStart(2, '0'), cx + Math.cos(angle) * numR, cy + Math.sin(angle) * numR);
+        }
+
+        // Hour tick marks
+        for (let h = 0; h < 24; h++) {
+            const angle = hourToAngle(h);
+            const major = h % 3 === 0;
+            const iR = outerR - (major ? 14 : 8);
+            const oR = outerR + (major ? 14 : 8);
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(angle) * iR, cy + Math.sin(angle) * iR);
+            ctx.lineTo(cx + Math.cos(angle) * oR, cy + Math.sin(angle) * oR);
+            ctx.strokeStyle = major ? midColor : dimColor;
+            ctx.lineWidth = major ? 1.5 : 1;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+        }
+
+        // Session arcs (5 concentric rings)
+        const arcW = 20;
+        const gap = 4;
+        const ringRadii = [];
+        for (let i = 0; i < 5; i++) {
+            ringRadii.push(outerR - 26 - i * (arcW + gap));
+        }
+
+        sessions.forEach(s => {
+            const active = isActive(s, mskH);
+            const r = ringRadii[s.ring];
+            let sA = hourToAngle(s.start);
+            let eA = hourToAngle(s.end);
+            if (s.end <= s.start) eA += Math.PI * 2;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, sA, eA);
+            ctx.strokeStyle = active ? textColor : faintArc;
+            ctx.lineWidth = arcW;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+
+            const nameColor = active ? (isDark ? '#080808' : '#ffffff') : midColor;
+            drawTextAlongArc(s.name, cx, cy, r, s.start, s.end, nameColor);
+        });
+
+        // Hour hand
+        const timeAngle = hourToAngle(mskFrac);
+        const innermost = ringRadii[4] - arcW / 2 - 8;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(timeAngle) * innermost, cy + Math.sin(timeAngle) * innermost);
+        ctx.strokeStyle = textColor;
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Minute hand
+        const minAngle = ((mskM / 60) * Math.PI * 2) - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(minAngle) * (innermost * 0.85), cy + Math.sin(minAngle) * (innermost * 0.85));
+        ctx.strokeStyle = midColor;
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Second hand
+        const secAngle = ((mskS / 60) * Math.PI * 2) - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx - Math.cos(secAngle) * 16, cy - Math.sin(secAngle) * 16);
+        ctx.lineTo(cx + Math.cos(secAngle) * (innermost * 0.7), cy + Math.sin(secAngle) * (innermost * 0.7));
+        ctx.strokeStyle = isDark ? '#aaa' : '#555';
+        ctx.lineWidth = 0.8;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Center dot
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fillStyle = textColor;
+        ctx.fill();
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+}
+
 window.addEventListener('load', () => {
     new ParticlesSystem();
     initProjectCanvases();
+    initSessionsClock();
 
     // Re-init canvases on resize
     let resizeTimer;
