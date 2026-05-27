@@ -51,7 +51,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
         * {
@@ -101,7 +101,6 @@
         body { scrollbar-width: thin; scrollbar-color: var(--text-primary) var(--bg-secondary); }
 
         /* Subtle grid background */
-        /*
         body::before {
             content: '';
             position: fixed;
@@ -113,7 +112,6 @@
             z-index: 0;
             pointer-events: none;
         }
-        */
 
         #particles-canvas {
             position: fixed;
@@ -236,15 +234,158 @@
             animation: fadeIn 2s ease 0.5s backwards;
         }
 
-        .sessions-clock { position: relative; width: 300px; height: 300px; }
-        .sessions-clock canvas { width: 100%; height: 100%; }
+        /* ── Market Sessions widget ── */
+        .ms-widget {
+            position: relative;
+            width: 340px;
+            padding: 16px;
+        }
+        .ms-widget .ms-bracket {
+            position: absolute;
+            width: 16px; height: 16px;
+            border-color: var(--text-secondary);
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .ms-widget .ms-bracket.tl { top: 0; left: 0; border-left: 1px solid; border-top: 1px solid; }
+        .ms-widget .ms-bracket.tr { top: 0; right: 0; border-right: 1px solid; border-top: 1px solid; }
+        .ms-widget .ms-bracket.bl { bottom: 0; left: 0; border-left: 1px solid; border-bottom: 1px solid; }
+        .ms-widget .ms-bracket.br { bottom: 0; right: 0; border-right: 1px solid; border-bottom: 1px solid; }
 
-        .clock-title {
+        .ms-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 4px 0;
+            min-height: 28px;
+        }
+        .ms-head-left, .ms-head-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+        .ms-title {
             font-family: 'IBM Plex Mono', monospace;
-            font-size: 11px; letter-spacing: 2px;
+            font-size: 10px;
+            letter-spacing: 3px;
             text-transform: uppercase;
+            color: var(--text-primary);
+        }
+        .ms-rule {
+            width: 18px; height: 1px;
+            background: var(--border);
+            position: relative;
+        }
+        .ms-rule::after {
+            content: ''; position: absolute;
+            right: -1px; top: -1px;
+            width: 3px; height: 3px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+        }
+        .ms-tz {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            background: transparent;
+            border-radius: 99px;
+            padding: 4px 9px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+            font-weight: 500;
+        }
+        .ms-tz:hover { border-color: var(--text-primary); }
+        .ms-tz .ms-chev {
+            width: 5px; height: 5px;
+            border-right: 1px solid currentColor;
+            border-bottom: 1px solid currentColor;
+            transform: rotate(45deg) translate(-1px,-1px);
+            opacity: 0.7;
+        }
+        .ms-time {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+        .ms-time .ms-suffix {
+            font-size: 9px;
+            letter-spacing: 2px;
             color: var(--text-secondary);
-            margin-bottom: 14px;
+            margin-left: 5px;
+            font-weight: 400;
+        }
+
+        .ms-tz-pop {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 5px 0;
+            min-width: 160px;
+            box-shadow: 0 12px 28px var(--shadow);
+            z-index: 20;
+            display: none;
+        }
+        .ms-tz-pop.open { display: block; }
+        .ms-tz-pop .ms-opt {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 12px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .ms-tz-pop .ms-opt:hover { background: var(--bg-secondary); }
+        .ms-tz-pop .ms-opt.active { background: var(--text-primary); color: var(--bg-primary); }
+        .ms-tz-pop .ms-opt .ms-off { color: var(--text-secondary); font-size: 9px; }
+        .ms-tz-pop .ms-opt.active .ms-off { color: var(--bg-primary); opacity: 0.7; }
+
+        .ms-dial { width: 100%; aspect-ratio: 1 / 1; margin-top: 12px; }
+        .ms-dial svg { width: 100%; height: 100%; display: block; overflow: visible; }
+        .ms-dial svg .ms-roman { font-family: 'Cormorant Garamond', 'IBM Plex Mono', serif; font-weight: 700; }
+        .ms-dial svg text { font-family: 'IBM Plex Mono', monospace; }
+
+        .ms-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 4px 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        .ms-foot .ms-active-name { color: var(--text-primary); font-weight: 500; }
+        .ms-foot .ms-pulse {
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            margin-right: 6px;
+            vertical-align: middle;
+            animation: msPulse 2s infinite ease-in-out;
+        }
+        @keyframes msPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.85); }
         }
 
         .hero-eyebrow {
@@ -629,7 +770,7 @@
             .btn { padding: 11px 20px; font-size: 13px; flex: 1 1 calc(50% - 5px); text-align: center; }
             .hero { flex-direction: column; gap: 24px; }
             .hero-widget { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 0; }
-            .sessions-clock { width: 260px; height: 260px; }
+            .ms-widget { width: 300px; }
             footer { flex-direction: column; align-items: flex-start; margin-top: 60px; }
             .contact-info {
                 flex-direction: column;
@@ -722,9 +863,34 @@
             </div>
         </div>
         <div class="hero-widget">
-            <div class="clock-title">Session Matrix · UTC+3 Flow </div>
-            <div class="sessions-clock">
-                <canvas id="sessionsCanvas" width="600" height="600"></canvas>
+            <div class="ms-widget" id="msWidget">
+                <span class="ms-bracket tl"></span>
+                <span class="ms-bracket tr"></span>
+                <span class="ms-bracket bl"></span>
+                <span class="ms-bracket br"></span>
+
+                <div class="ms-head">
+                    <div class="ms-head-left">
+                        <span class="ms-title">Market Sessions</span>
+                        <button class="ms-tz" id="msTzBtn" type="button" aria-haspopup="listbox" aria-expanded="false">
+                            <span id="msTzLabel">MSK</span><span class="ms-chev"></span>
+                        </button>
+                        <div class="ms-tz-pop" id="msTzPop" role="listbox"></div>
+                    </div>
+                    <div class="ms-head-right">
+                        <span class="ms-rule"></span>
+                        <span class="ms-time"><span id="msTimeDigits">--:--</span><span class="ms-suffix" id="msTimeSuffix">UTC+3</span></span>
+                    </div>
+                </div>
+
+                <div class="ms-dial">
+                    <svg id="msDial" viewBox="0 0 400 400" aria-hidden="true"></svg>
+                </div>
+
+                <div class="ms-foot">
+                    <span><span class="ms-pulse" id="msPulse"></span><span id="msActiveLine">— · OFF HOURS</span></span>
+                    <span id="msNextLine"></span>
+                </div>
             </div>
         </div>
     </section>
@@ -1320,179 +1486,436 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* ════════════════════════════════════════
    MARKET SESSIONS CLOCK
+   GMT-watch architecture: classical 12h Roman dial (inner) + 24h session bezel (outer).
+   Zones are IANA-backed so DST is handled automatically by Intl
+   (BST↔GMT, EDT↔EST, AEDT↔AEST). Bezel + session arcs rotate to the selected zone.
 ════════════════════════════════════════ */
 function initSessionsClock() {
-    const canvas = document.getElementById('sessionsCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const svg = document.getElementById('msDial');
+    const widget = document.getElementById('msWidget');
+    if (!svg || !widget) return;
 
-    const sessions = [
-        { name: 'SYDNEY',    start: 1,  end: 10, ring: 0 },
-        { name: 'TOKYO',     start: 3,  end: 12, ring: 1 },
-        { name: 'MOSCOW',    start: 10, end: 19, ring: 2 },
-        { name: 'LONDON',    start: 11, end: 20, ring: 3 },
-        { name: 'NEW YORK',  start: 16, end: 1,  ring: 4 }
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const CX = 200, CY = 200;
+    const ROMANS = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+
+    // Selectable zones (IANA-aware). Offsets are resolved per render so DST is automatic.
+    const ZONES = [
+        { id: 'SYD', label: 'Sydney',   short: 'SYD', iana: 'Australia/Sydney'  },
+        { id: 'TYO', label: 'Tokyo',    short: 'TYO', iana: 'Asia/Tokyo'        },
+        { id: 'MSK', label: 'Moscow',   short: 'MSK', iana: 'Europe/Moscow'     },
+        { id: 'LDN', label: 'London',   short: 'LDN', iana: 'Europe/London'    },
+        { id: 'NYC', label: 'New York', short: 'NYC', iana: 'America/New_York' },
+        { id: 'UTC', label: 'UTC',      short: 'UTC', iana: 'UTC'              }
     ];
 
-    function hourToAngle(h) {
-        return ((h / 24) * Math.PI * 2) - Math.PI / 2;
-    }
+    // Sessions defined in EXCHANGE-local hours + IANA. The current UTC range is computed
+    // at render time so summer/winter (BST, EDT, AEDT…) shifts apply on the correct date.
+    const SESSIONS = [
+        { name: 'SYDNEY',   iana: 'Australia/Sydney',  startLocal: 8,  endLocal: 17, lane: 0 },
+        { name: 'TOKYO',    iana: 'Asia/Tokyo',        startLocal: 9,  endLocal: 18, lane: 1 },
+        { name: 'MOSCOW',   iana: 'Europe/Moscow',     startLocal: 10, endLocal: 19, lane: 2 },
+        { name: 'LONDON',   iana: 'Europe/London',     startLocal: 8,  endLocal: 17, lane: 3 },
+        { name: 'NEW YORK', iana: 'America/New_York',  startLocal: 8,  endLocal: 17, lane: 4 }
+    ];
 
-    function isActive(s, h) {
-        if (s.start < s.end) return h >= s.start && h < s.end;
-        return h >= s.start || h < s.end;
-    }
+    const LANE_RADII     = [196, 184, 172, 160, 148]; // Sydney outermost → NY innermost
+    const SESSION_W_BASE = 2;
+    const SESSION_W_ACT  = 7;
+    const BEZEL_RIM      = 200;
+    const DIAL_RING_R    = 130;
+    const MINUTE_RING_R  = 124;
+    const ROMAN_R        = 108;
+    const HAND_HOUR_R    = 58;
+    const HAND_MIN_R     = 92;
+    const HAND_SEC_R     = 108;
 
-    function drawTextAlongArc(str, cx, cy, radius, startH, endH, color) {
-        let sA = hourToAngle(startH);
-        let eA = hourToAngle(endH);
-        if (endH <= startH) eA += Math.PI * 2;
-        const midAngle = (sA + eA) / 2;
-        const arcLen = radius * (eA - sA);
-        const normMid = ((midAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-        const flip = normMid > Math.PI / 6 && normMid < Math.PI * 5 / 6;
-        const text = str;
-        const dir = flip ? -1 : 1;
-        const rotOff = flip ? -Math.PI / 2 : Math.PI / 2;
-        ctx.save();
-        ctx.fillStyle = color;
-        ctx.font = '700 22px "IBM Plex Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        const totalWidth = ctx.measureText(str).width;
-        const anglePerPx = (eA - sA) / arcLen;
-        let curAngle = midAngle - dir * (totalWidth / 2) * anglePerPx;
-        for (let i = 0; i < text.length; i++) {
-            const ch = text[i];
-            const chW = ctx.measureText(ch).width;
-            curAngle += dir * (chW / 2) * anglePerPx;
-            ctx.save();
-            ctx.translate(cx + Math.cos(curAngle) * radius, cy + Math.sin(curAngle) * radius);
-            ctx.rotate(curAngle + rotOff);
-            ctx.fillText(ch, 0, 0);
-            ctx.restore();
-            curAngle += dir * (chW / 2) * anglePerPx;
+    // ── Zone offset helper (DST-aware via Intl). Returns hours (can be fractional).
+    const _offsetFmtCache = {};
+    function getOffsetHours(iana, date) {
+        if (iana === 'UTC') return 0;
+        let fmt = _offsetFmtCache[iana];
+        if (!fmt) {
+            fmt = new Intl.DateTimeFormat('en-US', {
+                timeZone: iana, hour12: false,
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            _offsetFmtCache[iana] = fmt;
         }
-        ctx.restore();
+        const map = {};
+        fmt.formatToParts(date).forEach(p => { if (p.type !== 'literal') map[p.type] = p.value; });
+        const h = +map.hour === 24 ? 0 : +map.hour;
+        const asUTC = Date.UTC(+map.year, +map.month - 1, +map.day, h, +map.minute, +map.second);
+        return Math.round(((asUTC - date.getTime()) / 60000)) / 60; // rounded to nearest minute
     }
 
-    function draw() {
-        const W = canvas.width, H = canvas.height;
-        const cx = W / 2, cy = H / 2;
-        const outerR = Math.min(W, H) * 0.42;
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const textColor = isDark ? '#f0f0f0' : '#0a0a0a';
-        const dimColor = isDark ? '#2a2a2a' : '#e0e0e0';
-        const midColor = isDark ? '#666' : '#999';
-        const faintArc = isDark ? '#222' : '#eee';
+    function detectVisitorZoneId() {
+        try {
+            const v = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const match = ZONES.find(z => z.iana === v);
+            if (match) return match.id;
+        } catch (_) {}
+        return 'MSK';
+    }
 
-        ctx.clearRect(0, 0, W, H);
+    // Initial selection: saved choice > visitor autodetect > MSK fallback
+    let currentZoneId = localStorage.getItem('ms-tz') || '';
+    if (!ZONES.find(z => z.id === currentZoneId)) {
+        currentZoneId = detectVisitorZoneId();
+    }
+
+    // ── SVG helpers
+    function ang24(h) { return (h / 24) * Math.PI * 2 - Math.PI / 2; }
+    function ang12(h) { return (h / 12) * Math.PI * 2 - Math.PI / 2; }
+    function pt(r, a) { return [CX + Math.cos(a) * r, CY + Math.sin(a) * r]; }
+    function setAttrs(el, attrs) { for (const k in attrs) el.setAttribute(k, attrs[k]); }
+    function svgEl(tag, attrs, text) {
+        const e = document.createElementNS(SVG_NS, tag);
+        if (attrs) setAttrs(e, attrs);
+        if (text != null) e.textContent = text;
+        svg.appendChild(e);
+        return e;
+    }
+    function arcPath(r, a0, a1, sweep) {
+        const [x0,y0] = pt(r, a0);
+        const [x1,y1] = pt(r, a1);
+        const large = (a1 - a0) > Math.PI ? 1 : 0;
+        return `M ${x0} ${y0} A ${r} ${r} 0 ${large} ${sweep} ${x1} ${y1}`;
+    }
+
+    let __pathId = 0;
+    function textOnArc(str, r, a0, a1, fill, fontSize) {
+        if (a1 < a0) a1 += Math.PI * 2;
+        const mid = (a0 + a1) / 2;
+        const bottomHalf = (mid > 0 && mid < Math.PI);
+        const pid = `ms-arc-${__pathId++}`;
+        let d;
+        if (bottomHalf) {
+            const [x1,y1] = pt(r, a1), [x0,y0] = pt(r, a0);
+            d = `M ${x1} ${y1} A ${r} ${r} 0 ${(a1-a0)>Math.PI?1:0} 0 ${x0} ${y0}`;
+        } else {
+            const [x0,y0] = pt(r, a0), [x1,y1] = pt(r, a1);
+            d = `M ${x0} ${y0} A ${r} ${r} 0 ${(a1-a0)>Math.PI?1:0} 1 ${x1} ${y1}`;
+        }
+        let defs = svg.querySelector('defs');
+        if (!defs) {
+            defs = document.createElementNS(SVG_NS, 'defs');
+            svg.insertBefore(defs, svg.firstChild);
+        }
+        const pathEl = document.createElementNS(SVG_NS, 'path');
+        setAttrs(pathEl, { id: pid, d, fill: 'none' });
+        defs.appendChild(pathEl);
+
+        const textEl = document.createElementNS(SVG_NS, 'text');
+        setAttrs(textEl, {
+            'font-size': fontSize,
+            'letter-spacing': fontSize > 7.5 ? '2.5' : '1.5',
+            fill,
+            'font-weight': '500',
+            'font-family': 'IBM Plex Mono, monospace'
+        });
+        const tp = document.createElementNS(SVG_NS, 'textPath');
+        tp.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', `#${pid}`);
+        tp.setAttribute('href', `#${pid}`);
+        tp.setAttribute('startOffset', '50%');
+        tp.setAttribute('text-anchor', 'middle');
+        tp.textContent = str;
+        textEl.appendChild(tp);
+        svg.appendChild(textEl);
+    }
+
+    // Resolve current UTC range for a session (DST-aware via the exchange's IANA zone).
+    function sessionUtcRange(s, now) {
+        const sOff = getOffsetHours(s.iana, now);
+        const startUtc = ((s.startLocal - sOff) % 24 + 24) % 24;
+        const endUtc   = ((s.endLocal   - sOff) % 24 + 24) % 24;
+        return { startUtc, endUtc };
+    }
+    function isActiveUtc(range, utcFrac) {
+        if (range.startUtc < range.endUtc) return utcFrac >= range.startUtc && utcFrac < range.endUtc;
+        return utcFrac >= range.startUtc || utcFrac < range.endUtc;
+    }
+    function dominantActive(ranges, utcFrac) {
+        // Trader priority — LONDON / NEW YORK headline when active, otherwise first active session
+        const priority = ['LONDON', 'NEW YORK', 'MOSCOW', 'TOKYO', 'SYDNEY'];
+        for (const name of priority) {
+            const r = ranges.find(x => x.name === name);
+            if (r && isActiveUtc(r, utcFrac)) return r;
+        }
+        return null;
+    }
+    function nextSession(ranges, utcFrac) {
+        let best = null, bestDelta = 25;
+        for (const r of ranges) {
+            if (isActiveUtc(r, utcFrac)) continue;
+            let d = r.startUtc - utcFrac;
+            if (d < 0) d += 24;
+            if (d < bestDelta) { bestDelta = d; best = r; }
+        }
+        return best;
+    }
+
+    function fmtH(h) { return String(((h % 24) + 24) % 24).padStart(2, '0'); }
+    function fmtOffset(off) {
+        if (Math.abs(off) < 1/120) return 'UTC';
+        const sign = off >= 0 ? '+' : '−';
+        const abs = Math.abs(off);
+        const hh = Math.floor(abs);
+        const mm = Math.round((abs - hh) * 60);
+        return mm === 0 ? `UTC${sign}${hh}` : `UTC${sign}${hh}:${String(mm).padStart(2,'0')}`;
+    }
+
+    function readTokens() {
+        const cs = getComputedStyle(widget);
+        return {
+            txt:  cs.getPropertyValue('--text-primary').trim()   || '#0a0a0a',
+            dim:  cs.getPropertyValue('--text-secondary').trim() || '#666',
+            line: cs.getPropertyValue('--border').trim()         || '#e0e0e0',
+            bg:   cs.getPropertyValue('--bg-primary').trim()     || '#fff'
+        };
+    }
+
+    function render() {
+        const tok = readTokens();
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const dimTrack = isDark ? '#262626' : '#e6e6e6';
+        const activeColor = tok.txt;
+        const inactiveLabel = tok.dim;
+        const activeLabel = tok.bg;
+        const handColor = tok.txt;
 
         const now = new Date();
-        const mskH = (now.getUTCHours() + 3) % 24;
-        const mskM = now.getUTCMinutes();
-        const mskS = now.getUTCSeconds();
-        const mskFrac = mskH + mskM / 60 + mskS / 3600;
+        const utcH = now.getUTCHours();
+        const utcM = now.getUTCMinutes();
+        const utcS = now.getUTCSeconds();
+        const utcMs = now.getUTCMilliseconds();
+        const utcFrac = utcH + utcM/60 + utcS/3600;
 
-        // Outer hour ring
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
-        ctx.strokeStyle = dimColor;
-        ctx.lineWidth = 24;
-        ctx.stroke();
+        const zone = ZONES.find(z => z.id === currentZoneId) || ZONES.find(z => z.id === 'MSK');
+        const zOff = getOffsetHours(zone.iana, now);
+        const zoneFrac = ((utcFrac + zOff) % 24 + 24) % 24;
+        const zoneH = Math.floor(zoneFrac);
+        const zoneM = Math.floor((zoneFrac - zoneH) * 60);
+        const zoneS = utcS;
 
-        // Hour numbers on outer ring (every 3rd hour only)
-        ctx.font = '600 22px "IBM Plex Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        for (let h = 3; h <= 24; h += 3) {
-            const angle = hourToAngle(h % 24);
-            const numR = outerR + 28;
-            ctx.fillStyle = midColor;
-            ctx.fillText(String(h).padStart(2, '0'), cx + Math.cos(angle) * numR, cy + Math.sin(angle) * numR);
-        }
-
-        // Hour tick marks
-        for (let h = 0; h < 24; h++) {
-            const angle = hourToAngle(h);
-            const major = h % 3 === 0;
-            const iR = outerR - (major ? 14 : 8);
-            const oR = outerR + (major ? 14 : 8);
-            ctx.beginPath();
-            ctx.moveTo(cx + Math.cos(angle) * iR, cy + Math.sin(angle) * iR);
-            ctx.lineTo(cx + Math.cos(angle) * oR, cy + Math.sin(angle) * oR);
-            ctx.strokeStyle = major ? midColor : dimColor;
-            ctx.lineWidth = major ? 1.5 : 1;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-        }
-
-        // Session arcs (5 concentric rings)
-        const arcW = 20;
-        const gap = 4;
-        const ringRadii = [];
-        for (let i = 0; i < 5; i++) {
-            ringRadii.push(outerR - 26 - i * (arcW + gap));
-        }
-
-        sessions.forEach(s => {
-            const active = isActive(s, mskH);
-            const r = ringRadii[s.ring];
-            let sA = hourToAngle(s.start);
-            let eA = hourToAngle(s.end);
-            if (s.end <= s.start) eA += Math.PI * 2;
-
-            ctx.beginPath();
-            ctx.arc(cx, cy, r, sA, eA);
-            ctx.strokeStyle = active ? textColor : faintArc;
-            ctx.lineWidth = arcW;
-            ctx.lineCap = 'butt';
-            ctx.stroke();
-
-            const nameColor = active ? (isDark ? '#080808' : '#ffffff') : midColor;
-            drawTextAlongArc(s.name, cx, cy, r, s.start, s.end, nameColor);
+        // Pre-compute current session UTC ranges (DST-aware) + their bezel position in the SELECTED zone
+        const ranges = SESSIONS.map(s => {
+            const u = sessionUtcRange(s, now);
+            const startInZone = ((u.startUtc + zOff) % 24 + 24) % 24;
+            const endInZone   = ((u.endUtc   + zOff) % 24 + 24) % 24;
+            return { name: s.name, lane: s.lane, startUtc: u.startUtc, endUtc: u.endUtc, startInZone, endInZone };
         });
 
-        // Hour hand
-        const timeAngle = hourToAngle(mskFrac);
-        const innermost = ringRadii[4] - arcW / 2 - 8;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + Math.cos(timeAngle) * innermost, cy + Math.sin(timeAngle) * innermost);
-        ctx.strokeStyle = textColor;
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.stroke();
+        // Clear (full redraw is cheap and safer)
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+        __pathId = 0;
 
-        // Minute hand
-        const minAngle = ((mskM / 60) * Math.PI * 2) - Math.PI / 2;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(cx + Math.cos(minAngle) * (innermost * 0.85), cy + Math.sin(minAngle) * (innermost * 0.85));
-        ctx.strokeStyle = midColor;
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'round';
-        ctx.stroke();
+        // === Outer 24h session bezel ===
+        svgEl('circle', { cx: CX, cy: CY, r: BEZEL_RIM,           fill: 'none', stroke: tok.dim, 'stroke-width': 0.6, opacity: 0.45 });
+        svgEl('circle', { cx: CX, cy: CY, r: LANE_RADII[4] - 6,   fill: 'none', stroke: tok.dim, 'stroke-width': 0.4, opacity: 0.30 });
 
-        // Second hand
-        const secAngle = ((mskS / 60) * Math.PI * 2) - Math.PI / 2;
-        ctx.beginPath();
-        ctx.moveTo(cx - Math.cos(secAngle) * 16, cy - Math.sin(secAngle) * 16);
-        ctx.lineTo(cx + Math.cos(secAngle) * (innermost * 0.7), cy + Math.sin(secAngle) * (innermost * 0.7));
-        ctx.strokeStyle = isDark ? '#aaa' : '#555';
-        ctx.lineWidth = 0.8;
-        ctx.lineCap = 'round';
-        ctx.stroke();
+        // 24h tick marks (every hour, longer every 3h)
+        for (let h = 0; h < 24; h++) {
+            const a = ang24(h);
+            const major = h % 3 === 0;
+            const [x0,y0] = pt(BEZEL_RIM, a);
+            const [x1,y1] = pt(BEZEL_RIM - (major ? 9 : 4), a);
+            svgEl('line', {
+                x1: x0, y1: y0, x2: x1, y2: y1,
+                stroke: tok.dim,
+                'stroke-width': major ? 0.9 : 0.5,
+                opacity: major ? 0.8 : 0.4
+            });
+        }
+        // Bezel hour labels in SELECTED-zone local hours (24 / 03 / 06 / 09 / 12 / 15 / 18 / 21)
+        for (let h = 0; h < 24; h += 3) {
+            const a = ang24(h);
+            const [lx, ly] = pt(BEZEL_RIM + 11, a);
+            const lab = (h === 0) ? '24' : String(h).padStart(2, '0');
+            svgEl('text', {
+                x: lx, y: ly, fill: tok.dim,
+                'font-size': 7.5, 'letter-spacing': '1.4',
+                'text-anchor': 'middle', 'dominant-baseline': 'middle',
+                opacity: 0.8
+            }, lab);
+        }
 
-        // Center dot
-        ctx.beginPath();
-        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
-        ctx.fillStyle = textColor;
-        ctx.fill();
+        // Session arcs (anchored to SELECTED-zone local hours; activity checked vs UTC)
+        ranges.forEach(r => {
+            const active = isActiveUtc(r, utcFrac);
+            const radius = LANE_RADII[r.lane];
+            let a0 = ang24(r.startInZone), a1 = ang24(r.endInZone);
+            if (r.endInZone <= r.startInZone) a1 += Math.PI * 2;
+            const w = active ? SESSION_W_ACT : SESSION_W_BASE;
+            const d = arcPath(radius, a0, a1, 1);
+            svgEl('path', {
+                d, fill: 'none',
+                stroke: active ? activeColor : dimTrack,
+                'stroke-width': w, 'stroke-linecap': 'butt'
+            });
+            const fontSize = active ? 7.5 : 6.5;
+            textOnArc(r.name, radius, a0, a1, active ? activeLabel : inactiveLabel, fontSize);
+        });
 
-        requestAnimationFrame(draw);
+        // "NOW" marker on the outer rim (selected-zone local time, small inward-pointing triangle)
+        const nowA = ang24(zoneFrac);
+        const [nax, nay] = pt(BEZEL_RIM - 2, nowA);
+        const [nlx, nly] = pt(BEZEL_RIM + 9, nowA - 0.035);
+        const [nrx, nry] = pt(BEZEL_RIM + 9, nowA + 0.035);
+        svgEl('polygon', {
+            points: `${nax},${nay} ${nlx},${nly} ${nrx},${nry}`,
+            fill: tok.txt
+        });
+
+        // === Inner 12h dial ===
+        svgEl('circle', { cx: CX, cy: CY, r: DIAL_RING_R, fill: 'none', stroke: tok.dim, 'stroke-width': 0.5, opacity: 0.4 });
+
+        // 60 minute ticks
+        for (let m = 0; m < 60; m++) {
+            const a = (m/60) * Math.PI * 2 - Math.PI / 2;
+            const major = m % 5 === 0;
+            const r0 = MINUTE_RING_R;
+            const r1 = MINUTE_RING_R - (major ? 6 : 3);
+            const [x0,y0] = pt(r0, a); const [x1,y1] = pt(r1, a);
+            svgEl('line', {
+                x1: x0, y1: y0, x2: x1, y2: y1,
+                stroke: major ? tok.txt : tok.dim,
+                'stroke-width': major ? 0.8 : 0.4,
+                opacity: major ? 0.65 : 0.4
+            });
+        }
+
+        // 12 Roman numerals — each rotated tangentially so the top points outward
+        for (let i = 0; i < 12; i++) {
+            const a = ang12(i);
+            const [x, y] = pt(ROMAN_R, a);
+            const rotDeg = (a * 180 / Math.PI) + 90;
+            svgEl('text', {
+                x, y,
+                'text-anchor': 'middle',
+                'dominant-baseline': 'middle',
+                'font-size': 15,
+                class: 'ms-roman',
+                fill: tok.txt,
+                opacity: 0.95,
+                transform: `rotate(${rotDeg} ${x} ${y})`
+            }, ROMANS[i]);
+        }
+
+        // Hands — classical 12-hour dial (hour hand = 2 revolutions per day)
+        const hA = ang12(zoneFrac % 12);
+        const mA = ((zoneM + zoneS/60) / 60) * Math.PI * 2 - Math.PI / 2;
+        const sA = ((zoneS + utcMs/1000) / 60) * Math.PI * 2 - Math.PI / 2;
+
+        const [htx, hty] = pt(-9, hA);
+        const [hx,  hy ] = pt(HAND_HOUR_R, hA);
+        svgEl('line', { x1: htx, y1: hty, x2: hx, y2: hy, stroke: handColor, 'stroke-width': 3.0, 'stroke-linecap': 'round' });
+
+        const [mtx, mty] = pt(-12, mA);
+        const [mxp, myp] = pt(HAND_MIN_R, mA);
+        svgEl('line', { x1: mtx, y1: mty, x2: mxp, y2: myp, stroke: handColor, 'stroke-width': 1.8, 'stroke-linecap': 'round' });
+
+        const [stx, sty] = pt(-15, sA);
+        const [sxp, syp] = pt(HAND_SEC_R, sA);
+        svgEl('line', { x1: stx, y1: sty, x2: sxp, y2: syp, stroke: handColor, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.85 });
+
+        // Centre pin
+        svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: handColor });
+        svgEl('circle', { cx: CX, cy: CY, r: 1.2, fill: tok.bg });
+
+        // ── Update HTML header / footer
+        const timeDigits = `${fmtH(zoneH)}:${String(zoneM).padStart(2, '0')}`;
+        const suffix = fmtOffset(zOff);
+        const tzLabel = zone.short;
+
+        document.getElementById('msTimeDigits').textContent = timeDigits;
+        document.getElementById('msTimeSuffix').textContent = suffix;
+        document.getElementById('msTzLabel').textContent = tzLabel;
+
+        const dom = dominantActive(ranges, utcFrac);
+        const activeLineEl = document.getElementById('msActiveLine');
+        const pulseEl = document.getElementById('msPulse');
+        const nextLineEl = document.getElementById('msNextLine');
+        if (dom) {
+            activeLineEl.innerHTML = `Active · <span class="ms-active-name">${dom.name}</span>`;
+            if (pulseEl) pulseEl.style.opacity = '';
+        } else {
+            activeLineEl.innerHTML = '— · Off hours';
+            if (pulseEl) pulseEl.style.opacity = '0.2';
+        }
+        const nx = nextSession(ranges, utcFrac);
+        if (nx) {
+            // Show next session's opening time in the SELECTED zone
+            const sH = Math.floor(nx.startInZone);
+            const sM = Math.round((nx.startInZone - sH) * 60);
+            nextLineEl.textContent = `Next · ${nx.name} ${fmtH(sH)}:${String(sM).padStart(2,'0')}`;
+        } else {
+            nextLineEl.textContent = '';
+        }
     }
-    draw();
+
+    // ── TZ selector
+    const tzBtn = document.getElementById('msTzBtn');
+    const tzPop = document.getElementById('msTzPop');
+
+    function buildDropdown() {
+        tzPop.innerHTML = '';
+        const now = new Date();
+        ZONES.forEach(z => {
+            const opt = document.createElement('div');
+            opt.className = 'ms-opt' + (z.id === currentZoneId ? ' active' : '');
+            opt.setAttribute('role', 'option');
+            opt.setAttribute('data-tz', z.id);
+            const off = getOffsetHours(z.iana, now);
+            opt.innerHTML = `<span>${z.label.toUpperCase()}</span><span class="ms-off">${fmtOffset(off)}</span>`;
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                currentZoneId = z.id;
+                try { localStorage.setItem('ms-tz', z.id); } catch (_) {}
+                buildDropdown();
+                closeDropdown();
+                render();
+            });
+            tzPop.appendChild(opt);
+        });
+    }
+    function openDropdown() {
+        tzPop.classList.add('open');
+        tzBtn.setAttribute('aria-expanded', 'true');
+    }
+    function closeDropdown() {
+        tzPop.classList.remove('open');
+        tzBtn.setAttribute('aria-expanded', 'false');
+    }
+    tzBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (tzPop.classList.contains('open')) closeDropdown(); else openDropdown();
+    });
+    document.addEventListener('click', (e) => {
+        if (!tzPop.contains(e.target) && e.target !== tzBtn) closeDropdown();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeDropdown();
+    });
+    buildDropdown();
+
+    // Re-render immediately when theme attribute flips
+    const themeObserver = new MutationObserver(() => render());
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // Initial render + animation loop (1Hz is enough; SVG is cheap)
+    render();
+    let lastSec = -1;
+    function loop() {
+        const s = new Date().getUTCSeconds();
+        if (s !== lastSec) {
+            lastSec = s;
+            render();
+        }
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
 }
 
 window.addEventListener('load', () => {
