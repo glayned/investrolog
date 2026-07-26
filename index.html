@@ -1190,7 +1190,9 @@ class ParticlesSystem {
         this.resize();
         window.addEventListener('resize', () => this.resize());
         window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-        window.addEventListener('mouseout', () => { this.mouse.x = null; this.mouse.y = null; });
+        window.addEventListener('mouseout', e => {
+            if (!e.relatedTarget) { this.mouse.x = null; this.mouse.y = null; }
+        });
         this.animate();
     }
     resize() {
