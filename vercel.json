@@ -2,7 +2,7 @@
   "redirects": [
     {
       "source": "/(.*)",
-      "destination": "https://www.investrolog.pro/$1",
+      "destination": "https://investrolog.pro/$1",
       "permanent": true
     }
   ]
