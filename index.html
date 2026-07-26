@@ -57,7 +57,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
         * {
@@ -805,6 +805,7 @@
             }
         }
     </style>
+    <noscript><style>.section{opacity:1;transform:none}</style></noscript>
 </head>
 <body>
 
@@ -1189,7 +1190,9 @@ class ParticlesSystem {
         this.resize();
         window.addEventListener('resize', () => this.resize());
         window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-        window.addEventListener('mouseout', () => { this.mouse.x = null; this.mouse.y = null; });
+        window.addEventListener('mouseout', e => {
+            if (!e.relatedTarget) { this.mouse.x = null; this.mouse.y = null; }
+        });
         this.animate();
     }
     resize() {
@@ -1241,11 +1244,11 @@ function initProjectCanvases() {
 
 function animateCOT(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     const bars = 20;
     let t = 0;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         const bw = W / (bars * 1.6);
         const gap = W / bars;
@@ -1277,10 +1280,10 @@ function animateCOT(canvas) {
 
 function animateVIX(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     let t = 0;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         // Contango curve
         ctx.beginPath();
@@ -1333,10 +1336,10 @@ function animateVIX(canvas) {
 
 function animateOptions(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     let t = 0;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         const strikes = 14;
         const sw = W / (strikes + 1);
@@ -1376,11 +1379,11 @@ function animateOptions(canvas) {
 
 function animateNG(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     let t = 0;
     const ensembles = 12;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         // Ensemble forecast paths
         for (let e = 0; e < ensembles; e++) {
@@ -1571,7 +1574,8 @@ function initSessionsClock() {
     }
 
     // Initial selection: saved choice > visitor autodetect > MSK fallback
-    let currentZoneId = localStorage.getItem('ms-tz') || '';
+    let currentZoneId = '';
+    try { currentZoneId = localStorage.getItem('ms-tz') || ''; } catch (_) {}
     if (!ZONES.find(z => z.id === currentZoneId)) {
         currentZoneId = detectVisitorZoneId();
     }
@@ -1929,7 +1933,7 @@ function initSessionsClock() {
     requestAnimationFrame(loop);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('load', () => {
     new ParticlesSystem();
     initProjectCanvases();
     initSessionsClock();
