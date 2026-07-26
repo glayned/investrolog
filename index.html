@@ -1571,7 +1571,8 @@ function initSessionsClock() {
     }
 
     // Initial selection: saved choice > visitor autodetect > MSK fallback
-    let currentZoneId = localStorage.getItem('ms-tz') || '';
+    let currentZoneId = '';
+    try { currentZoneId = localStorage.getItem('ms-tz') || ''; } catch (_) {}
     if (!ZONES.find(z => z.id === currentZoneId)) {
         currentZoneId = detectVisitorZoneId();
     }
