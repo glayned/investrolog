@@ -1241,11 +1241,11 @@ function initProjectCanvases() {
 
 function animateCOT(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     const bars = 20;
     let t = 0;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         const bw = W / (bars * 1.6);
         const gap = W / bars;
@@ -1277,10 +1277,10 @@ function animateCOT(canvas) {
 
 function animateVIX(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     let t = 0;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         // Contango curve
         ctx.beginPath();
@@ -1333,10 +1333,10 @@ function animateVIX(canvas) {
 
 function animateOptions(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     let t = 0;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         const strikes = 14;
         const sw = W / (strikes + 1);
@@ -1376,11 +1376,11 @@ function animateOptions(canvas) {
 
 function animateNG(canvas) {
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
     let t = 0;
     const ensembles = 12;
 
     function draw() {
+        const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
         // Ensemble forecast paths
         for (let e = 0; e < ensembles; e++) {
