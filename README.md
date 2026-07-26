@@ -1,9 +1,9 @@
-InvestroLog × DataMatrix
+InvestroLog × DataMatrix 
 проект о трейдинге, опционах, волатильности:
-t.me/investrolog
+https://investrolog.pro
 
 Матрица данных и рыночных реакций:
-https://investrolog.pro
+https://t.me/investrolog
 
 Алгоритмы × Музыка:
 трейдинг, словно симфония чисел
