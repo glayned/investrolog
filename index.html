@@ -1415,32 +1415,35 @@ function animateNG(canvas) {
 /* ════════════════════════════════════════
    THEME
 ════════════════════════════════════════ */
+const THEME_KEY = 'ms-theme';
+
+function setTheme(isDark) {
+  const html = document.documentElement;
+  const sunIcon = document.querySelector('.sun-icon');
+  const moonIcon = document.querySelector('.moon-icon');
+  if (isDark) {
+    html.setAttribute('data-theme', 'dark');
+    sunIcon.style.display = 'block'; moonIcon.style.display = 'none';
+  } else {
+    html.removeAttribute('data-theme');
+    sunIcon.style.display = 'none'; moonIcon.style.display = 'block';
+  }
+}
+
 function applyTheme() {
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const html = document.documentElement;
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    if (isDark) {
-        html.setAttribute('data-theme', 'dark');
-        sunIcon.style.display = 'block'; moonIcon.style.display = 'none';
-    } else {
-        html.removeAttribute('data-theme');
-        sunIcon.style.display = 'none'; moonIcon.style.display = 'block';
-    }
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+  if (saved === 'dark' || saved === 'light') {
+    setTheme(saved === 'dark');
+    return;
+  }
+  setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
 }
 
 function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    const sunIcon = document.querySelector('.sun-icon');
-    const moonIcon = document.querySelector('.moon-icon');
-    if (isDark) {
-        html.removeAttribute('data-theme');
-        sunIcon.style.display = 'none'; moonIcon.style.display = 'block';
-    } else {
-        html.setAttribute('data-theme', 'dark');
-        sunIcon.style.display = 'block'; moonIcon.style.display = 'none';
-    }
+  const willBeDark = document.documentElement.getAttribute('data-theme') !== 'dark';
+  setTheme(willBeDark);
+  try { localStorage.setItem(THEME_KEY, willBeDark ? 'dark' : 'light'); } catch (e) {}
 }
 
 /* ════════════════════════════════════════
