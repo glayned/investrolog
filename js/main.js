@@ -1,3 +1,6 @@
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isPageHidden = () => document.hidden;
+
 
 /* ════════════════════════════════════════
    TYPING SOUND
@@ -98,7 +101,7 @@ class Particle {
         if (mouse.x != null && mouse.y != null) {
             const dx = mouse.x - this.x, dy = mouse.y - this.y;
             const d = Math.sqrt(dx*dx + dy*dy);
-            if (d < mouse.radius) {
+            if (d > 0 && d < mouse.radius) {
                 const f = (mouse.radius - d) / mouse.radius;
                 this.x -= (dx/d) * f * 3;
                 this.y -= (dy/d) * f * 3;
@@ -108,8 +111,14 @@ class Particle {
         this.y += (this.baseY - this.y) * 0.05;
         this.baseX += this.speedX;
         this.baseY += this.speedY;
-        if (this.baseX < 0 || this.baseX > this.canvas.width) this.speedX *= -1;
-        if (this.baseY < 0 || this.baseY > this.canvas.height) this.speedY *= -1;
+        if (this.baseX < 0 || this.baseX > this.canvas.width) {
+            this.baseX = Math.max(0, Math.min(this.baseX, this.canvas.width));
+            this.speedX *= -1;
+        }
+        if (this.baseY < 0 || this.baseY > this.canvas.height) {
+            this.baseY = Math.max(0, Math.min(this.baseY, this.canvas.height));
+            this.speedY *= -1;
+        }
     }
     draw(ctx, isDark) {
         ctx.fillStyle = isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)';
@@ -126,7 +135,11 @@ class ParticlesSystem {
         this.particles = [];
         this.mouse = { x: null, y: null, radius: 140 };
         this.resize();
-        window.addEventListener('resize', () => this.resize());
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => this.resize(), 150);
+        });
         window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
         window.addEventListener('mouseout', e => {
             if (!e.relatedTarget) { this.mouse.x = null; this.mouse.y = null; }
@@ -142,15 +155,16 @@ class ParticlesSystem {
     }
     animate() {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isPageHidden()) { requestAnimationFrame(() => this.animate()); return; }
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.particles.forEach((p, i) => {
             p.update(this.mouse);
             p.draw(this.ctx, isDark);
             for (let j = i+1; j < this.particles.length; j++) {
                 const dx = this.particles[j].x - p.x, dy = this.particles[j].y - p.y;
-                const d = Math.sqrt(dx*dx + dy*dy);
-                if (d < 110) {
-                    const op = (1 - d/110) * 0.25;
+                const d2 = dx*dx + dy*dy;
+                if (d2 < 110 * 110) {
+                    const op = (1 - Math.sqrt(d2)/110) * 0.25;
                     this.ctx.strokeStyle = isDark ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
                     this.ctx.lineWidth = 0.5;
                     this.ctx.beginPath();
@@ -160,7 +174,7 @@ class ParticlesSystem {
                 }
             }
         });
-        requestAnimationFrame(() => this.animate());
+        if (!prefersReducedMotion) requestAnimationFrame(() => this.animate());
     }
 }
 
@@ -201,7 +215,6 @@ function animateCOT(canvas) {
             ctx.lineWidth = 1;
             ctx.strokeRect(x, H - h - H*0.1, bw, h);
         }
-        // Moving average line
         ctx.beginPath();
         ctx.strokeStyle = '#f39c1299';
         ctx.lineWidth = 1.5;
@@ -211,7 +224,7 @@ function animateCOT(canvas) {
         }
         ctx.stroke();
         t += 0.015;
-        requestAnimationFrame(draw);
+        if (!prefersReducedMotion) requestAnimationFrame(draw);
     }
     draw();
 }
@@ -223,7 +236,6 @@ function animateVIX(canvas) {
     function draw() {
         const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
-        // Contango curve
         ctx.beginPath();
         const grad = ctx.createLinearGradient(0, 0, W, 0);
         grad.addColorStop(0, '#3498db');
@@ -238,7 +250,6 @@ function animateVIX(canvas) {
             if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
         ctx.stroke();
-        // Fill under curve
         ctx.beginPath();
         const gradFill = ctx.createLinearGradient(0, 0, 0, H);
         gradFill.addColorStop(0, 'rgba(52,152,219,0.15)');
@@ -252,7 +263,6 @@ function animateVIX(canvas) {
             if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
         }
         ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
-        // Scatter dots (term structure nodes)
         const months = 6;
         for (let i = 0; i < months; i++) {
             const pct = (i + 0.5) / months;
@@ -267,7 +277,7 @@ function animateVIX(canvas) {
             ctx.stroke();
         }
         t += 0.01;
-        requestAnimationFrame(draw);
+        if (!prefersReducedMotion) requestAnimationFrame(draw);
     }
     draw();
 }
@@ -281,23 +291,19 @@ function animateOptions(canvas) {
         ctx.clearRect(0, 0, W, H);
         const strikes = 14;
         const sw = W / (strikes + 1);
-        // Max pain highlight
         const maxPainIdx = 7;
         ctx.fillStyle = 'rgba(243,156,18,0.08)';
         ctx.fillRect(maxPainIdx * sw - sw/2, 0, sw, H);
 
         for (let i = 1; i <= strikes; i++) {
             const x = i * sw;
-            // Calls (green)
             const callH = (0.1 + 0.6 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx) / 6), 1.4) + Math.sin(t + i) * 0.03) * H * 0.75;
             ctx.fillStyle = 'rgba(46,204,113,0.55)';
             ctx.fillRect(x - sw*0.28, H - callH - H*0.08, sw*0.25, callH);
-            // Puts (red)
             const putH = (0.08 + 0.5 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx + 1) / 6), 1.3) + Math.cos(t * 1.1 + i) * 0.03) * H * 0.75;
             ctx.fillStyle = 'rgba(231,76,60,0.55)';
             ctx.fillRect(x + sw*0.03, H - putH - H*0.08, sw*0.25, putH);
         }
-        // IV smile curve
         ctx.beginPath();
         ctx.strokeStyle = '#f39c1288';
         ctx.lineWidth = 1.5;
@@ -310,7 +316,7 @@ function animateOptions(canvas) {
         ctx.stroke();
         ctx.setLineDash([]);
         t += 0.02;
-        requestAnimationFrame(draw);
+        if (!prefersReducedMotion) requestAnimationFrame(draw);
     }
     draw();
 }
@@ -323,7 +329,6 @@ function animateNG(canvas) {
     function draw() {
         const W = canvas.width, H = canvas.height;
         ctx.clearRect(0, 0, W, H);
-        // Ensemble forecast paths
         for (let e = 0; e < ensembles; e++) {
             ctx.beginPath();
             const alpha = 0.12 + (e === Math.floor(ensembles/2) ? 0.5 : 0);
@@ -340,7 +345,6 @@ function animateNG(canvas) {
             }
             ctx.stroke();
         }
-        // Signal markers
         const sigX = [(W*0.25), (W*0.5), (W*0.78)];
         sigX.forEach((sx, idx) => {
             const sy = H * 0.5 - H * 0.1 * (sx/W) + Math.sin(sx/W * 5 + t) * H * 0.08;
@@ -354,7 +358,7 @@ function animateNG(canvas) {
             ctx.stroke();
         });
         t += 0.012;
-        requestAnimationFrame(draw);
+        if (!prefersReducedMotion) requestAnimationFrame(draw);
     }
     draw();
 }
@@ -590,7 +594,6 @@ function initSessionsClock() {
         return utcFrac >= range.startUtc || utcFrac < range.endUtc;
     }
     function dominantActive(ranges, utcFrac) {
-        // Trader priority — LONDON / NEW YORK headline when active, otherwise first active session
         const priority = ['LONDON', 'NEW YORK', 'MOSCOW', 'TOKYO', 'SYDNEY'];
         for (const name of priority) {
             const r = ranges.find(x => x.name === name);
@@ -652,7 +655,6 @@ function initSessionsClock() {
         const zoneM = Math.floor((zoneFrac - zoneH) * 60);
         const zoneS = utcS;
 
-        // Pre-compute current session UTC ranges (DST-aware) + their bezel position in the SELECTED zone
         const ranges = SESSIONS.map(s => {
             const u = sessionUtcRange(s, now);
             const startInZone = ((u.startUtc + zOff) % 24 + 24) % 24;
@@ -660,231 +662,110 @@ function initSessionsClock() {
             return { name: s.name, lane: s.lane, startUtc: u.startUtc, endUtc: u.endUtc, startInZone, endInZone };
         });
 
-        // Clear (full redraw is cheap and safer)
         while (svg.firstChild) svg.removeChild(svg.firstChild);
         __pathId = 0;
 
-        // === Outer 24h session bezel ===
-        svgEl('circle', { cx: CX, cy: CY, r: BEZEL_RIM,           fill: 'none', stroke: tok.dim, 'stroke-width': 0.6, opacity: 0.45 });
-        svgEl('circle', { cx: CX, cy: CY, r: LANE_RADII[4] - 6,   fill: 'none', stroke: tok.dim, 'stroke-width': 0.4, opacity: 0.30 });
-
-        // 24h tick marks (every hour, longer every 3h)
+        svgEl('circle', { cx: CX, cy: CY, r: BEZEL_RIM, fill: 'none', stroke: tok.dim, 'stroke-width': 0.6, opacity: 0.45 });
+        svgEl('circle', { cx: CX, cy: CY, r: LANE_RADII[4] - 6, fill: 'none', stroke: tok.dim, 'stroke-width': 0.4, opacity: 0.30 });
         for (let h = 0; h < 24; h++) {
             const a = ang24(h);
             const major = h % 3 === 0;
             const [x0,y0] = pt(BEZEL_RIM, a);
             const [x1,y1] = pt(BEZEL_RIM - (major ? 9 : 4), a);
-            svgEl('line', {
-                x1: x0, y1: y0, x2: x1, y2: y1,
-                stroke: tok.dim,
-                'stroke-width': major ? 0.9 : 0.5,
-                opacity: major ? 0.8 : 0.4
-            });
+            svgEl('line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: tok.dim, 'stroke-width': major ? 0.9 : 0.5, opacity: major ? 0.8 : 0.4 });
         }
-        // Bezel hour labels in SELECTED-zone local hours (24 / 03 / 06 / 09 / 12 / 15 / 18 / 21)
         for (let h = 0; h < 24; h += 3) {
             const a = ang24(h);
             const [lx, ly] = pt(BEZEL_RIM + 11, a);
             const lab = (h === 0) ? '24' : String(h).padStart(2, '0');
-            svgEl('text', {
-                x: lx, y: ly, fill: tok.dim,
-                'font-size': 7.5, 'letter-spacing': '1.4',
-                'text-anchor': 'middle', 'dominant-baseline': 'middle',
-                opacity: 0.8
-            }, lab);
+            svgEl('text', { x: lx, y: ly, fill: tok.dim, 'font-size': 7.5, 'letter-spacing': '1.4', 'text-anchor': 'middle', 'dominant-baseline': 'middle', opacity: 0.8 }, lab);
         }
-
-        // Session arcs (anchored to SELECTED-zone local hours; activity checked vs UTC)
         ranges.forEach(r => {
             const active = isActiveUtc(r, utcFrac);
             const radius = LANE_RADII[r.lane];
             let a0 = ang24(r.startInZone), a1 = ang24(r.endInZone);
             if (r.endInZone <= r.startInZone) a1 += Math.PI * 2;
-            const w = active ? SESSION_W_ACT : SESSION_W_BASE;
-            const d = arcPath(radius, a0, a1, 1);
-            svgEl('path', {
-                d, fill: 'none',
-                stroke: active ? activeColor : dimTrack,
-                'stroke-width': w, 'stroke-linecap': 'butt'
-            });
-            const fontSize = active ? 7.5 : 6.5;
-            textOnArc(r.name, radius, a0, a1, active ? activeLabel : inactiveLabel, fontSize);
+            svgEl('path', { d: arcPath(radius, a0, a1, 1), fill: 'none', stroke: active ? activeColor : dimTrack, 'stroke-width': active ? SESSION_W_ACT : SESSION_W_BASE, 'stroke-linecap': 'butt' });
+            textOnArc(r.name, radius, a0, a1, active ? activeLabel : inactiveLabel, active ? 7.5 : 6.5);
         });
-
-        // "NOW" marker on the outer rim (selected-zone local time, small inward-pointing triangle)
         const nowA = ang24(zoneFrac);
         const [nax, nay] = pt(BEZEL_RIM - 2, nowA);
         const [nlx, nly] = pt(BEZEL_RIM + 9, nowA - 0.035);
         const [nrx, nry] = pt(BEZEL_RIM + 9, nowA + 0.035);
-        svgEl('polygon', {
-            points: `${nax},${nay} ${nlx},${nly} ${nrx},${nry}`,
-            fill: tok.txt
-        });
-
-        // === Inner 12h dial ===
+        svgEl('polygon', { points: `${nax},${nay} ${nlx},${nly} ${nrx},${nry}`, fill: tok.txt });
         svgEl('circle', { cx: CX, cy: CY, r: DIAL_RING_R, fill: 'none', stroke: tok.dim, 'stroke-width': 0.5, opacity: 0.4 });
-
-        // 60 minute ticks
         for (let m = 0; m < 60; m++) {
             const a = (m/60) * Math.PI * 2 - Math.PI / 2;
             const major = m % 5 === 0;
-            const r0 = MINUTE_RING_R;
-            const r1 = MINUTE_RING_R - (major ? 6 : 3);
-            const [x0,y0] = pt(r0, a); const [x1,y1] = pt(r1, a);
-            svgEl('line', {
-                x1: x0, y1: y0, x2: x1, y2: y1,
-                stroke: major ? tok.txt : tok.dim,
-                'stroke-width': major ? 0.8 : 0.4,
-                opacity: major ? 0.65 : 0.4
-            });
+            const [x0,y0] = pt(MINUTE_RING_R, a); const [x1,y1] = pt(MINUTE_RING_R - (major ? 6 : 3), a);
+            svgEl('line', { x1: x0, y1: y0, x2: x1, y2: y1, stroke: major ? tok.txt : tok.dim, 'stroke-width': major ? 0.8 : 0.4, opacity: major ? 0.65 : 0.4 });
         }
-
-        // 12 Roman numerals — each rotated tangentially so the top points outward
         for (let i = 0; i < 12; i++) {
-            const a = ang12(i);
-            const [x, y] = pt(ROMAN_R, a);
-            const rotDeg = (a * 180 / Math.PI) + 90;
-            svgEl('text', {
-                x, y,
-                'text-anchor': 'middle',
-                'dominant-baseline': 'middle',
-                'font-size': 15,
-                class: 'ms-roman',
-                fill: tok.txt,
-                opacity: 0.95,
-                transform: `rotate(${rotDeg} ${x} ${y})`
-            }, ROMANS[i]);
+            const a = ang12(i); const [x, y] = pt(ROMAN_R, a); const rotDeg = (a * 180 / Math.PI) + 90;
+            svgEl('text', { x, y, 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-size': 15, class: 'ms-roman', fill: tok.txt, opacity: 0.95, transform: `rotate(${rotDeg} ${x} ${y})` }, ROMANS[i]);
         }
-
-        // Hands — classical 12-hour dial (hour hand = 2 revolutions per day)
         const hA = ang12(zoneFrac % 12);
         const mA = ((zoneM + zoneS/60) / 60) * Math.PI * 2 - Math.PI / 2;
         const sA = ((zoneS + utcMs/1000) / 60) * Math.PI * 2 - Math.PI / 2;
-
-        const [htx, hty] = pt(-9, hA);
-        const [hx,  hy ] = pt(HAND_HOUR_R, hA);
+        const [htx, hty] = pt(-9, hA); const [hx, hy] = pt(HAND_HOUR_R, hA);
         svgEl('line', { x1: htx, y1: hty, x2: hx, y2: hy, stroke: handColor, 'stroke-width': 3.0, 'stroke-linecap': 'round' });
-
-        const [mtx, mty] = pt(-12, mA);
-        const [mxp, myp] = pt(HAND_MIN_R, mA);
+        const [mtx, mty] = pt(-12, mA); const [mxp, myp] = pt(HAND_MIN_R, mA);
         svgEl('line', { x1: mtx, y1: mty, x2: mxp, y2: myp, stroke: handColor, 'stroke-width': 1.8, 'stroke-linecap': 'round' });
-
-        const [stx, sty] = pt(-15, sA);
-        const [sxp, syp] = pt(HAND_SEC_R, sA);
+        const [stx, sty] = pt(-15, sA); const [sxp, syp] = pt(HAND_SEC_R, sA);
         svgEl('line', { x1: stx, y1: sty, x2: sxp, y2: syp, stroke: handColor, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.85 });
-
-        // Centre pin
         svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: handColor });
         svgEl('circle', { cx: CX, cy: CY, r: 1.2, fill: tok.bg });
 
-        // ── Update HTML header / footer
-        const timeDigits = `${fmtH(zoneH)}:${String(zoneM).padStart(2, '0')}`;
-        const suffix = fmtOffset(zOff);
-        const tzLabel = zone.short;
-
-        document.getElementById('msTimeDigits').textContent = timeDigits;
-        document.getElementById('msTimeSuffix').textContent = suffix;
-        document.getElementById('msTzLabel').textContent = tzLabel;
-
+        document.getElementById('msTimeDigits').textContent = `${fmtH(zoneH)}:${String(zoneM).padStart(2, '0')}`;
+        document.getElementById('msTimeSuffix').textContent = fmtOffset(zOff);
+        document.getElementById('msTzLabel').textContent = zone.short;
         const dom = dominantActive(ranges, utcFrac);
         const activeLineEl = document.getElementById('msActiveLine');
         const pulseEl = document.getElementById('msPulse');
         const nextLineEl = document.getElementById('msNextLine');
-        if (dom) {
-            activeLineEl.innerHTML = `Active · <span class="ms-active-name">${dom.name}</span>`;
-            if (pulseEl) pulseEl.style.opacity = '';
-        } else {
-            activeLineEl.innerHTML = '— · Off hours';
-            if (pulseEl) pulseEl.style.opacity = '0.2';
-        }
+        if (dom) { activeLineEl.innerHTML = `Active · <span class="ms-active-name">${dom.name}</span>`; if (pulseEl) pulseEl.style.opacity = ''; }
+        else { activeLineEl.innerHTML = '— · Off hours'; if (pulseEl) pulseEl.style.opacity = '0.2'; }
         const nx = nextSession(ranges, utcFrac);
-        if (nx) {
-            // Show next session's opening time in the SELECTED zone
-            const sH = Math.floor(nx.startInZone);
-            const sM = Math.round((nx.startInZone - sH) * 60);
-            nextLineEl.textContent = `Next · ${nx.name} ${fmtH(sH)}:${String(sM).padStart(2,'0')}`;
-        } else {
-            nextLineEl.textContent = '';
-        }
+        if (nx) { const sH = Math.floor(nx.startInZone); const sM = Math.round((nx.startInZone - sH) * 60); nextLineEl.textContent = `Next · ${nx.name} ${fmtH(sH)}:${String(sM).padStart(2,'0')}`; }
+        else nextLineEl.textContent = '';
     }
 
-    // ── TZ selector
     const tzBtn = document.getElementById('msTzBtn');
     const tzPop = document.getElementById('msTzPop');
-
     function buildDropdown() {
         tzPop.innerHTML = '';
         const now = new Date();
         ZONES.forEach(z => {
             const opt = document.createElement('div');
             opt.className = 'ms-opt' + (z.id === currentZoneId ? ' active' : '');
-            opt.setAttribute('role', 'option');
-            opt.setAttribute('data-tz', z.id);
+            opt.setAttribute('role', 'option'); opt.setAttribute('data-tz', z.id);
             const off = getOffsetHours(z.iana, now);
             opt.innerHTML = `<span>${z.label.toUpperCase()}</span><span class="ms-off">${fmtOffset(off)}</span>`;
-            opt.addEventListener('click', (e) => {
-                e.stopPropagation();
-                currentZoneId = z.id;
-                try { localStorage.setItem('ms-tz', z.id); } catch (_) {}
-                buildDropdown();
-                closeDropdown();
-                render();
-            });
+            opt.addEventListener('click', (e) => { e.stopPropagation(); currentZoneId = z.id; try { localStorage.setItem('ms-tz', z.id); } catch (_) {} buildDropdown(); closeDropdown(); render(); });
             tzPop.appendChild(opt);
         });
     }
-    function openDropdown() {
-        tzPop.classList.add('open');
-        tzBtn.setAttribute('aria-expanded', 'true');
-    }
-    function closeDropdown() {
-        tzPop.classList.remove('open');
-        tzBtn.setAttribute('aria-expanded', 'false');
-    }
-    tzBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (tzPop.classList.contains('open')) closeDropdown(); else openDropdown();
-    });
-    document.addEventListener('click', (e) => {
-        if (!tzPop.contains(e.target) && e.target !== tzBtn) closeDropdown();
-    });
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeDropdown();
-    });
+    function openDropdown() { tzPop.classList.add('open'); tzBtn.setAttribute('aria-expanded', 'true'); }
+    function closeDropdown() { tzPop.classList.remove('open'); tzBtn.setAttribute('aria-expanded', 'false'); }
+    tzBtn.addEventListener('click', (e) => { e.stopPropagation(); if (tzPop.classList.contains('open')) closeDropdown(); else openDropdown(); });
+    document.addEventListener('click', (e) => { if (!tzPop.contains(e.target) && e.target !== tzBtn) closeDropdown(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDropdown(); });
     buildDropdown();
-
-    // Re-render immediately when theme attribute flips
     const themeObserver = new MutationObserver(() => render());
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
-    // Initial render + animation loop (1Hz is enough; SVG is cheap)
     render();
-    let lastSec = -1;
-    function loop() {
-        const s = new Date().getUTCSeconds();
-        if (s !== lastSec) {
-            lastSec = s;
-            render();
-        }
-        requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+    window.setInterval(render, 1000);
 }
 
 window.addEventListener('load', () => {
     new ParticlesSystem();
     initProjectCanvases();
     initSessionsClock();
-
-    // Re-init canvases on resize
     let resizeTimer;
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            document.querySelectorAll('.proj-canvas').forEach(c => {
-                c.width = c.parentElement.offsetWidth;
-                c.height = c.parentElement.offsetHeight;
-            });
+            document.querySelectorAll('.proj-canvas').forEach(c => { c.width = c.parentElement.offsetWidth; c.height = c.parentElement.offsetHeight; });
         }, 400);
     });
 });
