@@ -303,11 +303,15 @@ function animateCOT(canvas) {
         for (let i = 0; i < bars; i++) {
             const x = i * gap + gap * 0.3;
             const h = (0.35 + 0.45 * Math.abs(Math.sin(i * 0.7 + t))) * H * 0.7;
-            const isUp = Math.sin(i * 0.9 + t * 0.3) > 0;
-            const color = isUp ? '#2ecc71' : '#e74c3c';
-            ctx.fillStyle = color + '99';
+            // Smooth red↔green crossfade instead of a hard flip
+            const s = Math.sin(i * 0.9 + t * 0.3);
+            const mix = Math.min(1, Math.max(0, (s + 0.3) / 0.6));
+            const rC = Math.round(231 + (46 - 231) * mix);
+            const gC = Math.round(76 + (204 - 76) * mix);
+            const bC = Math.round(60 + (113 - 60) * mix);
+            ctx.fillStyle = `rgba(${rC},${gC},${bC},0.6)`;
             ctx.fillRect(x, H - h - H*0.1, bw, h);
-            ctx.strokeStyle = color;
+            ctx.strokeStyle = `rgb(${rC},${gC},${bC})`;
             ctx.lineWidth = 1;
             ctx.strokeRect(x, H - h - H*0.1, bw, h);
         }
@@ -320,7 +324,7 @@ function animateCOT(canvas) {
             if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
         }
         ctx.stroke();
-        t += 0.015;
+        t += 0.008;
     };
 }
 
