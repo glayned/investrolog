@@ -60,16 +60,17 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Syne:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="favicon.ico" rel="icon" type="image/x-icon"/>
+<script>try{var t=localStorage.getItem('ms-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}}catch(e){}</script>
 <link href="css/styles.css" rel="stylesheet"/>
-<noscript><style>.section{opacity:1;transform:none}</style></noscript>
+<noscript><style>.section,.skill-card,.project-card{opacity:1;transform:none}</style></noscript>
 </head>
 <body>
 <canvas id="particles-canvas"></canvas>
 <div class="container">
 <!-- ── HEADER ── -->
 <header>
-<div class="logo" onclick="triggerCodeAnimation()" title="Click me">
-<svg class="logo-icon" fill="none" height="28" viewbox="0 0 32 32" width="28" xmlns="http://www.w3.org/2000/svg">
+<div class="logo" onclick="triggerCodeAnimation()" role="button" tabindex="0" aria-label="Показать анимацию кода" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();triggerCodeAnimation()}" title="Click me">
+<svg class="logo-icon" fill="none" height="28" viewBox="0 0 32 32" width="28" xmlns="http://www.w3.org/2000/svg">
 <!-- Candlestick / chart icon -->
 <rect fill="none" height="10" rx="1" stroke="currentColor" stroke-width="1.8" width="4" x="4" y="14"></rect>
 <line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="6" x2="6" y1="10" y2="14"></line>
@@ -84,20 +85,20 @@
 <pre class="code-text" id="codeText"></pre>
 </div>
 <div class="header-controls">
-<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-<svg class="theme-icon sun-icon" fill="none" height="22" style="display:none;" viewbox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Переключить тему">
+<svg class="theme-icon sun-icon" fill="none" height="22" style="display:none;" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
 <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="2"></circle>
 <path d="M16 4V6M16 26V28M28 16H26M6 16H4M24.485 7.515L23.071 8.929M8.929 23.071L7.515 24.485M24.485 24.485L23.071 23.071M8.929 8.929L7.515 7.515" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
 </svg>
-<svg class="theme-icon moon-icon" fill="none" height="22" viewbox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<svg class="theme-icon moon-icon" fill="none" height="22" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
 <path d="M28 17.053A11 11 0 1 1 14.947 4 8.5 8.5 0 0 0 28 17.053z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 </button>
-<button class="music-toggle" onclick="toggleMusic()" title="Toggle music">
-<svg class="music-icon play-icon" fill="none" height="22" viewbox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<button class="music-toggle" onclick="toggleMusic()" title="Toggle music" aria-label="Включить или выключить музыку" aria-pressed="false">
+<svg class="music-icon play-icon" fill="none" height="22" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
 <path d="M10 8L24 16L10 24V8Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
-<svg class="music-icon pause-icon" fill="none" height="22" style="display:none;" viewbox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<svg class="music-icon pause-icon" fill="none" height="22" style="display:none;" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
 <path d="M12 8V24M20 8V24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 </button>
@@ -118,7 +119,7 @@
 <div class="cta-buttons">
 <a class="btn" href="#projects">Рабочие проекты</a>
 <a class="btn" href="#contact">Связаться</a>
-<a class="btn" href="https://pay.cloudtips.ru/p/1f99d686" target="_blank">Донат</a>
+<a class="btn" href="https://pay.cloudtips.ru/p/1f99d686" rel="noopener noreferrer" target="_blank">Донат</a>
 </div>
 </div>
 <div class="hero-widget">
@@ -141,7 +142,7 @@
 </div>
 </div>
 <div class="ms-dial">
-<svg aria-hidden="true" id="msDial" viewbox="0 0 400 400"></svg>
+<svg aria-hidden="true" id="msDial" viewBox="0 0 400 400"></svg>
 </div>
 <div class="ms-foot">
 <span><span class="ms-pulse" id="msPulse"></span><span id="msActiveLine">— · OFF HOURS</span></span>
@@ -253,15 +254,15 @@
 <span class="section-label">Связь</span>
 <h2 class="section-title">Контакты</h2>
 <div class="contact-info">
-<a class="contact-item" href="https://t.me/investrolog" target="_blank">
-<svg fill="none" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<a class="contact-item" href="https://t.me/investrolog" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
 <path d="M21 2L14 21L10 13L2 9L21 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 <path d="M10 13L21 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 <span>Telegram</span>
 </a>
-<a class="contact-item" href="https://t.me/+B1HexV7AX1Q1ZDRi" target="_blank">
-<svg fill="none" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<a class="contact-item" href="https://t.me/+B1HexV7AX1Q1ZDRi" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
 <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle>
 <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
@@ -269,21 +270,21 @@
 </svg>
 <span>Наш чат</span>
 </a>
-<a class="contact-item" href="https://teletype.in/@dm1trymaltsev" target="_blank">
-<svg fill="none" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<a class="contact-item" href="https://teletype.in/@dm1trymaltsev" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
 <path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 <span>Teletype</span>
 </a>
-<a class="contact-item" href="https://bastyon.com/dimaltcev" target="_blank">
-<svg fill="none" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<a class="contact-item" href="https://bastyon.com/dimaltcev" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
 <path d="M12 8v4l3 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
 </svg>
 <span>Bastyon</span>
 </a>
 <a class="contact-item" href="mailto:dmitry.maltcev@icloud.com">
-<svg fill="none" height="20" viewbox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
 <rect height="16" rx="2" stroke="currentColor" stroke-width="2" width="20" x="2" y="4"></rect>
 <path d="M22 7L12 13L2 7" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
 </svg>
@@ -296,6 +297,6 @@
 <span class="footer-tagline">Трейдинг, словно симфония чисел.</span>
 </footer>
 </div><!-- /container -->
-<script defer="True" src="js/main.js"></script>
+<script defer src="js/main.js"></script>
 </body>
 </html>
