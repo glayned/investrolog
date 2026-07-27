@@ -161,8 +161,9 @@
         }
 
         /* ── HERO ── */
+        /* нижний отступ компенсирует высоту COT-ленты в виджете */
         .hero {
-            padding: 30px 0 60px;
+            padding: 30px 0 0;
             animation: fadeIn 2s ease;
             display: flex;
             align-items: flex-start;
@@ -333,8 +334,8 @@
         }
         /* ── COT percentile strip ── */
         .ms-cot {
-            margin-top: 14px;
-            padding: 12px 4px 2px;
+            margin-top: 10px;
+            padding: 10px 4px 0;
             border-top: 1px solid var(--border);
             font-family: 'IBM Plex Mono', monospace;
             text-transform: uppercase;
@@ -783,7 +784,7 @@
         @media (max-width: 768px) {
             .container { padding: 15px; }
             header { padding: 20px 0; }
-            .hero { padding: 40px 0 40px; }
+            .hero { padding: 40px 0 12px; }
             .hero h1 { letter-spacing: -1px; }
             .hero .subtitle { font-size: 14px; }
             .hero .description { font-size: 15px; }
