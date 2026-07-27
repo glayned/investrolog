@@ -303,9 +303,11 @@ function animateCOT(canvas) {
         for (let i = 0; i < bars; i++) {
             const x = i * gap + gap * 0.3;
             const h = (0.35 + 0.45 * Math.abs(Math.sin(i * 0.7 + t))) * H * 0.7;
-            // Smooth red↔green crossfade instead of a hard flip
-            const s = Math.sin(i * 0.9 + t * 0.3);
-            const mix = Math.min(1, Math.max(0, (s + 0.3) / 0.6));
+            // Continuous red↔green crossfade: colour follows the full sine wave,
+            // eased with smoothstep, so each bar drifts gradually between colours
+            const s = Math.sin(i * 0.9 + t * 0.15);
+            const m = 0.5 + 0.5 * s;
+            const mix = m * m * (3 - 2 * m);
             const rC = Math.round(231 + (46 - 231) * mix);
             const gC = Math.round(76 + (204 - 76) * mix);
             const bC = Math.round(60 + (113 - 60) * mix);
@@ -324,7 +326,7 @@ function animateCOT(canvas) {
             if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
         }
         ctx.stroke();
-        t += 0.008;
+        t += 0.006;
     };
 }
 
