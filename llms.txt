@@ -20,7 +20,13 @@ Main topics:
 - VIX term structure
 - Implied volatility
 - Natural gas market analysis
+- Volume and ETF flow alerts (intraday)
+- Market Desk: liquidity map, support/resistance levels, VWAP/ATR context
+- Crowd sentiment tracking (contrarian analysis)
+- AI assistant for signal explanation and education
 - Python automation
 - AI agents for market analysis
+
+The trading system spans three time horizons: weeks (COT positioning of large players), days (options structure: ΔOI, Net GEX, Max Pain, IV/HV), and minutes (volume spikes and ETF flow). Signals arise where independent layers agree.
 
 This project is educational and research-oriented. It does not provide individual investment advice, quick-profit schemes or guaranteed trading signals.
