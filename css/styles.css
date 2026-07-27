@@ -331,6 +331,48 @@
             vertical-align: middle;
             animation: msPulse 2s infinite ease-in-out;
         }
+        /* ── COT percentile strip ── */
+        .ms-cot {
+            margin-top: 14px;
+            padding: 12px 4px 2px;
+            border-top: 1px solid var(--border);
+            font-family: 'IBM Plex Mono', monospace;
+            text-transform: uppercase;
+        }
+        .ms-cot-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+        .ms-cot-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .ms-cot-item {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+        .ms-cot-sym {
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+        }
+        .ms-cot-val {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+        .ms-cot-val.ext { color: #f39c12; }
+
         @keyframes msPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.35; transform: scale(0.85); }
