@@ -15,15 +15,14 @@ https://t.me/Dm1tryMaltsev
 
 Main topics:
 - Trading research
-- Options analytics
-- COT reports
-- VIX term structure
-- Implied volatility
-- Natural gas market analysis
-- Volume and ETF flow alerts (intraday)
-- Market Desk: liquidity map, support/resistance levels, VWAP/ATR context
-- Crowd sentiment tracking (contrarian analysis)
-- AI assistant for signal explanation and education
+- COT Terminal: CFTC positioning of funds and hedgers, extremes
+- Options Dashboard: Delta metrics, UOA, Premium Flow, Rolling ΔOI Timeline, Risk Reversal, Max Pain, IV/HV, Net GEX
+- VIX term structure and implied volatility (contango, backwardation, IV crush, GARCH)
+- Natural gas market analysis (Henry Hub, EIA, CME, ECMWF weather ensembles)
+- Cloud Alerts: intraday volume spikes, flow in liquid instruments (NG, SILV, COCOA) and ETF (BOIL/KOLD), TAS windows
+- Market Desk: liquidity map, support/resistance levels with test history, VWAP/ATR context, stops and if-then plans
+- Sentiment Track: crowd sentiment from foreign platforms, bear/bull balance, volume z-scores, panic extremes (contrarian analysis)
+- AI Assistant (in development): explains module signals, helps with education and the library
 - Python automation
 - AI agents for market analysis
 
