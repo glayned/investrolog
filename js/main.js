@@ -1092,7 +1092,11 @@ function initToTop() {
     const update = () => {
         ticking = false;
         const max = document.documentElement.scrollHeight - window.innerHeight;
-        btn.classList.toggle('visible', max > 0 && window.scrollY > max * 0.6);
+        // Opacity ramps smoothly from 0 at 50% scroll to 1 at 80%
+        const p = max > 0 ? Math.min(1, Math.max(0, (window.scrollY / max - 0.5) / 0.3)) : 0;
+        btn.style.opacity = p;
+        btn.style.transform = `translateY(${(1 - p) * 8}px)`;
+        btn.classList.toggle('visible', p > 0);
     };
     const requestUpdate = () => {
         if (!ticking) { ticking = true; requestAnimationFrame(update); }

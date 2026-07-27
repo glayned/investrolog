@@ -873,16 +873,17 @@
             z-index: 900;
             opacity: 0;
             visibility: hidden;
-            transform: translateY(10px);
-            transition: opacity 0.35s ease, visibility 0.35s ease,
-                        transform 0.35s ease, border-color 0.2s ease,
-                        background 0.2s ease, color 0.2s ease;
+            transform: translateY(8px);
+            transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
         }
-        .to-top.visible { opacity: 1; visibility: visible; transform: none; }
-        .to-top:hover {
-            border-color: var(--text-primary);
-            background: var(--text-primary);
-            color: var(--bg-primary);
+        .to-top.visible { visibility: visible; }
+        /* hover-инверсия только на устройствах с курсором — на тачах :hover «залипает» после нажатия */
+        @media (hover: hover) {
+            .to-top:hover {
+                border-color: var(--text-primary);
+                background: var(--text-primary);
+                color: var(--bg-primary);
+            }
         }
         @media (max-width: 768px) {
             .to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; }
