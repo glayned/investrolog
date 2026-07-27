@@ -400,12 +400,14 @@ function animateOptions(canvas) {
 
         for (let i = 1; i <= strikes; i++) {
             const x = i * sw;
-            // Calls (green)
-            const callH = (0.1 + 0.6 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx) / 6), 1.4) + Math.sin(t + i) * 0.03) * H * 0.75;
+            // Calls (green) — two-harmonic oscillation for livelier, wider swings
+            const callOsc = Math.sin(t + i) * 0.07 + Math.sin(t * 0.6 + i * 1.7) * 0.04;
+            const callH = Math.max(0.03, 0.1 + 0.6 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx) / 6), 1.4) + callOsc) * H * 0.75;
             ctx.fillStyle = 'rgba(46,204,113,0.55)';
             ctx.fillRect(x - sw*0.28, H - callH - H*0.08, sw*0.25, callH);
             // Puts (red)
-            const putH = (0.08 + 0.5 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx + 1) / 6), 1.3) + Math.cos(t * 1.1 + i) * 0.03) * H * 0.75;
+            const putOsc = Math.cos(t * 1.1 + i) * 0.07 + Math.cos(t * 0.7 + i * 2.3) * 0.04;
+            const putH = Math.max(0.03, 0.08 + 0.5 * Math.pow(Math.max(0, 1 - Math.abs(i - maxPainIdx + 1) / 6), 1.3) + putOsc) * H * 0.75;
             ctx.fillStyle = 'rgba(231,76,60,0.55)';
             ctx.fillRect(x + sw*0.03, H - putH - H*0.08, sw*0.25, putH);
         }
@@ -416,7 +418,7 @@ function animateOptions(canvas) {
         ctx.setLineDash([4,4]);
         for (let x = 0; x < W; x++) {
             const pct = x / W;
-            const smile = H*0.55 - H*0.3*Math.exp(-Math.pow((pct-0.5)*3.5,2)) + Math.sin(t*0.8)*H*0.015;
+            const smile = H*0.55 - H*0.3*Math.exp(-Math.pow((pct-0.5)*3.5,2)) + Math.sin(t*0.8 + pct*2.5)*H*0.03;
             if (x === 0) ctx.moveTo(x, smile); else ctx.lineTo(x, smile);
         }
         ctx.stroke();
