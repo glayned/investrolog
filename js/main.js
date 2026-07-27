@@ -240,7 +240,11 @@ const PROJECT_ANIMATIONS = {
     cot: animateCOT,
     vix: animateVIX,
     options: animateOptions,
-    ng: animateNG
+    ng: animateNG,
+    alerts: animateAlerts,
+    desk: animateDesk,
+    sentiment: animateSentiment,
+    ai: animateAI
 };
 
 function sizeProjectCanvas(canvas) {
@@ -1009,6 +1013,171 @@ function initSessionsClock() {
     // Initial render + 1Hz tick (no 60Hz rAF polling)
     render();
     setInterval(render, 1000);
+}
+
+/* Alerts / Clouds — volume tape with rare flare-ups and alert chips */
+function animateAlerts(canvas) {
+    const ctx = canvas.getContext('2d');
+    const bars = 26;
+    let t = 0;
+
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
+        ctx.clearRect(0, 0, W, H);
+        const gap = W / bars, bw = gap * 0.55;
+        for (let i = 0; i < bars; i++) {
+            let h = (0.12 + 0.22 * Math.abs(Math.sin(i * 0.8 + t)) + 0.08 * Math.sin(i * 2.3 + t * 0.7)) * H;
+            const spike = Math.max(0, Math.sin(i * 3.7 + t * 0.45) - 0.97) / 0.03;
+            h += spike * H * 0.45;
+            const x = i * gap + (gap - bw) / 2;
+            const y = H - h - H * 0.08;
+            ctx.fillStyle = spike > 0
+                ? `rgba(243,156,18,${0.35 + spike * 0.6})`
+                : 'rgba(90,140,200,0.4)';
+            ctx.fillRect(x, y, bw, h);
+            if (spike > 0.25 && x < W - 130) { // keep chips clear of the corner label
+                const cw = Math.min(96, W * 0.32), ch = 20;
+                const cx = Math.min(W - cw - 6, Math.max(6, x - cw / 2));
+                const cy = Math.max(6, y - ch - 8);
+                ctx.globalAlpha = Math.min(1, (spike - 0.25) / 0.4);
+                ctx.fillStyle = 'rgba(8,14,24,0.92)';
+                ctx.strokeStyle = 'rgba(243,156,18,0.7)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                if (ctx.roundRect) ctx.roundRect(cx, cy, cw, ch, 5); else ctx.rect(cx, cy, cw, ch);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#f39c12';
+                ctx.font = '10px "IBM Plex Mono", monospace';
+                ctx.fillText('VOL 6.6× avg', cx + 9, cy + 14);
+                ctx.globalAlpha = 1;
+            }
+        }
+        t += 0.01;
+    };
+}
+
+/* Market Desk — S/R level ladder with drifting price line */
+function animateDesk(canvas) {
+    const ctx = canvas.getContext('2d');
+    const levels = [0.2, 0.36, 0.64, 0.82];
+    let t = 0;
+
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
+        ctx.clearRect(0, 0, W, H);
+        const priceAt = x => H * (0.5 + 0.18 * Math.sin(x * 0.02 + t) + 0.09 * Math.sin(x * 0.05 - t * 0.7));
+        const py = priceAt(W - 1);
+        levels.forEach(ly => {
+            const y = H * ly;
+            const near = Math.max(0, 1 - Math.abs(py - y) / (H * 0.09));
+            const base = y < H * 0.5 ? '231,76,60' : '46,204,113';
+            if (near > 0.05) {
+                ctx.fillStyle = `rgba(${base},${0.14 * near})`;
+                ctx.fillRect(0, y - 4, W, 8);
+            }
+            ctx.strokeStyle = `rgba(${base},${0.25 + near * 0.55})`;
+            ctx.lineWidth = 1 + near * 0.8;
+            ctx.setLineDash([6, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(W, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        });
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(138,182,255,0.85)';
+        ctx.lineWidth = 1.5;
+        for (let x = 0; x < W; x++) {
+            const y = priceAt(x);
+            if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.fillStyle = '#cfe3ff';
+        ctx.arc(W - 2, py, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        t += 0.008;
+    };
+}
+
+/* Sentiment Track — opposing bear/bull gauges with contrarian extremes */
+function animateSentiment(canvas) {
+    const ctx = canvas.getContext('2d');
+    const rows = 5;
+    let t = 0;
+
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
+        ctx.clearRect(0, 0, W, H);
+        const rh = H / (rows + 1);
+        const mid = W / 2;
+        ctx.strokeStyle = 'rgba(150,160,180,0.22)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(mid, H * 0.1);
+        ctx.lineTo(mid, H * 0.9);
+        ctx.stroke();
+        for (let i = 0; i < rows; i++) {
+            const y = rh * (i + 0.85);
+            const bear = 0.12 + 0.32 * (0.5 + 0.5 * Math.sin(t * 0.6 + i * 1.7));
+            const bull = 0.12 + 0.32 * (0.5 + 0.5 * Math.cos(t * 0.5 + i * 2.1));
+            ctx.fillStyle = 'rgba(231,76,60,0.55)';
+            ctx.fillRect(mid - bear * W * 0.45, y, bear * W * 0.45, 6);
+            ctx.fillStyle = 'rgba(46,204,113,0.55)';
+            ctx.fillRect(mid + 1, y, bull * W * 0.45, 6);
+            const ext = Math.max(bear, bull);
+            if (ext > 0.42) {
+                const a = Math.min(0.9, (ext - 0.42) / 0.02 * 0.9);
+                const ex = bear > bull ? mid - bear * W * 0.45 - 7 : mid + bull * W * 0.45 + 8;
+                ctx.fillStyle = `rgba(243,156,18,${a})`;
+                ctx.beginPath();
+                ctx.arc(ex, y + 3, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        t += 0.01;
+    };
+}
+
+/* AI Assistant — terminal dialogue typing out and dissolving */
+function animateAI(canvas) {
+    const ctx = canvas.getContext('2d');
+    const lines = [
+        '> explain: γ-flip 3.074',
+        '  dealers pin above the level',
+        '> context: COT 260w · 10.2%',
+        '  MM extreme shorts, adding longs',
+        '> library: iv term structure',
+        '  contango · percentile 42'
+    ];
+    const CHARS_PER_LINE = 26;
+    let t = 0;
+
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
+        ctx.clearRect(0, 0, W, H);
+        ctx.font = '11px "IBM Plex Mono", monospace';
+        const lh = (H - 24) / lines.length;
+        const total = lines.length * CHARS_PER_LINE + 60;
+        const p = (t * 14) % total;
+        const fade = p > total - 30 ? Math.max(0, 1 - (p - (total - 30)) / 30) : 1;
+        ctx.globalAlpha = fade;
+        lines.forEach((line, i) => {
+            const chars = Math.max(0, Math.min(line.length, Math.floor(p - i * CHARS_PER_LINE)));
+            if (chars <= 0) return;
+            ctx.fillStyle = line.startsWith('>') ? 'rgba(138,182,255,0.9)' : 'rgba(200,210,225,0.55)';
+            const y = 22 + lh * i + lh / 2;
+            const shown = line.slice(0, chars);
+            ctx.fillText(shown, 14, y);
+            if (chars < line.length && Math.floor(t * 3) % 2 === 0) {
+                ctx.fillStyle = 'rgba(243,156,18,0.9)';
+                ctx.fillRect(14 + ctx.measureText(shown).width + 3, y - 9, 6, 11);
+            }
+        });
+        ctx.globalAlpha = 1;
+        t += 0.05;
+    };
 }
 
 /* ════════════════════════════════════════

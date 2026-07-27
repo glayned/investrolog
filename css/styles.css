@@ -444,6 +444,14 @@
             letter-spacing: -1.0px;
         }
 
+        .section-intro {
+            max-width: 640px;
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.7;
+            margin: -36px 0 56px;
+        }
+
         .section-label {
             font-family: 'IBM Plex Mono', monospace;
             font-size: 12px;
@@ -536,6 +544,10 @@
         .project-card:nth-child(2) { transition-delay: 0.15s; }
         .project-card:nth-child(3) { transition-delay: 0.25s; }
         .project-card:nth-child(4) { transition-delay: 0.35s; }
+        .project-card:nth-child(5) { transition-delay: 0.45s; }
+        .project-card:nth-child(6) { transition-delay: 0.55s; }
+        .project-card:nth-child(7) { transition-delay: 0.65s; }
+        .project-card:nth-child(8) { transition-delay: 0.75s; }
 
         .project-card:hover {
             transform: scale(1.02) translateY(-2px) !important;
@@ -573,6 +585,26 @@
         /* NG Weather */
         .visual-ng {
             background: #020a12;
+        }
+
+        /* Alerts / Clouds */
+        .visual-alerts {
+            background: #070c15;
+        }
+
+        /* Market Desk */
+        .visual-desk {
+            background: #060b13;
+        }
+
+        /* Sentiment Track */
+        .visual-sentiment {
+            background: #0c060b;
+        }
+
+        /* AI Assistant */
+        .visual-ai {
+            background: #08080f;
         }
 
         .project-visual canvas {
@@ -715,6 +747,7 @@
             .hero .description { font-size: 15px; }
             .section { padding: 40px 0; }
             .section-title { margin-bottom: 36px; }
+            .section-intro { margin: -20px 0 36px; }
             .skills-grid { grid-template-columns: 1fr; gap: 16px; }
             .projects-grid { grid-template-columns: 1fr; gap: 20px; }
             .contact-item { font-size: 15px; }
@@ -887,6 +920,11 @@
         }
         @media (max-width: 768px) {
             .to-top { right: 16px; bottom: 16px; width: 40px; height: 40px; }
+        }
+
+        .tag-dev {
+            color: #f39c12;
+            border-color: rgba(243, 156, 18, 0.35);
         }
 
         /* ── REDUCED MOTION ── */
