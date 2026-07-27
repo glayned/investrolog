@@ -1003,7 +1003,59 @@ function initSessionsClock() {
     setInterval(render, 1000);
 }
 
+/* ════════════════════════════════════════
+   ORDER MODAL
+════════════════════════════════════════ */
+const ORDER_EMAIL = 'dmitry.maltcev@icloud.com';
+let orderLastFocus = null;
+
+function openOrderModal() {
+    const overlay = document.getElementById('orderOverlay');
+    orderLastFocus = document.activeElement;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    document.getElementById('orderName').focus();
+}
+
+function closeOrderModal() {
+    const overlay = document.getElementById('orderOverlay');
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    if (orderLastFocus && typeof orderLastFocus.focus === 'function') orderLastFocus.focus();
+}
+
+function initOrderModal() {
+    const overlay = document.getElementById('orderOverlay');
+    const form = document.getElementById('orderForm');
+    const errorEl = document.getElementById('orderError');
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeOrderModal(); });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && overlay.classList.contains('open')) closeOrderModal();
+    });
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('orderName').value.trim();
+        const task = document.getElementById('orderTask').value.trim();
+        const contact = document.getElementById('orderContact').value.trim();
+        if (!name || !task || !contact) {
+            errorEl.textContent = 'Заполните все поля.';
+            return;
+        }
+        errorEl.textContent = '';
+        const subject = `Заказ проекта: ${name}`;
+        const body = `Название проекта: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`;
+        window.location.href = `mailto:${ORDER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        closeOrderModal();
+        form.reset();
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    initOrderModal();
     new ParticlesSystem();
     initProjectCanvases();
     initSessionsClock();

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>404 — InvestroLog × DataMatrix</title>
+<meta content="noindex" name="robots"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=Syne:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="/favicon.ico" rel="icon" type="image/x-icon"/>
+<script>try{var t=localStorage.getItem('ms-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}}catch(e){}</script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --bg-primary: #ffffff;
+        --text-primary: #0a0a0a;
+        --text-secondary: #666666;
+        --border: #e0e0e0;
+    }
+    [data-theme="dark"] {
+        --bg-primary: #080808;
+        --text-primary: #f0f0f0;
+        --text-secondary: #888888;
+        --border: #222222;
+    }
+    body {
+        font-family: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+    .nf {
+        text-align: center;
+        max-width: 480px;
+    }
+    .nf-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+    }
+    .nf-code {
+        font-size: clamp(88px, 22vw, 160px);
+        font-weight: 800;
+        line-height: 1.05;
+        letter-spacing: -4px;
+        margin: 8px 0 4px;
+    }
+    .nf-text {
+        font-size: 16px;
+        color: var(--text-secondary);
+        margin-bottom: 36px;
+        line-height: 1.6;
+    }
+    .nf-btn {
+        display: inline-block;
+        padding: 13px 32px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-primary);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.25s ease;
+    }
+    .nf-btn:hover {
+        background: var(--text-primary);
+        color: var(--bg-primary);
+        border-color: var(--text-primary);
+    }
+    .nf-sig {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-top: 48px;
+        opacity: 0.7;
+    }
+</style>
+</head>
+<body>
+<main class="nf">
+<div class="nf-label">Signal lost</div>
+<div class="nf-code">404</div>
+<p class="nf-text">Такой страницы нет — возможно, ссылка устарела или в адресе опечатка.</p>
+<a class="nf-btn" href="/">На главную</a>
+<div class="nf-sig">InvestroLog × DataMatrix</div>
+</main>
+</body>
+</html>

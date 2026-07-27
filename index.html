@@ -118,8 +118,8 @@
             </p>
 <div class="cta-buttons">
 <a class="btn" href="#projects">Рабочие проекты</a>
-<a class="btn" href="#contact">Связаться</a>
-<a class="btn" href="https://pay.cloudtips.ru/p/1f99d686" rel="noopener noreferrer" target="_blank">Донат</a>
+<button class="btn" onclick="openOrderModal()" type="button">Заказать</button>
+<a class="btn" href="https://t.me/investrolog" rel="noopener noreferrer" target="_blank"><span class="btn-label-full">Закрытый Терминал</span><span class="btn-label-short">Терминал</span></a>
 </div>
 </div>
 <div class="hero-widget">
@@ -283,6 +283,12 @@
 </svg>
 <span>Bastyon</span>
 </a>
+<a class="contact-item" href="https://pay.cloudtips.ru/p/1f99d686" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Донат</span>
+</a>
 <a class="contact-item" href="mailto:dmitry.maltcev@icloud.com">
 <svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
 <rect height="16" rx="2" stroke="currentColor" stroke-width="2" width="20" x="2" y="4"></rect>
@@ -297,6 +303,28 @@
 <span class="footer-tagline">Трейдинг, словно симфония чисел.</span>
 </footer>
 </div><!-- /container -->
+<!-- Order modal -->
+<div aria-hidden="true" class="order-overlay" id="orderOverlay">
+<div aria-labelledby="orderTitle" aria-modal="true" class="order-modal" role="dialog">
+<button aria-label="Закрыть" class="order-close" onclick="closeOrderModal()" type="button">
+<svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
+<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</button>
+<h3 class="order-title" id="orderTitle">Заказать проект</h3>
+<p class="order-sub">Опишите задачу — свяжусь с вами в Telegram.</p>
+<form id="orderForm" novalidate>
+<label class="order-label" for="orderName">Название проекта</label>
+<input class="order-input" id="orderName" maxlength="120" placeholder="Например, Telegram-бот для магазина" type="text"/>
+<label class="order-label" for="orderTask">Задача</label>
+<textarea class="order-input order-textarea" id="orderTask" maxlength="2000" placeholder="Что нужно сделать"></textarea>
+<label class="order-label" for="orderContact">Контакт (Telegram)</label>
+<input class="order-input" id="orderContact" maxlength="64" placeholder="@username" type="text"/>
+<p class="order-error" id="orderError" role="alert"></p>
+<button class="order-submit" type="submit">Отправить</button>
+</form>
+</div>
+</div>
 <script defer src="js/main.js"></script>
 </body>
 </html>
