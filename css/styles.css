@@ -834,6 +834,7 @@
             min-height: 16px;
             margin: 10px 0 4px;
         }
+        .order-error.ok { color: #2ecc71; }
         .order-submit {
             width: 100%;
             margin-top: 6px;

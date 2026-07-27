@@ -1033,7 +1033,15 @@ function initOrderModal() {
 
     overlay.addEventListener('click', e => { if (e.target === overlay) closeOrderModal(); });
     document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && overlay.classList.contains('open')) closeOrderModal();
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') { closeOrderModal(); return; }
+        if (e.key === 'Tab') {
+            const focusables = overlay.querySelectorAll('button, input, textarea');
+            const first = focusables[0], last = focusables[focusables.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            else if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        }
     });
 
     form.addEventListener('submit', e => {
@@ -1047,10 +1055,23 @@ function initOrderModal() {
         }
         errorEl.textContent = '';
         const text = `Заявка на проект\n\nНазвание: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`;
-        if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+        // t.me/<user>?text= не гарантирован для личных чатов — основной канал доставки текста: буфер обмена
+        const copied = navigator.clipboard
+            ? navigator.clipboard.writeText(text).then(() => true).catch(() => false)
+            : Promise.resolve(false);
         window.open(`https://t.me/${ORDER_TG_USERNAME}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
-        closeOrderModal();
-        form.reset();
+        copied.then(ok => {
+            errorEl.classList.add('ok');
+            errorEl.textContent = ok
+                ? 'Текст заявки скопирован — вставьте его в открывшийся чат Telegram.'
+                : 'Открылся чат Telegram — отправьте заявку там.';
+            setTimeout(() => {
+                closeOrderModal();
+                form.reset();
+                errorEl.textContent = '';
+                errorEl.classList.remove('ok');
+            }, 2500);
+        });
     });
 }
 
