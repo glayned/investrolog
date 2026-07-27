@@ -421,6 +421,8 @@
         [data-theme="dark"] .btn { background: var(--bg-secondary); border-color: var(--border); }
         [data-theme="dark"] .btn:hover { color: var(--bg-primary); }
 
+        .btn-label-full { display: none; }
+
         /* ── SECTIONS ── */
         .section {
             padding: 60px 0;
@@ -719,6 +721,8 @@
             .cta-buttons { gap: 10px; }
             .btn { padding: 11px 20px; font-size: 13px; flex: 1 1 calc(50% - 5px); text-align: center; }
             .cta-buttons .btn:last-child { flex-basis: 100%; }
+            .btn-label-full { display: inline; }
+            .btn-label-short { display: none; }
             .hero { flex-direction: column; gap: 24px; }
             .hero-widget { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 0; }
             .ms-widget { max-width: 300px; }
@@ -733,6 +737,123 @@
                 padding: 10px 0;
             }
         }
+
+        /* ── ORDER MODAL ── */
+        .order-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .order-overlay.open { opacity: 1; visibility: visible; }
+
+        .order-modal {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 36px 32px 32px;
+            box-shadow: 0 24px 64px var(--shadow);
+            transform: translateY(14px) scale(0.98);
+            transition: transform 0.25s ease;
+        }
+        .order-overlay.open .order-modal { transform: none; }
+
+        .order-close {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+        .order-close:hover { border-color: var(--text-primary); transform: rotate(90deg); }
+
+        .order-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .order-sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 26px;
+        }
+        .order-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 18px 0 8px;
+        }
+        .order-input {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            transition: border-color 0.2s ease;
+        }
+        .order-input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+        .order-input:focus { outline: none; border-color: var(--text-primary); }
+        .order-textarea { min-height: 110px; resize: vertical; }
+
+        .order-error {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: #e74c3c;
+            min-height: 16px;
+            margin: 10px 0 4px;
+        }
+        .order-error.ok { color: #2ecc71; }
+        .order-submit {
+            width: 100%;
+            margin-top: 6px;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 99px;
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .order-submit:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        body.modal-open { overflow: hidden; }
 
         /* ── REDUCED MOTION ── */
         @media (prefers-reduced-motion: reduce) {

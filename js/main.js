@@ -1003,7 +1003,80 @@ function initSessionsClock() {
     setInterval(render, 1000);
 }
 
+/* ════════════════════════════════════════
+   ORDER MODAL
+════════════════════════════════════════ */
+const ORDER_TG_USERNAME = 'Dm1tryMaltsev';
+let orderLastFocus = null;
+
+function openOrderModal() {
+    const overlay = document.getElementById('orderOverlay');
+    orderLastFocus = document.activeElement;
+    overlay.classList.add('open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    document.getElementById('orderName').focus();
+}
+
+function closeOrderModal() {
+    const overlay = document.getElementById('orderOverlay');
+    overlay.classList.remove('open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    if (orderLastFocus && typeof orderLastFocus.focus === 'function') orderLastFocus.focus();
+}
+
+function initOrderModal() {
+    const overlay = document.getElementById('orderOverlay');
+    const form = document.getElementById('orderForm');
+    const errorEl = document.getElementById('orderError');
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeOrderModal(); });
+    document.addEventListener('keydown', e => {
+        if (!overlay.classList.contains('open')) return;
+        if (e.key === 'Escape') { closeOrderModal(); return; }
+        if (e.key === 'Tab') {
+            const focusables = overlay.querySelectorAll('button, input, textarea');
+            const first = focusables[0], last = focusables[focusables.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            else if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+        }
+    });
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        const name = document.getElementById('orderName').value.trim();
+        const task = document.getElementById('orderTask').value.trim();
+        const contact = document.getElementById('orderContact').value.trim();
+        if (!name || !task || !contact) {
+            errorEl.textContent = 'Заполните все поля.';
+            return;
+        }
+        errorEl.textContent = '';
+        const text = `Заявка на проект\n\nНазвание: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`;
+        // t.me/<user>?text= не гарантирован для личных чатов — основной канал доставки текста: буфер обмена
+        const copied = navigator.clipboard
+            ? navigator.clipboard.writeText(text).then(() => true).catch(() => false)
+            : Promise.resolve(false);
+        window.open(`https://t.me/${ORDER_TG_USERNAME}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+        copied.then(ok => {
+            errorEl.classList.add('ok');
+            errorEl.textContent = ok
+                ? 'Текст заявки скопирован — вставьте его в открывшийся чат Telegram.'
+                : 'Открылся чат Telegram — отправьте заявку там.';
+            setTimeout(() => {
+                closeOrderModal();
+                form.reset();
+                errorEl.textContent = '';
+                errorEl.classList.remove('ok');
+            }, 2500);
+        });
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    initOrderModal();
     new ParticlesSystem();
     initProjectCanvases();
     initSessionsClock();
