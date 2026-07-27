@@ -1083,7 +1083,28 @@ function initOrderModal() {
     });
 }
 
+/* ════════════════════════════════════════
+   SCROLL TO TOP
+════════════════════════════════════════ */
+function initToTop() {
+    const btn = document.getElementById('toTop');
+    let ticking = false;
+    const update = () => {
+        ticking = false;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        btn.classList.toggle('visible', max > 0 && window.scrollY > max * 0.6);
+    };
+    window.addEventListener('scroll', () => {
+        if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: reducedMotionQuery.matches ? 'auto' : 'smooth' });
+    });
+    update();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    initToTop();
     initOrderModal();
     new ParticlesSystem();
     initProjectCanvases();
