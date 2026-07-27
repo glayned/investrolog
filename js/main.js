@@ -274,6 +274,7 @@ function initProjectCanvases() {
         if (!animate) return;
         sizeProjectCanvas(canvas);
         const drawFrame = animate(canvas);
+        canvas._draw = drawFrame;
         canvas._inView = false;
         canvas._running = false;
         canvas._tick = () => {
@@ -1012,7 +1013,10 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            document.querySelectorAll('.proj-canvas').forEach(sizeProjectCanvas);
+            document.querySelectorAll('.proj-canvas').forEach(c => {
+                sizeProjectCanvas(c);
+                if (!c._running && c._draw) c._draw(); // resizing clears the canvas; repaint paused ones
+            });
         }, 400);
     });
 });
