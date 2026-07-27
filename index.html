@@ -159,7 +159,7 @@
 <div class="skill-card">
 <div class="skill-number">01 /</div>
 <h3>Trading &amp; Research</h3>
-<p>Практическая торговля с 8-летним стажем, включая опционы и криптовалюты. Анализ рыночных циклов и структуры. Грамотное управление рисками, разработка и оптимизация стратегий. Результатом последних двух лет является стабильный рост эквити.</p>
+<p>Практическая торговля с 8-летним стажем, включая опционы и криптовалюты. Анализ рыночных циклов и структуры. Грамотное управление рисками, разработка и оптимизация стратегий.</p>
 </div>
 <div class="skill-card">
 <div class="skill-number">02 /</div>
@@ -177,7 +177,7 @@
 <section class="section" id="projects">
 <span class="section-label">Портфолио</span>
 <h2 class="section-title">Рабочие проекты</h2>
-<p class="section-intro">Три горизонта — одна дисциплина. Недели: позиционирование крупных. Дни: структура опционов. Минуты: поток объёма. Сигнал возникает там, где независимые слои согласуются.</p>
+<p class="section-intro">Три горизонта – одна дисциплина. Недели: позиционирование крупных. Дни: структура опционов. Минуты: поток объёма. Сигнал возникает там, где независимые слои согласуются.</p>
 <div class="projects-grid">
 <!-- COT Terminal -->
 <a aria-label="Открыть публикацию: COT Terminal" class="project-card" href="https://t.me/investrolog/1789" rel="noopener noreferrer" target="_blank">
@@ -192,7 +192,8 @@
 <div class="project-tags">
 <span class="tag">Python</span>
 <span class="tag">aiogram</span>
-<span class="tag">CFTC API</span>
+<span class="tag">API</span>
+<span class="tag">lookback</span>
 </div>
 </div>
 </a>
@@ -205,10 +206,10 @@
 <div class="project-content">
 <div class="project-index">02 /</div>
 <h3>VIX Term Structure</h3>
-<p>Алгоритм определяет форму кривой волатильности в реальном времени: контанго, бэквордация, IV Crush, режим рынка и торговая стратегия. Благодаря GARCH моделям так называемый треугольник волатильности буквально заглядывает в будущее.</p>
+<p>Алгоритм определяет форму кривой волатильности в реальном времени: контанго, бэквордация, IV Crush, режим рынка и торговая стратегия. Благодаря GARCH моделям так называемый треугольник волатильности определяет будущее.</p>
 <div class="project-tags">
 <span class="tag">Python</span>
-<span class="tag">VIX</span>
+<span class="tag">Quant</span>
 <span class="tag">Options</span>
 </div>
 </div>
@@ -217,16 +218,16 @@
 <a aria-label="Открыть публикацию: Options Aggregator" class="project-card" href="https://t.me/investrolog/1757" rel="noopener noreferrer" target="_blank">
 <div class="project-visual visual-options">
 <canvas class="proj-canvas" data-type="options"></canvas>
-<span class="project-visual-label">Δ · UOA · IV</span>
+<span class="project-visual-label">Δ · IV · UOA</span>
 </div>
 <div class="project-content">
 <div class="project-index">03 /</div>
-<h3>Options Aggregator</h3>
-<p>Профессиональный модульный агрегатор и визуализатор опционов с продвинутой аналитикой: Delta metrics, UOA, Premium Flow, Rolling ΔOI Timeline, ATM IV, Max Pain, Pin Risk. Хранение исторических данных в SQLite.</p>
+<h3>Options Dashboard</h3>
+<p>Профессиональный модульный агрегатор и визуализатор опционов с продвинутой аналитикой: Delta metrics, UOA, Premium Flow, Rolling ΔOI Timeline, Risk Reversal, Max Pain, IV/HV, Net GEX. Хранение исторических данных в SQLite.</p>
 <div class="project-tags">
 <span class="tag">SQLite</span>
-<span class="tag">Delta</span>
-<span class="tag">Max Pain</span>
+<span class="tag">Options metrics</span>
+<span class="tag">Dealer mechanics</span>
 </div>
 </div>
 </a>
@@ -234,16 +235,15 @@
 <a aria-label="Открыть публикацию: NG Weather Volatility" class="project-card" href="https://t.me/investrolog/1422" rel="noopener noreferrer" target="_blank">
 <div class="project-visual visual-ng">
 <canvas class="proj-canvas" data-type="ng"></canvas>
-<span class="project-visual-label">ECMWF · CME</span>
+<span class="project-visual-label">EIA · CME</span>
 </div>
 <div class="project-content">
 <div class="project-index">04 /</div>
 <h3>NG Weather Volatility</h3>
-<p>Автоматизированная система генерации торговых сигналов для рынка природного газа (Henry Hub, CME) на основе анализа ensemble-неопределённости метеорологических прогнозов ECMWF.</p>
+<p>Автоматизированная система генерации торговых сигналов для рынка природного газа (Henry Hub, EIA, CME) на основе анализа моделей ensemble-неопределённости метеорологических прогнозов ECMWF.</p>
 <div class="project-tags">
 <span class="tag">SQLite</span>
 <span class="tag">ECMWF</span>
-<span class="tag">CME</span>
 <span class="tag">Signals</span>
 </div>
 </div>
@@ -256,12 +256,12 @@
 </div>
 <div class="project-content">
 <div class="project-index">05 /</div>
-<h3>Алерты (Клауды)</h3>
-<p>Минутный горизонт: всплески объёма к среднему, поток ETF (BOIL/KOLD), расчётные окна TAS. Событие фиксируется в момент возникновения — а не после того, как отразилось в свече.</p>
+<h3>Cloud Alerts</h3>
+<p>Минутный горизонт: всплеск объёма к среднему, поток ликвидных инструментов (NG, SILV, COCOA) и ETF (BOIL/KOLD), расчётные окна TAS и прочее. Событие фиксируется в момент возникновения, а не после того, как отразилось в свече.</p>
 <div class="project-tags">
-<span class="tag">VOL</span>
-<span class="tag">ETF</span>
-<span class="tag">TAS</span>
+<span class="tag">API</span>
+<span class="tag">Flow</span>
+<span class="tag">Scalping</span>
 </div>
 </div>
 </a>
@@ -269,15 +269,15 @@
 <a aria-label="Открыть канал: Market Desk" class="project-card" href="https://t.me/investrolog" rel="noopener noreferrer" target="_blank">
 <div class="project-visual visual-desk">
 <canvas class="proj-canvas" data-type="desk"></canvas>
-<span class="project-visual-label">S/R · VWAP</span>
+<span class="project-visual-label">S/R · ATR · VWAP</span>
 </div>
 <div class="project-content">
 <div class="project-index">06 /</div>
 <h3>Market Desk</h3>
-<p>Продвинутый технический анализ с логикой принятия решений: карта ликвидности, уровни с историей тестов, VWAP/ATR-контекст и готовый план «если — то» вместо мнения о направлении.</p>
+<p>Продвинутый технический анализ с логикой принятия решений по основным инструментам: карта ликвидности, уровни с историей тестов, VWAP/ATR-контекст, стопы и готовый план «если – то» вместо мнения о направлении.</p>
 <div class="project-tags">
+<span class="tag">Intraday</span>
 <span class="tag">Levels</span>
-<span class="tag">VWAP/ATR</span>
 <span class="tag">Plan</span>
 </div>
 </div>
@@ -291,10 +291,11 @@
 <div class="project-content">
 <div class="project-index">07 /</div>
 <h3>Sentiment Track</h3>
-<p>Настроение толпы с зарубежных площадок как контрарная линза: bear/bull-баланс, объёмные z-оценки, панические экстремумы. Толпа единодушна — повод посмотреть в другую сторону.</p>
+<p>Настроение толпы с зарубежных площадок как контрарная линза: bear/bull-баланс, объёмные z-оценки и панические экстремумы. Толпа единодушна – повод посмотреть в другую сторону.</p>
 <div class="project-tags">
 <span class="tag">Crowd</span>
 <span class="tag">Z-score</span>
+<span class="tag">Panic</span>
 </div>
 </div>
 </a>
@@ -307,7 +308,7 @@
 <div class="project-content">
 <div class="project-index">08 /</div>
 <h3>AI Assistant</h3>
-<p>Ассистент внутри Терминала: объясняет сигналы модулей, помогает в обучении и работе с библиотекой. Не даёт советов «куда войти» — раскрывает, почему система видит рынок именно так.</p>
+<p>Ассистент внутри Терминала: объясняет сигналы модулей, помогает в обучении и работе с библиотекой. Не даёт советов «куда войти» – раскрывает, почему система видит рынок именно так.</p>
 <div class="project-tags">
 <span class="tag">Learning</span>
 <span class="tag">Library</span>
