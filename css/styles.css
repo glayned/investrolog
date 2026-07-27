@@ -734,6 +734,17 @@
             }
         }
 
+        /* ── REDUCED MOTION ── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            .section, .skill-card, .project-card { opacity: 1; transform: none; }
+            footer { opacity: 1; }
+        }
+
         @media (max-width: 480px) {
             .hero h1 { letter-spacing: -0.5px; }
             .section-title { letter-spacing: -0.5px; }

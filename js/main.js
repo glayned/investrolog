@@ -86,27 +86,37 @@ function triggerCodeAnimation() {
 }
 
 /* ════════════════════════════════════════
+   MOTION / DISPLAY HELPERS
+════════════════════════════════════════ */
+const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+function motionAllowed() { return !reducedMotionQuery.matches && !document.hidden; }
+function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
+
+/* ════════════════════════════════════════
    PARTICLES
 ════════════════════════════════════════ */
+const LINK_DIST = 110;
+const LINK_DIST_SQ = LINK_DIST * LINK_DIST;
+const MAX_PARTICLES = 220;
+
 class Particle {
-    constructor(canvas) {
-        this.canvas = canvas;
-        this.reset();
+    constructor(w, h) {
+        this.reset(w, h);
     }
-    reset() {
-        this.x = Math.random() * this.canvas.width;
-        this.y = Math.random() * this.canvas.height;
+    reset(w, h) {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
         this.baseX = this.x;
         this.baseY = this.y;
         this.size = Math.random() * 2.2 + 0.8;
         this.speedX = (Math.random() - 0.5) * 0.4;
         this.speedY = (Math.random() - 0.5) * 0.4;
     }
-    update(mouse) {
+    update(mouse, w, h) {
         if (mouse.x != null && mouse.y != null) {
             const dx = mouse.x - this.x, dy = mouse.y - this.y;
             const d = Math.sqrt(dx*dx + dy*dy);
-            if (d < mouse.radius) {
+            if (d > 0 && d < mouse.radius) {
                 const f = (mouse.radius - d) / mouse.radius;
                 this.x -= (dx/d) * f * 3;
                 this.y -= (dy/d) * f * 3;
@@ -116,8 +126,14 @@ class Particle {
         this.y += (this.baseY - this.y) * 0.05;
         this.baseX += this.speedX;
         this.baseY += this.speedY;
-        if (this.baseX < 0 || this.baseX > this.canvas.width) this.speedX *= -1;
-        if (this.baseY < 0 || this.baseY > this.canvas.height) this.speedY *= -1;
+        if (this.baseX < 0 || this.baseX > w) {
+            this.baseX = Math.max(0, Math.min(this.baseX, w));
+            this.speedX *= -1;
+        }
+        if (this.baseY < 0 || this.baseY > h) {
+            this.baseY = Math.max(0, Math.min(this.baseY, h));
+            this.speedY *= -1;
+        }
     }
     draw(ctx, isDark) {
         ctx.fillStyle = isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)';
@@ -133,59 +149,144 @@ class ParticlesSystem {
         this.ctx = this.canvas.getContext('2d');
         this.particles = [];
         this.mouse = { x: null, y: null, radius: 140 };
+        this.running = false;
         this.resize();
-        window.addEventListener('resize', () => this.resize());
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => this.resize(), 150);
+        });
         window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
         window.addEventListener('mouseout', e => {
             if (!e.relatedTarget) { this.mouse.x = null; this.mouse.y = null; }
         });
-        this.animate();
+        document.addEventListener('visibilitychange', () => this.start());
+        reducedMotionQuery.addEventListener('change', () => {
+            if (reducedMotionQuery.matches) this.drawFrame(false); else this.start();
+        });
+        new MutationObserver(() => { if (!this.running) this.drawFrame(false); })
+            .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+        if (reducedMotionQuery.matches) this.drawFrame(false); else this.start();
     }
     resize() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-        const target = Math.floor((this.canvas.width * this.canvas.height) / 16000);
-        while (this.particles.length < target) this.particles.push(new Particle(this.canvas));
+        const dpr = getDpr();
+        this.w = window.innerWidth;
+        this.h = window.innerHeight;
+        this.canvas.width = this.w * dpr;
+        this.canvas.height = this.h * dpr;
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const target = Math.min(MAX_PARTICLES, Math.floor((this.w * this.h) / 16000));
+        while (this.particles.length < target) this.particles.push(new Particle(this.w, this.h));
         if (this.particles.length > target) this.particles.length = target;
+        if (reducedMotionQuery.matches) this.drawFrame(false);
     }
-    animate() {
+    start() {
+        if (this.running || !motionAllowed()) return;
+        this.running = true;
+        requestAnimationFrame(() => this.tick());
+    }
+    tick() {
+        if (!motionAllowed()) { this.running = false; return; }
+        this.drawFrame(true);
+        requestAnimationFrame(() => this.tick());
+    }
+    drawFrame(update) {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.w, this.h);
+        // Spatial hash: only compare particles in neighbouring cells → ~O(n)
+        const cell = LINK_DIST;
+        const cols = Math.max(1, Math.ceil(this.w / cell));
+        const grid = new Map();
         this.particles.forEach((p, i) => {
-            p.update(this.mouse);
-            p.draw(this.ctx, isDark);
-            for (let j = i+1; j < this.particles.length; j++) {
-                const dx = this.particles[j].x - p.x, dy = this.particles[j].y - p.y;
-                const d = Math.sqrt(dx*dx + dy*dy);
-                if (d < 110) {
-                    const op = (1 - d/110) * 0.25;
-                    this.ctx.strokeStyle = isDark ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
-                    this.ctx.lineWidth = 0.5;
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(p.x, p.y);
-                    this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
-                    this.ctx.stroke();
+            if (update) p.update(this.mouse, this.w, this.h);
+            p.draw(ctx, isDark);
+            const key = Math.floor(p.x / cell) + Math.floor(p.y / cell) * cols;
+            const bucket = grid.get(key);
+            if (bucket) bucket.push(i); else grid.set(key, [i]);
+        });
+        ctx.lineWidth = 0.5;
+        this.particles.forEach((p, i) => {
+            const cx = Math.floor(p.x / cell), cy = Math.floor(p.y / cell);
+            for (let ny = cy; ny <= cy + 1; ny++) {
+                for (let nx = cx - 1; nx <= cx + 1; nx++) {
+                    if (ny === cy && nx < cx) continue; // visit each pair once
+                    const bucket = grid.get(nx + ny * cols);
+                    if (!bucket) continue;
+                    for (const j of bucket) {
+                        if (j <= i && ny === cy && nx === cx) continue;
+                        const q = this.particles[j];
+                        const dx = q.x - p.x, dy = q.y - p.y;
+                        const d2 = dx*dx + dy*dy;
+                        if (d2 < LINK_DIST_SQ) {
+                            const op = (1 - Math.sqrt(d2)/LINK_DIST) * 0.25;
+                            ctx.strokeStyle = isDark ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                            ctx.lineTo(q.x, q.y);
+                            ctx.stroke();
+                        }
+                    }
                 }
             }
         });
-        requestAnimationFrame(() => this.animate());
     }
 }
 
 /* ════════════════════════════════════════
    PROJECT CANVAS ANIMATIONS
 ════════════════════════════════════════ */
+const PROJECT_ANIMATIONS = {
+    cot: animateCOT,
+    vix: animateVIX,
+    options: animateOptions,
+    ng: animateNG
+};
+
+function sizeProjectCanvas(canvas) {
+    const dpr = getDpr();
+    const parent = canvas.parentElement;
+    canvas._w = parent.offsetWidth;
+    canvas._h = parent.offsetHeight;
+    canvas.width = canvas._w * dpr;
+    canvas.height = canvas._h * dpr;
+    canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function startProjectCanvas(canvas) {
+    if (canvas._running) return;
+    if (!canvas._inView || !motionAllowed()) return;
+    canvas._running = true;
+    requestAnimationFrame(canvas._tick);
+}
+
 function initProjectCanvases() {
-    document.querySelectorAll('.proj-canvas').forEach(canvas => {
-        const type = canvas.dataset.type;
-        const parent = canvas.parentElement;
-        canvas.width = parent.offsetWidth;
-        canvas.height = parent.offsetHeight;
-        if (type === 'cot') animateCOT(canvas);
-        else if (type === 'vix') animateVIX(canvas);
-        else if (type === 'options') animateOptions(canvas);
-        else if (type === 'ng') animateNG(canvas);
+    const canvases = [...document.querySelectorAll('.proj-canvas')];
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            e.target._inView = e.isIntersecting;
+            startProjectCanvas(e.target);
+        });
+    }, { rootMargin: '80px' });
+
+    canvases.forEach(canvas => {
+        const animate = PROJECT_ANIMATIONS[canvas.dataset.type];
+        if (!animate) return;
+        sizeProjectCanvas(canvas);
+        const drawFrame = animate(canvas);
+        canvas._inView = false;
+        canvas._running = false;
+        canvas._tick = () => {
+            if (!canvas._inView || !motionAllowed()) { canvas._running = false; return; }
+            drawFrame();
+            requestAnimationFrame(canvas._tick);
+        };
+        drawFrame(); // static first frame (also covers prefers-reduced-motion)
+        io.observe(canvas);
     });
+
+    document.addEventListener('visibilitychange', () => canvases.forEach(startProjectCanvas));
+    reducedMotionQuery.addEventListener('change', () => canvases.forEach(startProjectCanvas));
 }
 
 function animateCOT(canvas) {
@@ -193,8 +294,8 @@ function animateCOT(canvas) {
     const bars = 20;
     let t = 0;
 
-    function draw() {
-        const W = canvas.width, H = canvas.height;
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const bw = W / (bars * 1.6);
         const gap = W / bars;
@@ -219,17 +320,15 @@ function animateCOT(canvas) {
         }
         ctx.stroke();
         t += 0.015;
-        requestAnimationFrame(draw);
-    }
-    draw();
+    };
 }
 
 function animateVIX(canvas) {
     const ctx = canvas.getContext('2d');
     let t = 0;
 
-    function draw() {
-        const W = canvas.width, H = canvas.height;
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         // Contango curve
         ctx.beginPath();
@@ -275,17 +374,15 @@ function animateVIX(canvas) {
             ctx.stroke();
         }
         t += 0.01;
-        requestAnimationFrame(draw);
-    }
-    draw();
+    };
 }
 
 function animateOptions(canvas) {
     const ctx = canvas.getContext('2d');
     let t = 0;
 
-    function draw() {
-        const W = canvas.width, H = canvas.height;
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const strikes = 14;
         const sw = W / (strikes + 1);
@@ -318,9 +415,7 @@ function animateOptions(canvas) {
         ctx.stroke();
         ctx.setLineDash([]);
         t += 0.02;
-        requestAnimationFrame(draw);
-    }
-    draw();
+    };
 }
 
 function animateNG(canvas) {
@@ -328,8 +423,8 @@ function animateNG(canvas) {
     let t = 0;
     const ensembles = 12;
 
-    function draw() {
-        const W = canvas.width, H = canvas.height;
+    return function draw() {
+        const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         // Ensemble forecast paths
         for (let e = 0; e < ensembles; e++) {
@@ -362,9 +457,7 @@ function animateNG(canvas) {
             ctx.stroke();
         });
         t += 0.012;
-        requestAnimationFrame(draw);
-    }
-    draw();
+    };
 }
 
 /* ════════════════════════════════════════
@@ -536,11 +629,11 @@ function initSessionsClock() {
     function ang12(h) { return (h / 12) * Math.PI * 2 - Math.PI / 2; }
     function pt(r, a) { return [CX + Math.cos(a) * r, CY + Math.sin(a) * r]; }
     function setAttrs(el, attrs) { for (const k in attrs) el.setAttribute(k, attrs[k]); }
-    function svgEl(tag, attrs, text) {
+    function svgEl(tag, attrs, text, parent) {
         const e = document.createElementNS(SVG_NS, tag);
         if (attrs) setAttrs(e, attrs);
         if (text != null) e.textContent = text;
-        svg.appendChild(e);
+        (parent || svg).appendChild(e);
         return e;
     }
     function arcPath(r, a0, a1, sweep) {
@@ -551,7 +644,7 @@ function initSessionsClock() {
     }
 
     let __pathId = 0;
-    function textOnArc(str, r, a0, a1, fill, fontSize) {
+    function textOnArc(str, r, a0, a1, fill, fontSize, parent) {
         if (a1 < a0) a1 += Math.PI * 2;
         const mid = (a0 + a1) / 2;
         const bottomHalf = (mid > 0 && mid < Math.PI);
@@ -588,7 +681,7 @@ function initSessionsClock() {
         tp.setAttribute('text-anchor', 'middle');
         tp.textContent = str;
         textEl.appendChild(tp);
-        svg.appendChild(textEl);
+        (parent || svg).appendChild(textEl);
     }
 
     // Resolve current UTC range for a session (DST-aware via the exchange's IANA zone).
@@ -642,44 +735,19 @@ function initSessionsClock() {
         };
     }
 
-    function render() {
-        const tok = readTokens();
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const dimTrack = isDark ? '#262626' : '#e6e6e6';
-        const activeColor = tok.txt;
-        const inactiveLabel = tok.dim;
-        const activeLabel = tok.bg;
-        const handColor = tok.txt;
+    // Layered rendering: static chrome is rebuilt only on theme change,
+    // session arcs once per minute (or on zone/theme change), hands every second.
+    let chromeG = null, sessionsG = null, hands = null;
+    let lastChromeKey = '', lastSessionsKey = '';
 
-        const now = new Date();
-        const utcH = now.getUTCHours();
-        const utcM = now.getUTCMinutes();
-        const utcS = now.getUTCSeconds();
-        const utcMs = now.getUTCMilliseconds();
-        const utcFrac = utcH + utcM/60 + utcS/3600;
-
-        const zone = ZONES.find(z => z.id === currentZoneId) || ZONES.find(z => z.id === 'MSK');
-        const zOff = getOffsetHours(zone.iana, now);
-        const zoneFrac = ((utcFrac + zOff) % 24 + 24) % 24;
-        const zoneH = Math.floor(zoneFrac);
-        const zoneM = Math.floor((zoneFrac - zoneH) * 60);
-        const zoneS = utcS;
-
-        // Pre-compute current session UTC ranges (DST-aware) + their bezel position in the SELECTED zone
-        const ranges = SESSIONS.map(s => {
-            const u = sessionUtcRange(s, now);
-            const startInZone = ((u.startUtc + zOff) % 24 + 24) % 24;
-            const endInZone   = ((u.endUtc   + zOff) % 24 + 24) % 24;
-            return { name: s.name, lane: s.lane, startUtc: u.startUtc, endUtc: u.endUtc, startInZone, endInZone };
-        });
-
-        // Clear (full redraw is cheap and safer)
-        while (svg.firstChild) svg.removeChild(svg.firstChild);
-        __pathId = 0;
+    function buildChrome(tok) {
+        if (chromeG) chromeG.remove();
+        chromeG = document.createElementNS(SVG_NS, 'g');
+        svg.insertBefore(chromeG, svg.firstChild);
 
         // === Outer 24h session bezel ===
-        svgEl('circle', { cx: CX, cy: CY, r: BEZEL_RIM,           fill: 'none', stroke: tok.dim, 'stroke-width': 0.6, opacity: 0.45 });
-        svgEl('circle', { cx: CX, cy: CY, r: LANE_RADII[4] - 6,   fill: 'none', stroke: tok.dim, 'stroke-width': 0.4, opacity: 0.30 });
+        svgEl('circle', { cx: CX, cy: CY, r: BEZEL_RIM,           fill: 'none', stroke: tok.dim, 'stroke-width': 0.6, opacity: 0.45 }, null, chromeG);
+        svgEl('circle', { cx: CX, cy: CY, r: LANE_RADII[4] - 6,   fill: 'none', stroke: tok.dim, 'stroke-width': 0.4, opacity: 0.30 }, null, chromeG);
 
         // 24h tick marks (every hour, longer every 3h)
         for (let h = 0; h < 24; h++) {
@@ -692,9 +760,9 @@ function initSessionsClock() {
                 stroke: tok.dim,
                 'stroke-width': major ? 0.9 : 0.5,
                 opacity: major ? 0.8 : 0.4
-            });
+            }, null, chromeG);
         }
-        // Bezel hour labels in SELECTED-zone local hours (24 / 03 / 06 / 09 / 12 / 15 / 18 / 21)
+        // Bezel hour labels (24 / 03 / 06 / 09 / 12 / 15 / 18 / 21)
         for (let h = 0; h < 24; h += 3) {
             const a = ang24(h);
             const [lx, ly] = pt(BEZEL_RIM + 11, a);
@@ -704,38 +772,11 @@ function initSessionsClock() {
                 'font-size': 7.5, 'letter-spacing': '1.4',
                 'text-anchor': 'middle', 'dominant-baseline': 'middle',
                 opacity: 0.8
-            }, lab);
+            }, lab, chromeG);
         }
 
-        // Session arcs (anchored to SELECTED-zone local hours; activity checked vs UTC)
-        ranges.forEach(r => {
-            const active = isActiveUtc(r, utcFrac);
-            const radius = LANE_RADII[r.lane];
-            let a0 = ang24(r.startInZone), a1 = ang24(r.endInZone);
-            if (r.endInZone <= r.startInZone) a1 += Math.PI * 2;
-            const w = active ? SESSION_W_ACT : SESSION_W_BASE;
-            const d = arcPath(radius, a0, a1, 1);
-            svgEl('path', {
-                d, fill: 'none',
-                stroke: active ? activeColor : dimTrack,
-                'stroke-width': w, 'stroke-linecap': 'butt'
-            });
-            const fontSize = active ? 7.5 : 6.5;
-            textOnArc(r.name, radius, a0, a1, active ? activeLabel : inactiveLabel, fontSize);
-        });
-
-        // "NOW" marker on the outer rim (selected-zone local time, small inward-pointing triangle)
-        const nowA = ang24(zoneFrac);
-        const [nax, nay] = pt(BEZEL_RIM - 2, nowA);
-        const [nlx, nly] = pt(BEZEL_RIM + 9, nowA - 0.035);
-        const [nrx, nry] = pt(BEZEL_RIM + 9, nowA + 0.035);
-        svgEl('polygon', {
-            points: `${nax},${nay} ${nlx},${nly} ${nrx},${nry}`,
-            fill: tok.txt
-        });
-
         // === Inner 12h dial ===
-        svgEl('circle', { cx: CX, cy: CY, r: DIAL_RING_R, fill: 'none', stroke: tok.dim, 'stroke-width': 0.5, opacity: 0.4 });
+        svgEl('circle', { cx: CX, cy: CY, r: DIAL_RING_R, fill: 'none', stroke: tok.dim, 'stroke-width': 0.5, opacity: 0.4 }, null, chromeG);
 
         // 60 minute ticks
         for (let m = 0; m < 60; m++) {
@@ -749,7 +790,7 @@ function initSessionsClock() {
                 stroke: major ? tok.txt : tok.dim,
                 'stroke-width': major ? 0.8 : 0.4,
                 opacity: major ? 0.65 : 0.4
-            });
+            }, null, chromeG);
         }
 
         // 12 Roman numerals — each rotated tangentially so the top points outward
@@ -766,38 +807,122 @@ function initSessionsClock() {
                 fill: tok.txt,
                 opacity: 0.95,
                 transform: `rotate(${rotDeg} ${x} ${y})`
-            }, ROMANS[i]);
+            }, ROMANS[i], chromeG);
         }
+    }
 
-        // Hands — classical 12-hour dial (hour hand = 2 revolutions per day)
+    function buildSessions(tok, isDark, ranges, utcFrac) {
+        const dimTrack = isDark ? '#262626' : '#e6e6e6';
+        const defs = svg.querySelector('defs');
+        if (defs) defs.textContent = '';
+        __pathId = 0;
+        if (sessionsG) sessionsG.remove();
+        sessionsG = document.createElementNS(SVG_NS, 'g');
+        svg.insertBefore(sessionsG, hands ? hands.group : null);
+
+        // Session arcs (anchored to SELECTED-zone local hours; activity checked vs UTC)
+        ranges.forEach(r => {
+            const active = isActiveUtc(r, utcFrac);
+            const radius = LANE_RADII[r.lane];
+            let a0 = ang24(r.startInZone), a1 = ang24(r.endInZone);
+            if (r.endInZone <= r.startInZone) a1 += Math.PI * 2;
+            const w = active ? SESSION_W_ACT : SESSION_W_BASE;
+            const d = arcPath(radius, a0, a1, 1);
+            svgEl('path', {
+                d, fill: 'none',
+                stroke: active ? tok.txt : dimTrack,
+                'stroke-width': w, 'stroke-linecap': 'butt'
+            }, null, sessionsG);
+            const fontSize = active ? 7.5 : 6.5;
+            textOnArc(r.name, radius, a0, a1, active ? tok.bg : tok.dim, fontSize, sessionsG);
+        });
+    }
+
+    function buildHands(tok) {
+        if (hands) hands.group.remove();
+        const g = document.createElementNS(SVG_NS, 'g');
+        svg.appendChild(g);
+        hands = {
+            group: g,
+            nowMarker: svgEl('polygon', { fill: tok.txt }, null, g),
+            hour: svgEl('line', { stroke: tok.txt, 'stroke-width': 3.0, 'stroke-linecap': 'round' }, null, g),
+            minute: svgEl('line', { stroke: tok.txt, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, null, g),
+            second: svgEl('line', { stroke: tok.txt, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.85 }, null, g),
+            pinOuter: svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: tok.txt }, null, g),
+            pinInner: svgEl('circle', { cx: CX, cy: CY, r: 1.2, fill: tok.bg }, null, g)
+        };
+    }
+
+    function updateHands(zoneFrac, zoneM, zoneS) {
+        // "NOW" marker on the outer rim (selected-zone local time, inward-pointing triangle)
+        const nowA = ang24(zoneFrac);
+        const [nax, nay] = pt(BEZEL_RIM - 2, nowA);
+        const [nlx, nly] = pt(BEZEL_RIM + 9, nowA - 0.035);
+        const [nrx, nry] = pt(BEZEL_RIM + 9, nowA + 0.035);
+        hands.nowMarker.setAttribute('points', `${nax},${nay} ${nlx},${nly} ${nrx},${nry}`);
+
+        // Classical 12-hour dial (hour hand = 2 revolutions per day)
         const hA = ang12(zoneFrac % 12);
         const mA = ((zoneM + zoneS/60) / 60) * Math.PI * 2 - Math.PI / 2;
-        const sA = ((zoneS + utcMs/1000) / 60) * Math.PI * 2 - Math.PI / 2;
+        const sA = (zoneS / 60) * Math.PI * 2 - Math.PI / 2;
 
         const [htx, hty] = pt(-9, hA);
         const [hx,  hy ] = pt(HAND_HOUR_R, hA);
-        svgEl('line', { x1: htx, y1: hty, x2: hx, y2: hy, stroke: handColor, 'stroke-width': 3.0, 'stroke-linecap': 'round' });
+        setAttrs(hands.hour, { x1: htx, y1: hty, x2: hx, y2: hy });
 
         const [mtx, mty] = pt(-12, mA);
         const [mxp, myp] = pt(HAND_MIN_R, mA);
-        svgEl('line', { x1: mtx, y1: mty, x2: mxp, y2: myp, stroke: handColor, 'stroke-width': 1.8, 'stroke-linecap': 'round' });
+        setAttrs(hands.minute, { x1: mtx, y1: mty, x2: mxp, y2: myp });
 
         const [stx, sty] = pt(-15, sA);
         const [sxp, syp] = pt(HAND_SEC_R, sA);
-        svgEl('line', { x1: stx, y1: sty, x2: sxp, y2: syp, stroke: handColor, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.85 });
+        setAttrs(hands.second, { x1: stx, y1: sty, x2: sxp, y2: syp });
+    }
 
-        // Centre pin
-        svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: handColor });
-        svgEl('circle', { cx: CX, cy: CY, r: 1.2, fill: tok.bg });
+    function render() {
+        const tok = readTokens();
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        const now = new Date();
+        const utcH = now.getUTCHours();
+        const utcM = now.getUTCMinutes();
+        const utcS = now.getUTCSeconds();
+        const utcFrac = utcH + utcM/60 + utcS/3600;
+
+        const zone = ZONES.find(z => z.id === currentZoneId) || ZONES.find(z => z.id === 'MSK');
+        const zOff = getOffsetHours(zone.iana, now);
+        const zoneFrac = ((utcFrac + zOff) % 24 + 24) % 24;
+        const zoneH = Math.floor(zoneFrac);
+        const zoneM = Math.floor((zoneFrac - zoneH) * 60);
+        const zoneS = utcS;
+
+        // Current session UTC ranges (DST-aware) + their bezel position in the SELECTED zone
+        const ranges = SESSIONS.map(s => {
+            const u = sessionUtcRange(s, now);
+            const startInZone = ((u.startUtc + zOff) % 24 + 24) % 24;
+            const endInZone   = ((u.endUtc   + zOff) % 24 + 24) % 24;
+            return { name: s.name, lane: s.lane, startUtc: u.startUtc, endUtc: u.endUtc, startInZone, endInZone };
+        });
+
+        const chromeKey = `${isDark}|${tok.txt}`;
+        if (chromeKey !== lastChromeKey) {
+            lastChromeKey = chromeKey;
+            buildChrome(tok);
+            buildHands(tok);
+            lastSessionsKey = '';
+        }
+        // Session arcs change at most once per minute (active state flips on hour boundaries)
+        const sessionsKey = `${chromeKey}|${zone.id}|${utcH}:${utcM}`;
+        if (sessionsKey !== lastSessionsKey) {
+            lastSessionsKey = sessionsKey;
+            buildSessions(tok, isDark, ranges, utcFrac);
+        }
+        updateHands(zoneFrac, zoneM, zoneS);
 
         // ── Update HTML header / footer
-        const timeDigits = `${fmtH(zoneH)}:${String(zoneM).padStart(2, '0')}`;
-        const suffix = fmtOffset(zOff);
-        const tzLabel = zone.short;
-
-        document.getElementById('msTimeDigits').textContent = timeDigits;
-        document.getElementById('msTimeSuffix').textContent = suffix;
-        document.getElementById('msTzLabel').textContent = tzLabel;
+        document.getElementById('msTimeDigits').textContent = `${fmtH(zoneH)}:${String(zoneM).padStart(2, '0')}`;
+        document.getElementById('msTimeSuffix').textContent = fmtOffset(zOff);
+        document.getElementById('msTzLabel').textContent = zone.short;
 
         const dom = dominantActive(ranges, utcFrac);
         const activeLineEl = document.getElementById('msActiveLine');
@@ -813,8 +938,9 @@ function initSessionsClock() {
         const nx = nextSession(ranges, utcFrac);
         if (nx) {
             // Show next session's opening time in the SELECTED zone
-            const sH = Math.floor(nx.startInZone);
-            const sM = Math.round((nx.startInZone - sH) * 60);
+            const totalMin = Math.round(nx.startInZone * 60) % 1440;
+            const sH = Math.floor(totalMin / 60);
+            const sM = totalMin % 60;
             nextLineEl.textContent = `Next · ${nx.name} ${fmtH(sH)}:${String(sM).padStart(2,'0')}`;
         } else {
             nextLineEl.textContent = '';
@@ -847,6 +973,7 @@ function initSessionsClock() {
         });
     }
     function openDropdown() {
+        buildDropdown(); // refresh UTC offsets (DST may have shifted since load)
         tzPop.classList.add('open');
         tzBtn.setAttribute('aria-expanded', 'true');
     }
@@ -870,21 +997,12 @@ function initSessionsClock() {
     const themeObserver = new MutationObserver(() => render());
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
-    // Initial render + animation loop (1Hz is enough; SVG is cheap)
+    // Initial render + 1Hz tick (no 60Hz rAF polling)
     render();
-    let lastSec = -1;
-    function loop() {
-        const s = new Date().getUTCSeconds();
-        if (s !== lastSec) {
-            lastSec = s;
-            render();
-        }
-        requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+    setInterval(render, 1000);
 }
 
-window.addEventListener('load', () => {
+window.addEventListener('DOMContentLoaded', () => {
     new ParticlesSystem();
     initProjectCanvases();
     initSessionsClock();
@@ -894,10 +1012,7 @@ window.addEventListener('load', () => {
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
-            document.querySelectorAll('.proj-canvas').forEach(c => {
-                c.width = c.parentElement.offsetWidth;
-                c.height = c.parentElement.offsetHeight;
-            });
+            document.querySelectorAll('.proj-canvas').forEach(sizeProjectCanvas);
         }, 400);
     });
 });
