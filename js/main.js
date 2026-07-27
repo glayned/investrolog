@@ -1006,7 +1006,7 @@ function initSessionsClock() {
 /* ════════════════════════════════════════
    ORDER MODAL
 ════════════════════════════════════════ */
-const ORDER_EMAIL = 'dmitry.maltcev@icloud.com';
+const ORDER_TG_USERNAME = 'Dm1tryMaltsev';
 let orderLastFocus = null;
 
 function openOrderModal() {
@@ -1046,9 +1046,9 @@ function initOrderModal() {
             return;
         }
         errorEl.textContent = '';
-        const subject = `Заказ проекта: ${name}`;
-        const body = `Название проекта: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`;
-        window.location.href = `mailto:${ORDER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        const text = `Заявка на проект\n\nНазвание: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`;
+        if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+        window.open(`https://t.me/${ORDER_TG_USERNAME}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
         closeOrderModal();
         form.reset();
     });
