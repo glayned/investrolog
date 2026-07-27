@@ -61,7 +61,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Syne:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="favicon.ico" rel="icon" type="image/x-icon"/>
 <script>try{var t=localStorage.getItem('ms-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}}catch(e){}</script>
-<link href="css/styles.css?v=4" rel="stylesheet"/>
+<link href="css/styles.css?v=5" rel="stylesheet"/>
 <noscript><style>.section,.skill-card,.project-card{opacity:1;transform:none}</style></noscript>
 </head>
 <body>
@@ -147,6 +147,19 @@
 <div class="ms-foot">
 <span><span class="ms-pulse" id="msPulse"></span><span id="msActiveLine">— · OFF HOURS</span></span>
 <span id="msNextLine"></span>
+</div>
+<!-- COT-перцентили: обновляй числа в data-p и дату в ms-cot-date (подсветка <10 / >90 автоматическая) -->
+<div class="ms-cot">
+<div class="ms-cot-head">
+<span>COT · MM percentile</span>
+<span class="ms-cot-date">25 JUL · CFTC</span>
+</div>
+<div class="ms-cot-row">
+<span class="ms-cot-item"><span class="ms-cot-sym">NG</span><span class="ms-cot-val" data-p="8">p8</span></span>
+<span class="ms-cot-item"><span class="ms-cot-sym">GC</span><span class="ms-cot-val" data-p="71">p71</span></span>
+<span class="ms-cot-item"><span class="ms-cot-sym">CL</span><span class="ms-cot-val" data-p="44">p44</span></span>
+<span class="ms-cot-item"><span class="ms-cot-sym">SI</span><span class="ms-cot-val" data-p="92">p92</span></span>
+</div>
 </div>
 </div>
 </div>
@@ -400,6 +413,6 @@
 </form>
 </div>
 </div>
-<script defer src="js/main.js?v=4"></script>
+<script defer src="js/main.js?v=5"></script>
 </body>
 </html>

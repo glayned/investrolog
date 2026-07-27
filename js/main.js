@@ -1278,7 +1278,18 @@ function initToTop() {
     update();
 }
 
+/* COT strip: percentile text from data-p, extremes (≤10 / ≥90) highlighted */
+function initCotStrip() {
+    document.querySelectorAll('.ms-cot-val[data-p]').forEach(el => {
+        const p = Number(el.dataset.p);
+        if (!Number.isFinite(p)) return;
+        el.textContent = 'p' + p;
+        el.classList.toggle('ext', p <= 10 || p >= 90);
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+    initCotStrip();
     initToTop();
     initOrderModal();
     new ParticlesSystem();
