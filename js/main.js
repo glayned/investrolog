@@ -3,15 +3,23 @@
    TYPING SOUND
 ════════════════════════════════════════ */
 let audioContext;
+let userInteracted = false;
+['pointerdown', 'keydown'].forEach(ev =>
+    window.addEventListener(ev, () => { userInteracted = true; }, { once: true, capture: true })
+);
 
 function initAudio() {
+    if (!userInteracted) return;
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
     }
 }
 
 function playTypingSound() {
-    if (!audioContext) return;
+    if (!audioContext || audioContext.state !== 'running') return;
     const osc1 = audioContext.createOscillator();
     const osc2 = audioContext.createOscillator();
     const gain = audioContext.createGain();
@@ -400,13 +408,18 @@ function toggleMusic() {
     const music = document.getElementById('backgroundMusic');
     const playIcon = document.querySelector('.play-icon');
     const pauseIcon = document.querySelector('.pause-icon');
+    const btn = document.querySelector('.music-toggle');
+    const setPlayingUI = (playing) => {
+        playIcon.style.display = playing ? 'none' : 'block';
+        pauseIcon.style.display = playing ? 'block' : 'none';
+        if (btn) btn.setAttribute('aria-pressed', String(playing));
+    };
     music.volume = 0.3;
     if (music.paused) {
-        music.play();
-        playIcon.style.display = 'none'; pauseIcon.style.display = 'block';
+        music.play().then(() => setPlayingUI(true)).catch(() => setPlayingUI(false));
     } else {
         music.pause();
-        playIcon.style.display = 'block'; pauseIcon.style.display = 'none';
+        setPlayingUI(false);
     }
 }
 
