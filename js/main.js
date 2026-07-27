@@ -1094,9 +1094,11 @@ function initToTop() {
         const max = document.documentElement.scrollHeight - window.innerHeight;
         btn.classList.toggle('visible', max > 0 && window.scrollY > max * 0.6);
     };
-    window.addEventListener('scroll', () => {
+    const requestUpdate = () => {
         if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    }, { passive: true });
+    };
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate);
     btn.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: reducedMotionQuery.matches ? 'auto' : 'smooth' });
     });
