@@ -96,18 +96,18 @@ function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
    MARKET CONSTELLATION
 ════════════════════════════════════════ */
 const STAR_COUNT = {
-    desktop: { min: 65, max: 110, area: 11000 },
-    mobile: { min: 36, max: 55, area: 14000 },
-    lowPower: { min: 28, max: 40, area: 18000 }
+    desktop: { min: 60, max: 96, area: 12500 },
+    mobile: { min: 32, max: 48, area: 15500 },
+    lowPower: { min: 24, max: 36, area: 19000 }
 };
-const CURSOR_RADIUS = 170;
+const CURSOR_RADIUS = 180;
 const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
 const GLOW_RADIUS = 260;
-const LOCAL_LINK_DIST = 130;
+const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
-const MAX_LOCAL_STARS = 8;
-const COMET_DELAY_MIN = 12000;
-const COMET_DELAY_MAX = 20000;
+const MAX_LOCAL_STARS = 7;
+const COMET_DELAY_MIN = 18000;
+const COMET_DELAY_MAX = 30000;
 
 function randomBetween(min, max) {
     return min + Math.random() * (max - min);
@@ -122,10 +122,10 @@ class Star {
         this.y = Math.random() * h;
         this.depth = randomBetween(0.35, 1);
         this.size = this.pickSize();
-        this.vx = randomBetween(-0.018, 0.018);
-        this.vy = randomBetween(-0.045, -0.012);
+        this.vx = randomBetween(-0.012, 0.012);
+        this.vy = randomBetween(-0.032, -0.009);
         this.phase = Math.random() * Math.PI * 2;
-        this.twinkleSpeed = randomBetween(0.55, 1.25);
+        this.twinkleSpeed = randomBetween(0.4, 0.9);
     }
     pickSize() {
         const roll = Math.random();
@@ -315,58 +315,77 @@ class ParticlesSystem {
                 if (distanceSq < CURSOR_RADIUS_SQ) {
                     const distance = Math.sqrt(distanceSq) || 0.001;
                     boost = (1 - distance / CURSOR_RADIUS) * pointer.glow;
-                    x += (dx / distance) * 8 * boost;
-                    y += (dy / distance) * 8 * boost;
-                    if (near.length < MAX_LOCAL_STARS) near.push({ x, y, boost });
+                    const candidate = { x, y, boost, distanceSq };
+                    const insertAt = near.findIndex(item => distanceSq < item.distanceSq);
+                    if (insertAt === -1) {
+                        if (near.length < MAX_LOCAL_STARS) near.push(candidate);
+                    } else {
+                        near.splice(insertAt, 0, candidate);
+                        if (near.length > MAX_LOCAL_STARS) near.pop();
+                    }
                 }
             }
 
             const twinkle = update
-                ? 0.62 + 0.38 * Math.sin(time * star.twinkleSpeed + star.phase)
+                ? 0.68 + 0.32 * Math.sin(time * star.twinkleSpeed + star.phase)
                 : 0.8;
             const alpha = Math.min(
                 1,
-                (isDark ? 0.26 + star.depth * 0.46 : 0.18 + star.depth * 0.3) * twinkle
-                    + boost * (isDark ? 0.36 : 0.22)
+                (isDark ? 0.22 + star.depth * 0.4 : 0.15 + star.depth * 0.24) * twinkle
+                    + boost * (isDark ? 0.3 : 0.18)
             );
+            const radius = star.size * (1 + boost * 0.24);
+            if (star.size > 1.5) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 3.2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${baseColor},${alpha * 0.08})`;
+                ctx.fill();
+            }
             ctx.beginPath();
-            ctx.arc(x, y, star.size * (1 + boost * 0.3), 0, Math.PI * 2);
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(${baseColor},${alpha})`;
             ctx.fill();
         }
 
         ctx.lineWidth = 0.6;
-        for (let i = 0; i < near.length; i++) {
-            for (let j = i + 1; j < near.length; j++) {
-                const a = near[i];
-                const b = near[j];
-                const dx = a.x - b.x;
-                const dy = a.y - b.y;
+        for (let i = 1; i < near.length; i++) {
+            const a = near[i];
+            let closest = null;
+            let closestDistanceSq = LOCAL_LINK_DIST_SQ;
+            for (let j = 0; j < i; j++) {
+                const candidate = near[j];
+                const dx = a.x - candidate.x;
+                const dy = a.y - candidate.y;
                 const distanceSq = dx * dx + dy * dy;
-                if (distanceSq >= LOCAL_LINK_DIST_SQ) continue;
-                const distance = Math.sqrt(distanceSq);
+                if (distanceSq < closestDistanceSq) {
+                    closest = candidate;
+                    closestDistanceSq = distanceSq;
+                }
+            }
+            if (closest) {
+                const distance = Math.sqrt(closestDistanceSq);
                 const alpha = (1 - distance / LOCAL_LINK_DIST)
-                    * Math.min(a.boost, b.boost)
-                    * (isDark ? 0.22 : 0.12);
+                    * Math.min(a.boost, closest.boost)
+                    * (isDark ? 0.2 : 0.1);
                 ctx.beginPath();
                 ctx.moveTo(a.x, a.y);
-                ctx.lineTo(b.x, b.y);
+                ctx.lineTo(closest.x, closest.y);
                 ctx.strokeStyle = `rgba(${baseColor},${alpha})`;
                 ctx.stroke();
             }
         }
     }
     spawnComet(now) {
-        const angle = randomBetween(0.28, 0.42);
-        const speed = randomBetween(500, 680);
+        const angle = randomBetween(0.2, 0.34);
+        const speed = randomBetween(420, 560);
         this.comet = {
-            x: randomBetween(-140, this.w * 0.55),
-            y: randomBetween(12, Math.max(40, this.h * 0.28)),
+            x: randomBetween(-160, this.w * 0.3),
+            y: randomBetween(18, Math.max(48, this.h * 0.22)),
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
-            length: randomBetween(75, 110),
+            length: randomBetween(90, 125),
             bornAt: now,
-            duration: randomBetween(900, 1250)
+            duration: randomBetween(1100, 1500)
         };
         this.nextCometAt = now + this.cometDelay();
     }
@@ -387,7 +406,7 @@ class ParticlesSystem {
         const speed = Math.hypot(comet.vx, comet.vy);
         const tailX = comet.x - (comet.vx / speed) * comet.length;
         const tailY = comet.y - (comet.vy / speed) * comet.length;
-        const fade = Math.sin(Math.PI * progress) * (isDark ? 0.62 : 0.32);
+        const fade = Math.sin(Math.PI * progress) * (isDark ? 0.46 : 0.2);
         const color = isDark ? '245,247,250' : '18,22,26';
         const gradient = this.ctx.createLinearGradient(comet.x, comet.y, tailX, tailY);
         gradient.addColorStop(0, `rgba(${color},${fade})`);
@@ -396,7 +415,7 @@ class ParticlesSystem {
         this.ctx.moveTo(comet.x, comet.y);
         this.ctx.lineTo(tailX, tailY);
         this.ctx.strokeStyle = gradient;
-        this.ctx.lineWidth = 1.25;
+        this.ctx.lineWidth = 1.05;
         this.ctx.lineCap = 'round';
         this.ctx.stroke();
     }
@@ -980,7 +999,8 @@ function initSessionsClock() {
             txt:  cs.getPropertyValue('--text-primary').trim()   || '#0a0a0a',
             dim:  cs.getPropertyValue('--text-secondary').trim() || '#666',
             line: cs.getPropertyValue('--border').trim()         || '#e0e0e0',
-            bg:   cs.getPropertyValue('--bg-primary').trim()     || '#fff'
+            bg:   cs.getPropertyValue('--bg-primary').trim()     || '#fff',
+            signal: cs.getPropertyValue('--signal-accent').trim() || '#98671f'
         };
     }
 
@@ -1094,11 +1114,11 @@ function initSessionsClock() {
         svg.appendChild(g);
         hands = {
             group: g,
-            nowMarker: svgEl('polygon', { fill: tok.txt }, null, g),
+            nowMarker: svgEl('polygon', { fill: tok.signal }, null, g),
             hour: svgEl('line', { stroke: tok.txt, 'stroke-width': 3.0, 'stroke-linecap': 'round' }, null, g),
             minute: svgEl('line', { stroke: tok.txt, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, null, g),
-            second: svgEl('line', { stroke: tok.txt, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.85 }, null, g),
-            pinOuter: svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: tok.txt }, null, g),
+            second: svgEl('line', { stroke: tok.signal, 'stroke-width': 0.8, 'stroke-linecap': 'round', opacity: 0.9 }, null, g),
+            pinOuter: svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: tok.signal }, null, g),
             pinInner: svgEl('circle', { cx: CX, cy: CY, r: 1.2, fill: tok.bg }, null, g)
         };
     }
@@ -1166,7 +1186,7 @@ function initSessionsClock() {
         }
         const ranges = cachedRanges;
 
-        const chromeKey = `${isDark}|${tok.txt}`;
+        const chromeKey = `${isDark}|${tok.txt}|${tok.signal}`;
         if (chromeKey !== lastChromeKey) {
             lastChromeKey = chromeKey;
             buildChrome(tok);
