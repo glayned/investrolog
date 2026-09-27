@@ -102,7 +102,7 @@ const STAR_COUNT = {
 };
 const CURSOR_RADIUS = 180;
 const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
-const GLOW_RADIUS = 220;
+const GLOW_RADIUS = 230;
 const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
 const MAX_LOCAL_STARS = 7;
@@ -271,14 +271,17 @@ class ParticlesSystem {
         pointer.glow += ((pointer.active ? 1 : 0) - pointer.glow) * 0.07 * frameScale;
         if (pointer.glow < 0.01) return;
 
-        const color = isDark ? '190,205,220' : '45,55,65';
-        const strength = (isDark ? 0.065 : 0.025) * pointer.glow;
+        const color = isDark ? '200,146,53' : '152,103,31';
+        const strength = (isDark ? 0.048 : 0.018) * pointer.glow;
         const gradient = this.ctx.createRadialGradient(
             pointer.x, pointer.y, 0,
             pointer.x, pointer.y, GLOW_RADIUS
         );
         gradient.addColorStop(0, `rgba(${color},${strength})`);
-        gradient.addColorStop(0.48, `rgba(${color},${strength * 0.28})`);
+        gradient.addColorStop(0.22, `rgba(${color},${strength * 0.82})`);
+        gradient.addColorStop(0.45, `rgba(${color},${strength * 0.48})`);
+        gradient.addColorStop(0.68, `rgba(${color},${strength * 0.2})`);
+        gradient.addColorStop(0.84, `rgba(${color},${strength * 0.06})`);
         gradient.addColorStop(1, `rgba(${color},0)`);
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(
