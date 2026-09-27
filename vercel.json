@@ -3,7 +3,13 @@
     {
       "source": "/(.*)",
       "destination": "https://investrolog.pro/$1",
-      "permanent": true
+      "permanent": true,
+      "has": [
+        {
+          "type": "host",
+          "value": "investrolog.vercel.app"
+        }
+      ]
     }
   ]
 }
