@@ -96,9 +96,9 @@ function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
    MARKET CONSTELLATION
 ════════════════════════════════════════ */
 const STAR_COUNT = {
-    desktop: { min: 65, max: 110, area: 11000 },
-    mobile: { min: 36, max: 55, area: 14000 },
-    lowPower: { min: 28, max: 40, area: 18000 }
+    desktop: { min: 105, max: 150, area: 8600 },
+    mobile: { min: 42, max: 68, area: 12500 },
+    lowPower: { min: 30, max: 46, area: 17000 }
 };
 const CURSOR_RADIUS = 180;
 const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
@@ -119,7 +119,7 @@ class Star {
     }
     reset(w, h) {
         this.angle = Math.random() * Math.PI * 2;
-        this.radiusRatio = Math.random() * 0.8;
+        this.radiusRatio = Math.pow(Math.random(), 1.5) * 0.8;
         this.angularSpeed = randomBetween(0.00018, 0.00048);
         this.depth = randomBetween(0.35, 1);
         this.size = this.pickSize();
@@ -129,9 +129,9 @@ class Star {
     }
     pickSize() {
         const roll = Math.random();
-        if (roll < 0.7) return randomBetween(0.45, 0.9);
-        if (roll < 0.95) return randomBetween(0.95, 1.45);
-        return randomBetween(1.55, 2.1);
+        if (roll < 0.58) return randomBetween(0.45, 0.95);
+        if (roll < 0.93) return randomBetween(0.95, 1.5);
+        return randomBetween(1.5, 1.9);
     }
     update(frameScale, w, h) {
         this.angle += this.angularSpeed * (0.72 + this.depth * 0.48) * frameScale;
