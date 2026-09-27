@@ -96,9 +96,9 @@ function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
    MARKET CONSTELLATION
 ════════════════════════════════════════ */
 const STAR_COUNT = {
-    desktop: { min: 60, max: 96, area: 12500 },
-    mobile: { min: 32, max: 48, area: 15500 },
-    lowPower: { min: 24, max: 36, area: 19000 }
+    desktop: { min: 65, max: 110, area: 11000 },
+    mobile: { min: 36, max: 55, area: 14000 },
+    lowPower: { min: 28, max: 40, area: 18000 }
 };
 const CURSOR_RADIUS = 180;
 const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
@@ -106,8 +106,8 @@ const GLOW_RADIUS = 260;
 const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
 const MAX_LOCAL_STARS = 7;
-const COMET_DELAY_MIN = 18000;
-const COMET_DELAY_MAX = 30000;
+const COMET_DELAY_MIN = 7000;
+const COMET_DELAY_MAX = 12000;
 
 function randomBetween(min, max) {
     return min + Math.random() * (max - min);
@@ -118,14 +118,14 @@ class Star {
         this.reset(w, h);
     }
     reset(w, h) {
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
+        this.angle = Math.random() * Math.PI * 2;
+        this.radiusRatio = Math.random() * 0.8;
+        this.angularSpeed = randomBetween(0.00018, 0.00048);
         this.depth = randomBetween(0.35, 1);
         this.size = this.pickSize();
-        this.vx = randomBetween(-0.012, 0.012);
-        this.vy = randomBetween(-0.032, -0.009);
         this.phase = Math.random() * Math.PI * 2;
-        this.twinkleSpeed = randomBetween(0.4, 0.9);
+        this.twinkleSpeed = randomBetween(0.55, 1.25);
+        this.update(0, w, h);
     }
     pickSize() {
         const roll = Math.random();
@@ -134,14 +134,10 @@ class Star {
         return randomBetween(1.55, 2.1);
     }
     update(frameScale, w, h) {
-        this.x += this.vx * this.depth * frameScale;
-        this.y += this.vy * this.depth * frameScale;
-        if (this.y < -4) {
-            this.y = h + 4;
-            this.x = Math.random() * w;
-        }
-        if (this.x < -4) this.x = w + 4;
-        else if (this.x > w + 4) this.x = -4;
+        this.angle += this.angularSpeed * (0.72 + this.depth * 0.48) * frameScale;
+        const radius = Math.max(w, h) * this.radiusRatio;
+        this.x = w / 2 + Math.cos(this.angle) * radius;
+        this.y = h / 2 + Math.sin(this.angle) * radius;
     }
 }
 
@@ -224,14 +220,9 @@ class ParticlesSystem {
     resize() {
         this.updateCapabilities();
         const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2);
-        const previousW = this.w || window.innerWidth;
-        const previousH = this.h || window.innerHeight;
         this.w = window.innerWidth;
         this.h = window.innerHeight;
-        for (const star of this.stars) {
-            star.x = star.x / previousW * this.w;
-            star.y = star.y / previousH * this.h;
-        }
+        for (const star of this.stars) star.update(0, this.w, this.h);
         this.canvas.width = Math.round(this.w * dpr);
         this.canvas.height = Math.round(this.h * dpr);
         this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -376,16 +367,17 @@ class ParticlesSystem {
         }
     }
     spawnComet(now) {
-        const angle = randomBetween(0.2, 0.34);
-        const speed = randomBetween(420, 560);
+        const vx = randomBetween(280, 390);
         this.comet = {
-            x: randomBetween(-160, this.w * 0.3),
-            y: randomBetween(18, Math.max(48, this.h * 0.22)),
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            length: randomBetween(90, 125),
+            x: Math.random() > 0.35
+                ? randomBetween(-this.w * 0.15 - 80, -80)
+                : randomBetween(0, this.w * 0.75),
+            y: randomBetween(0, Math.max(40, this.h * 0.28)),
+            vx,
+            vy: vx * randomBetween(0.45, 0.7),
+            length: randomBetween(140, 220),
             bornAt: now,
-            duration: randomBetween(1100, 1500)
+            duration: randomBetween(1550, 1950)
         };
         this.nextCometAt = now + this.cometDelay();
     }
@@ -406,18 +398,30 @@ class ParticlesSystem {
         const speed = Math.hypot(comet.vx, comet.vy);
         const tailX = comet.x - (comet.vx / speed) * comet.length;
         const tailY = comet.y - (comet.vy / speed) * comet.length;
-        const fade = Math.sin(Math.PI * progress) * (isDark ? 0.46 : 0.2);
+        const life = 1 - progress;
+        const fadeIn = Math.min(1, progress / 0.08);
+        const fade = life * fadeIn * (isDark ? 0.82 : 0.34);
         const color = isDark ? '245,247,250' : '18,22,26';
         const gradient = this.ctx.createLinearGradient(comet.x, comet.y, tailX, tailY);
         gradient.addColorStop(0, `rgba(${color},${fade})`);
+        gradient.addColorStop(0.12, `rgba(${color},${fade * 0.88})`);
         gradient.addColorStop(1, `rgba(${color},0)`);
         this.ctx.beginPath();
         this.ctx.moveTo(comet.x, comet.y);
         this.ctx.lineTo(tailX, tailY);
         this.ctx.strokeStyle = gradient;
-        this.ctx.lineWidth = 1.05;
+        this.ctx.lineWidth = 1.35 + life;
         this.ctx.lineCap = 'round';
         this.ctx.stroke();
+
+        this.ctx.beginPath();
+        this.ctx.arc(comet.x, comet.y, 5.5, 0, Math.PI * 2);
+        this.ctx.fillStyle = `rgba(${color},${fade * 0.12})`;
+        this.ctx.fill();
+        this.ctx.beginPath();
+        this.ctx.arc(comet.x, comet.y, 1.15 + life * 0.55, 0, Math.PI * 2);
+        this.ctx.fillStyle = `rgba(${color},${Math.min(1, fade * 1.15)})`;
+        this.ctx.fill();
     }
     drawFrame(now, update, frameScale = 1) {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
