@@ -102,7 +102,7 @@ const STAR_COUNT = {
 };
 const CURSOR_RADIUS = 180;
 const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
-const GLOW_RADIUS = 260;
+const GLOW_RADIUS = 220;
 const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
 const MAX_LOCAL_STARS = 7;
@@ -272,13 +272,13 @@ class ParticlesSystem {
         if (pointer.glow < 0.01) return;
 
         const color = isDark ? '190,205,220' : '45,55,65';
-        const strength = (isDark ? 0.11 : 0.045) * pointer.glow;
+        const strength = (isDark ? 0.065 : 0.025) * pointer.glow;
         const gradient = this.ctx.createRadialGradient(
             pointer.x, pointer.y, 0,
             pointer.x, pointer.y, GLOW_RADIUS
         );
         gradient.addColorStop(0, `rgba(${color},${strength})`);
-        gradient.addColorStop(0.55, `rgba(${color},${strength * 0.32})`);
+        gradient.addColorStop(0.48, `rgba(${color},${strength * 0.28})`);
         gradient.addColorStop(1, `rgba(${color},0)`);
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(
@@ -328,9 +328,9 @@ class ParticlesSystem {
             const alpha = Math.min(
                 1,
                 (isDark ? 0.22 + star.depth * 0.4 : 0.15 + star.depth * 0.24) * twinkle
-                    + boost * (isDark ? 0.3 : 0.18)
+                    + boost * (isDark ? 0.24 : 0.14)
             );
-            const radius = star.size * (1 + boost * 0.24);
+            const radius = star.size * (1 + boost * 0.18);
             if (star.size > 1.5) {
                 ctx.beginPath();
                 ctx.arc(x, y, radius * 3.2, 0, Math.PI * 2);
