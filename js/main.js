@@ -124,7 +124,7 @@ class Star {
         this.depth = randomBetween(0.35, 1);
         this.size = this.pickSize();
         this.phase = Math.random() * Math.PI * 2;
-        this.twinkleSpeed = randomBetween(0.55, 1.25);
+        this.twinkleSpeed = randomBetween(2.1, 3.4);
         this.update(0, w, h);
     }
     pickSize() {
@@ -318,8 +318,10 @@ class ParticlesSystem {
             }
 
             const twinkle = update
-                ? 0.68 + 0.32 * Math.sin(time * star.twinkleSpeed + star.phase)
-                : 0.8;
+                ? 0.58
+                    + 0.34 * Math.sin(time * star.twinkleSpeed + star.phase)
+                    + 0.08 * Math.sin(time * star.twinkleSpeed * 0.37 + star.phase * 1.7)
+                : 0.74;
             const alpha = Math.min(
                 1,
                 (isDark ? 0.22 + star.depth * 0.4 : 0.15 + star.depth * 0.24) * twinkle
