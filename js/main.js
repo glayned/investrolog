@@ -93,53 +93,51 @@ function motionAllowed() { return !reducedMotionQuery.matches && !document.hidde
 function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
 
 /* ════════════════════════════════════════
-   PARTICLES
+   MARKET CONSTELLATION
 ════════════════════════════════════════ */
-const LINK_DIST = 110;
-const LINK_DIST_SQ = LINK_DIST * LINK_DIST;
-const MAX_PARTICLES = 220;
+const STAR_COUNT = {
+    desktop: { min: 105, max: 150, area: 8600 },
+    mobile: { min: 42, max: 68, area: 12500 },
+    lowPower: { min: 30, max: 46, area: 17000 }
+};
+const CURSOR_RADIUS = 180;
+const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
+const GLOW_RADIUS = 260;
+const LOCAL_LINK_DIST = 145;
+const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
+const MAX_LOCAL_STARS = 7;
+const COMET_DELAY_MIN = 7000;
+const COMET_DELAY_MAX = 12000;
 
-class Particle {
+function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+}
+
+class Star {
     constructor(w, h) {
         this.reset(w, h);
     }
     reset(w, h) {
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
-        this.baseX = this.x;
-        this.baseY = this.y;
-        this.size = Math.random() * 2.2 + 0.8;
-        this.speedX = (Math.random() - 0.5) * 0.4;
-        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.angle = Math.random() * Math.PI * 2;
+        this.radiusRatio = Math.pow(Math.random(), 1.5) * 0.8;
+        this.angularSpeed = randomBetween(0.00018, 0.00048);
+        this.depth = randomBetween(0.35, 1);
+        this.size = this.pickSize();
+        this.phase = Math.random() * Math.PI * 2;
+        this.twinkleSpeed = randomBetween(2.1, 3.4);
+        this.update(0, w, h);
     }
-    update(mouse, w, h) {
-        if (mouse.x != null && mouse.y != null) {
-            const dx = mouse.x - this.x, dy = mouse.y - this.y;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            if (d > 0 && d < mouse.radius) {
-                const f = (mouse.radius - d) / mouse.radius;
-                this.x -= (dx/d) * f * 3;
-                this.y -= (dy/d) * f * 3;
-            }
-        }
-        this.x += (this.baseX - this.x) * 0.05;
-        this.y += (this.baseY - this.y) * 0.05;
-        this.baseX += this.speedX;
-        this.baseY += this.speedY;
-        if (this.baseX < 0 || this.baseX > w) {
-            this.baseX = Math.max(0, Math.min(this.baseX, w));
-            this.speedX *= -1;
-        }
-        if (this.baseY < 0 || this.baseY > h) {
-            this.baseY = Math.max(0, Math.min(this.baseY, h));
-            this.speedY *= -1;
-        }
+    pickSize() {
+        const roll = Math.random();
+        if (roll < 0.58) return randomBetween(0.45, 0.95);
+        if (roll < 0.93) return randomBetween(0.95, 1.5);
+        return randomBetween(1.5, 1.9);
     }
-    draw(ctx, isDark) {
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-        ctx.fill();
+    update(frameScale, w, h) {
+        this.angle += this.angularSpeed * (0.72 + this.depth * 0.48) * frameScale;
+        const radius = Math.max(w, h) * this.radiusRatio;
+        this.x = w / 2 + Math.cos(this.angle) * radius;
+        this.y = h / 2 + Math.sin(this.angle) * radius;
     }
 }
 
@@ -147,89 +145,296 @@ class ParticlesSystem {
     constructor() {
         this.canvas = document.getElementById('particles-canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.particles = [];
-        this.mouse = { x: null, y: null, radius: 140 };
+        this.stars = [];
+        this.pointer = {
+            targetX: -999,
+            targetY: -999,
+            x: -999,
+            y: -999,
+            active: false,
+            glow: 0
+        };
+        this.comet = null;
+        this.nextCometAt = performance.now() + this.cometDelay();
         this.running = false;
+        this.rafId = 0;
+        this.lastTick = 0;
+        this.lastFrame = 0;
+        this.updateCapabilities();
         this.resize();
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => this.resize(), 150);
         });
-        window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-        window.addEventListener('mouseout', e => {
-            if (!e.relatedTarget) { this.mouse.x = null; this.mouse.y = null; }
+        window.addEventListener('pointermove', e => this.onPointerMove(e), { passive: true });
+        document.addEventListener('pointerleave', () => { this.pointer.active = false; });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) this.stop();
+            else this.start();
         });
-        document.addEventListener('visibilitychange', () => this.start());
         reducedMotionQuery.addEventListener('change', () => {
-            if (reducedMotionQuery.matches) this.drawFrame(false); else this.start();
+            if (reducedMotionQuery.matches) {
+                this.stop();
+                this.pointer.glow = 0;
+                this.comet = null;
+                this.drawFrame(0, false);
+            } else {
+                this.nextCometAt = performance.now() + this.cometDelay();
+                this.start();
+            }
         });
-        new MutationObserver(() => { if (!this.running) this.drawFrame(false); })
+        new MutationObserver(() => {
+            if (!this.running) this.drawFrame(performance.now(), false);
+        })
             .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-        if (reducedMotionQuery.matches) this.drawFrame(false); else this.start();
+        if (reducedMotionQuery.matches) this.drawFrame(0, false);
+        else this.start();
+    }
+    updateCapabilities() {
+        this.mobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+        this.finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        const memory = navigator.deviceMemory;
+        const cores = navigator.hardwareConcurrency || 8;
+        const saveData = navigator.connection && navigator.connection.saveData;
+        this.lowPower = this.mobile && (cores <= 4 || (memory != null && memory <= 4) || saveData);
+        this.frameInterval = 1000 / (this.lowPower ? 20 : this.mobile ? 24 : 30);
+        if (!this.finePointer && this.pointer) {
+            this.pointer.active = false;
+            this.pointer.glow = 0;
+        }
+    }
+    cometDelay() {
+        return randomBetween(COMET_DELAY_MIN, COMET_DELAY_MAX);
+    }
+    onPointerMove(event) {
+        if (!this.finePointer || reducedMotionQuery.matches) return;
+        this.pointer.targetX = event.clientX;
+        this.pointer.targetY = event.clientY;
+        if (!this.pointer.active) {
+            this.pointer.x = event.clientX;
+            this.pointer.y = event.clientY;
+            this.pointer.active = true;
+        }
     }
     resize() {
-        const dpr = getDpr();
+        this.updateCapabilities();
+        const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2);
         this.w = window.innerWidth;
         this.h = window.innerHeight;
-        this.canvas.width = this.w * dpr;
-        this.canvas.height = this.h * dpr;
+        for (const star of this.stars) star.update(0, this.w, this.h);
+        this.canvas.width = Math.round(this.w * dpr);
+        this.canvas.height = Math.round(this.h * dpr);
         this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const target = Math.min(MAX_PARTICLES, Math.floor((this.w * this.h) / 16000));
-        while (this.particles.length < target) this.particles.push(new Particle(this.w, this.h));
-        if (this.particles.length > target) this.particles.length = target;
-        if (reducedMotionQuery.matches) this.drawFrame(false);
+        const profile = this.lowPower
+            ? STAR_COUNT.lowPower
+            : this.mobile ? STAR_COUNT.mobile : STAR_COUNT.desktop;
+        const target = Math.min(
+            profile.max,
+            Math.max(profile.min, Math.round((this.w * this.h) / profile.area))
+        );
+        while (this.stars.length < target) this.stars.push(new Star(this.w, this.h));
+        if (this.stars.length > target) this.stars.length = target;
+        if (reducedMotionQuery.matches) this.drawFrame(0, false);
     }
     start() {
         if (this.running || !motionAllowed()) return;
         this.running = true;
-        requestAnimationFrame(() => this.tick());
+        this.lastTick = 0;
+        this.lastFrame = 0;
+        this.rafId = requestAnimationFrame(now => this.tick(now));
     }
-    tick() {
-        if (!motionAllowed()) { this.running = false; return; }
-        this.drawFrame(true);
-        requestAnimationFrame(() => this.tick());
+    stop() {
+        this.running = false;
+        cancelAnimationFrame(this.rafId);
     }
-    drawFrame(update) {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    tick(now) {
+        if (!motionAllowed()) {
+            this.running = false;
+            return;
+        }
+        const sinceFrame = now - this.lastFrame;
+        if (!this.lastFrame || sinceFrame >= this.frameInterval) {
+            const elapsed = this.lastTick ? Math.min(now - this.lastTick, 50) : this.frameInterval;
+            this.lastTick = now;
+            this.lastFrame = this.lastFrame
+                ? now - (sinceFrame % this.frameInterval)
+                : now;
+            this.drawFrame(now, true, elapsed / 16.667);
+        }
+        this.rafId = requestAnimationFrame(next => this.tick(next));
+    }
+    drawGlow(isDark, frameScale) {
+        const pointer = this.pointer;
+        pointer.x += (pointer.targetX - pointer.x) * 0.08 * frameScale;
+        pointer.y += (pointer.targetY - pointer.y) * 0.08 * frameScale;
+        pointer.glow += ((pointer.active ? 1 : 0) - pointer.glow) * 0.07 * frameScale;
+        if (pointer.glow < 0.01) return;
+
+        const color = isDark ? '190,205,220' : '45,55,65';
+        const strength = (isDark ? 0.11 : 0.045) * pointer.glow;
+        const gradient = this.ctx.createRadialGradient(
+            pointer.x, pointer.y, 0,
+            pointer.x, pointer.y, GLOW_RADIUS
+        );
+        gradient.addColorStop(0, `rgba(${color},${strength})`);
+        gradient.addColorStop(0.55, `rgba(${color},${strength * 0.32})`);
+        gradient.addColorStop(1, `rgba(${color},0)`);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(
+            pointer.x - GLOW_RADIUS,
+            pointer.y - GLOW_RADIUS,
+            GLOW_RADIUS * 2,
+            GLOW_RADIUS * 2
+        );
+    }
+    drawStars(isDark, now, update, frameScale) {
         const ctx = this.ctx;
-        ctx.clearRect(0, 0, this.w, this.h);
-        // Spatial hash: only compare particles in neighbouring cells → ~O(n)
-        const cell = LINK_DIST;
-        const cols = Math.max(1, Math.ceil(this.w / cell));
-        const grid = new Map();
-        this.particles.forEach((p, i) => {
-            if (update) p.update(this.mouse, this.w, this.h);
-            p.draw(ctx, isDark);
-            const key = Math.floor(p.x / cell) + Math.floor(p.y / cell) * cols;
-            const bucket = grid.get(key);
-            if (bucket) bucket.push(i); else grid.set(key, [i]);
-        });
-        ctx.lineWidth = 0.5;
-        this.particles.forEach((p, i) => {
-            const cx = Math.floor(p.x / cell), cy = Math.floor(p.y / cell);
-            for (let ny = cy; ny <= cy + 1; ny++) {
-                for (let nx = cx - 1; nx <= cx + 1; nx++) {
-                    if (ny === cy && nx < cx) continue; // visit each pair once
-                    const bucket = grid.get(nx + ny * cols);
-                    if (!bucket) continue;
-                    for (const j of bucket) {
-                        if (j <= i && ny === cy && nx === cx) continue;
-                        const q = this.particles[j];
-                        const dx = q.x - p.x, dy = q.y - p.y;
-                        const d2 = dx*dx + dy*dy;
-                        if (d2 < LINK_DIST_SQ) {
-                            const op = (1 - Math.sqrt(d2)/LINK_DIST) * 0.25;
-                            ctx.strokeStyle = isDark ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(q.x, q.y);
-                            ctx.stroke();
-                        }
+        const pointer = this.pointer;
+        const interactive = this.finePointer && pointer.glow > 0.02 && update;
+        const near = [];
+        const baseColor = isDark ? '245,247,250' : '18,22,26';
+        const time = now / 1000;
+
+        for (const star of this.stars) {
+            if (update) star.update(frameScale, this.w, this.h);
+            let x = star.x;
+            let y = star.y;
+            let boost = 0;
+
+            if (interactive) {
+                const dx = star.x - pointer.x;
+                const dy = star.y - pointer.y;
+                const distanceSq = dx * dx + dy * dy;
+                if (distanceSq < CURSOR_RADIUS_SQ) {
+                    const distance = Math.sqrt(distanceSq) || 0.001;
+                    boost = (1 - distance / CURSOR_RADIUS) * pointer.glow;
+                    const candidate = { x, y, boost, distanceSq };
+                    const insertAt = near.findIndex(item => distanceSq < item.distanceSq);
+                    if (insertAt === -1) {
+                        if (near.length < MAX_LOCAL_STARS) near.push(candidate);
+                    } else {
+                        near.splice(insertAt, 0, candidate);
+                        if (near.length > MAX_LOCAL_STARS) near.pop();
                     }
                 }
             }
-        });
+
+            const twinkle = update
+                ? 0.58
+                    + 0.34 * Math.sin(time * star.twinkleSpeed + star.phase)
+                    + 0.08 * Math.sin(time * star.twinkleSpeed * 0.37 + star.phase * 1.7)
+                : 0.74;
+            const alpha = Math.min(
+                1,
+                (isDark ? 0.22 + star.depth * 0.4 : 0.15 + star.depth * 0.24) * twinkle
+                    + boost * (isDark ? 0.3 : 0.18)
+            );
+            const radius = star.size * (1 + boost * 0.24);
+            if (star.size > 1.5) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 3.2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${baseColor},${alpha * 0.08})`;
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${baseColor},${alpha})`;
+            ctx.fill();
+        }
+
+        ctx.lineWidth = 0.6;
+        for (let i = 1; i < near.length; i++) {
+            const a = near[i];
+            let closest = null;
+            let closestDistanceSq = LOCAL_LINK_DIST_SQ;
+            for (let j = 0; j < i; j++) {
+                const candidate = near[j];
+                const dx = a.x - candidate.x;
+                const dy = a.y - candidate.y;
+                const distanceSq = dx * dx + dy * dy;
+                if (distanceSq < closestDistanceSq) {
+                    closest = candidate;
+                    closestDistanceSq = distanceSq;
+                }
+            }
+            if (closest) {
+                const distance = Math.sqrt(closestDistanceSq);
+                const alpha = (1 - distance / LOCAL_LINK_DIST)
+                    * Math.min(a.boost, closest.boost)
+                    * (isDark ? 0.2 : 0.1);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(closest.x, closest.y);
+                ctx.strokeStyle = `rgba(${baseColor},${alpha})`;
+                ctx.stroke();
+            }
+        }
+    }
+    spawnComet(now) {
+        const vx = randomBetween(280, 390);
+        this.comet = {
+            x: Math.random() > 0.35
+                ? randomBetween(-this.w * 0.15 - 80, -80)
+                : randomBetween(0, this.w * 0.75),
+            y: randomBetween(0, Math.max(40, this.h * 0.28)),
+            vx,
+            vy: vx * randomBetween(0.45, 0.7),
+            length: randomBetween(140, 220),
+            bornAt: now,
+            duration: randomBetween(1550, 1950)
+        };
+        this.nextCometAt = now + this.cometDelay();
+    }
+    drawComet(isDark, now, elapsedSeconds) {
+        if (this.mobile || this.lowPower) return;
+        if (!this.comet && now >= this.nextCometAt) this.spawnComet(now);
+        if (!this.comet) return;
+
+        const comet = this.comet;
+        const progress = (now - comet.bornAt) / comet.duration;
+        if (progress >= 1 || comet.x > this.w + 140 || comet.y > this.h + 140) {
+            this.comet = null;
+            return;
+        }
+
+        comet.x += comet.vx * elapsedSeconds;
+        comet.y += comet.vy * elapsedSeconds;
+        const speed = Math.hypot(comet.vx, comet.vy);
+        const tailX = comet.x - (comet.vx / speed) * comet.length;
+        const tailY = comet.y - (comet.vy / speed) * comet.length;
+        const life = 1 - progress;
+        const fadeIn = Math.min(1, progress / 0.08);
+        const fade = life * fadeIn * (isDark ? 0.82 : 0.34);
+        const color = isDark ? '245,247,250' : '18,22,26';
+        const gradient = this.ctx.createLinearGradient(comet.x, comet.y, tailX, tailY);
+        gradient.addColorStop(0, `rgba(${color},${fade})`);
+        gradient.addColorStop(0.12, `rgba(${color},${fade * 0.88})`);
+        gradient.addColorStop(1, `rgba(${color},0)`);
+        this.ctx.beginPath();
+        this.ctx.moveTo(comet.x, comet.y);
+        this.ctx.lineTo(tailX, tailY);
+        this.ctx.strokeStyle = gradient;
+        this.ctx.lineWidth = 1.35 + life;
+        this.ctx.lineCap = 'round';
+        this.ctx.stroke();
+
+        this.ctx.beginPath();
+        this.ctx.arc(comet.x, comet.y, 5.5, 0, Math.PI * 2);
+        this.ctx.fillStyle = `rgba(${color},${fade * 0.12})`;
+        this.ctx.fill();
+        this.ctx.beginPath();
+        this.ctx.arc(comet.x, comet.y, 1.15 + life * 0.55, 0, Math.PI * 2);
+        this.ctx.fillStyle = `rgba(${color},${Math.min(1, fade * 1.15)})`;
+        this.ctx.fill();
+    }
+    drawFrame(now, update, frameScale = 1) {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const ctx = this.ctx;
+        ctx.clearRect(0, 0, this.w, this.h);
+        if (update && this.finePointer) this.drawGlow(isDark, frameScale);
+        this.drawStars(isDark, now, update, frameScale);
+        if (update) this.drawComet(isDark, now, frameScale / 60);
     }
 }
 
@@ -803,7 +1008,8 @@ function initSessionsClock() {
             txt:  cs.getPropertyValue('--text-primary').trim()   || '#0a0a0a',
             dim:  cs.getPropertyValue('--text-secondary').trim() || '#666',
             line: cs.getPropertyValue('--border').trim()         || '#e0e0e0',
-            bg:   cs.getPropertyValue('--bg-primary').trim()     || '#fff'
+            bg:   cs.getPropertyValue('--bg-primary').trim()     || '#fff',
+            signal: cs.getPropertyValue('--signal-accent').trim() || '#98671f'
         };
     }
 
@@ -917,11 +1123,11 @@ function initSessionsClock() {
         svg.appendChild(g);
         hands = {
             group: g,
-            nowMarker: svgEl('polygon', { fill: tok.txt }, null, g),
+            nowMarker: svgEl('polygon', { fill: tok.signal }, null, g),
             hour: svgEl('line', { stroke: tok.txt, 'stroke-width': 3.0, 'stroke-linecap': 'round' }, null, g),
             minute: svgEl('line', { stroke: tok.txt, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, null, g),
-            second: svgEl('line', { stroke: tok.txt, 'stroke-width': 0.7, 'stroke-linecap': 'round', opacity: 0.85 }, null, g),
-            pinOuter: svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: tok.txt }, null, g),
+            second: svgEl('line', { stroke: tok.signal, 'stroke-width': 0.8, 'stroke-linecap': 'round', opacity: 0.9 }, null, g),
+            pinOuter: svgEl('circle', { cx: CX, cy: CY, r: 3.4, fill: tok.signal }, null, g),
             pinInner: svgEl('circle', { cx: CX, cy: CY, r: 1.2, fill: tok.bg }, null, g)
         };
     }
@@ -989,7 +1195,7 @@ function initSessionsClock() {
         }
         const ranges = cachedRanges;
 
-        const chromeKey = `${isDark}|${tok.txt}`;
+        const chromeKey = `${isDark}|${tok.txt}|${tok.signal}`;
         if (chromeKey !== lastChromeKey) {
             lastChromeKey = chromeKey;
             buildChrome(tok);
