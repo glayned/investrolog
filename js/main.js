@@ -589,6 +589,7 @@ function initSessionsClock() {
         { name: 'LONDON',   iana: 'Europe/London',     startLocal: 8,  endLocal: 17, lane: 3 },
         { name: 'NEW YORK', iana: 'America/New_York',  startLocal: 8,  endLocal: 17, lane: 4 }
     ];
+    const TRADING_WEEKDAYS = new Set([1, 2, 3, 4, 5]);
 
     const LANE_RADII     = [196, 184, 172, 160, 148]; // Sydney outermost → NY innermost
     const SESSION_W_BASE = 2;
@@ -603,12 +604,13 @@ function initSessionsClock() {
 
     // ── Zone offset helper (DST-aware via Intl). Returns hours (can be fractional).
     const _offsetFmtCache = {};
+    const _partsFmtCache = {};
     function getOffsetHours(iana, date) {
         if (iana === 'UTC') return 0;
         let fmt = _offsetFmtCache[iana];
         if (!fmt) {
             fmt = new Intl.DateTimeFormat('en-US', {
-                timeZone: iana, hour12: false,
+                timeZone: iana, hourCycle: 'h23',
                 year: 'numeric', month: '2-digit', day: '2-digit',
                 hour: '2-digit', minute: '2-digit', second: '2-digit'
             });
@@ -619,6 +621,69 @@ function initSessionsClock() {
         const h = +map.hour === 24 ? 0 : +map.hour;
         const asUTC = Date.UTC(+map.year, +map.month - 1, +map.day, h, +map.minute, +map.second);
         return Math.round(((asUTC - date.getTime()) / 60000)) / 60; // rounded to nearest minute
+    }
+
+    function getZonedParts(iana, date) {
+        let fmt = _partsFmtCache[iana];
+        if (!fmt) {
+            fmt = new Intl.DateTimeFormat('en-US', {
+                timeZone: iana,
+                hourCycle: 'h23',
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            _partsFmtCache[iana] = fmt;
+        }
+        const map = {};
+        fmt.formatToParts(date).forEach(p => { if (p.type !== 'literal') map[p.type] = p.value; });
+        return {
+            year: +map.year,
+            month: +map.month,
+            day: +map.day,
+            hour: +map.hour,
+            minute: +map.minute,
+            second: +map.second
+        };
+    }
+
+    function weekdayOf(parts) {
+        return new Date(Date.UTC(parts.year, parts.month - 1, parts.day)).getUTCDay();
+    }
+
+    function zonedLocalToUtc(iana, parts, hour) {
+        const localMs = Date.UTC(parts.year, parts.month - 1, parts.day, hour);
+        let utcMs = localMs;
+        for (let i = 0; i < 3; i++) {
+            const adjusted = localMs - getOffsetHours(iana, new Date(utcMs)) * 3600000;
+            if (adjusted === utcMs) break;
+            utcMs = adjusted;
+        }
+        return new Date(utcMs);
+    }
+
+    function sessionState(s, now) {
+        const local = getZonedParts(s.iana, now);
+        const localMinutes = local.hour * 60 + local.minute + local.second / 60;
+        const active = TRADING_WEEKDAYS.has(weekdayOf(local))
+            && localMinutes >= s.startLocal * 60
+            && localMinutes < s.endLocal * 60;
+
+        let nextOpen = null;
+        for (let dayOffset = 0; dayOffset < 8; dayOffset++) {
+            const calendarDate = new Date(Date.UTC(local.year, local.month - 1, local.day + dayOffset));
+            const candidateParts = {
+                year: calendarDate.getUTCFullYear(),
+                month: calendarDate.getUTCMonth() + 1,
+                day: calendarDate.getUTCDate()
+            };
+            if (!TRADING_WEEKDAYS.has(weekdayOf(candidateParts))) continue;
+            const candidate = zonedLocalToUtc(s.iana, candidateParts, s.startLocal);
+            if (candidate > now) {
+                nextOpen = candidate;
+                break;
+            }
+        }
+        return { active, nextOpen };
     }
 
     function detectVisitorZoneId() {
@@ -704,26 +769,20 @@ function initSessionsClock() {
         const endUtc   = ((s.endLocal   - sOff) % 24 + 24) % 24;
         return { startUtc, endUtc };
     }
-    function isActiveUtc(range, utcFrac) {
-        if (range.startUtc < range.endUtc) return utcFrac >= range.startUtc && utcFrac < range.endUtc;
-        return utcFrac >= range.startUtc || utcFrac < range.endUtc;
-    }
-    function dominantActive(ranges, utcFrac) {
+    function dominantActive(ranges) {
         // Trader priority — LONDON / NEW YORK headline when active, otherwise first active session
         const priority = ['LONDON', 'NEW YORK', 'MOSCOW', 'TOKYO', 'SYDNEY'];
         for (const name of priority) {
             const r = ranges.find(x => x.name === name);
-            if (r && isActiveUtc(r, utcFrac)) return r;
+            if (r && r.active) return r;
         }
         return null;
     }
-    function nextSession(ranges, utcFrac) {
-        let best = null, bestDelta = 25;
+    function nextSession(ranges) {
+        let best = null;
         for (const r of ranges) {
-            if (isActiveUtc(r, utcFrac)) continue;
-            let d = r.startUtc - utcFrac;
-            if (d < 0) d += 24;
-            if (d < bestDelta) { bestDelta = d; best = r; }
+            if (r.active || !r.nextOpen) continue;
+            if (!best || r.nextOpen < best.nextOpen) best = r;
         }
         return best;
     }
@@ -751,7 +810,8 @@ function initSessionsClock() {
     // Layered rendering: static chrome is rebuilt only on theme change,
     // session arcs once per minute (or on zone/theme change), hands every second.
     let chromeG = null, sessionsG = null, hands = null;
-    let lastChromeKey = '', lastSessionsKey = '';
+    let lastChromeKey = '', lastSessionsKey = '', lastScheduleKey = '';
+    let cachedRanges = [];
 
     function buildChrome(tok) {
         if (chromeG) chromeG.remove();
@@ -824,7 +884,7 @@ function initSessionsClock() {
         }
     }
 
-    function buildSessions(tok, isDark, ranges, utcFrac) {
+    function buildSessions(tok, isDark, ranges) {
         const dimTrack = isDark ? '#262626' : '#e6e6e6';
         const defs = svg.querySelector('defs');
         if (defs) defs.textContent = '';
@@ -833,9 +893,9 @@ function initSessionsClock() {
         sessionsG = document.createElementNS(SVG_NS, 'g');
         svg.insertBefore(sessionsG, hands ? hands.group : null);
 
-        // Session arcs (anchored to SELECTED-zone local hours; activity checked vs UTC)
+        // Session arcs are anchored to selected-zone hours; activity follows each exchange calendar.
         ranges.forEach(r => {
-            const active = isActiveUtc(r, utcFrac);
+            const active = r.active;
             const radius = LANE_RADII[r.lane];
             let a0 = ang24(r.startInZone), a1 = ang24(r.endInZone);
             if (r.endInZone <= r.startInZone) a1 += Math.PI * 2;
@@ -909,13 +969,25 @@ function initSessionsClock() {
         const zoneM = Math.floor((zoneFrac - zoneH) * 60);
         const zoneS = utcS;
 
-        // Current session UTC ranges (DST-aware) + their bezel position in the SELECTED zone
-        const ranges = SESSIONS.map(s => {
-            const u = sessionUtcRange(s, now);
-            const startInZone = ((u.startUtc + zOff) % 24 + 24) % 24;
-            const endInZone   = ((u.endUtc   + zOff) % 24 + 24) % 24;
-            return { name: s.name, lane: s.lane, startUtc: u.startUtc, endUtc: u.endUtc, startInZone, endInZone };
-        });
+        const scheduleKey = `${zone.id}|${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}|${utcH}:${utcM}`;
+        if (scheduleKey !== lastScheduleKey) {
+            lastScheduleKey = scheduleKey;
+            cachedRanges = SESSIONS.map(s => {
+                const u = sessionUtcRange(s, now);
+                const state = sessionState(s, now);
+                const startInZone = ((u.startUtc + zOff) % 24 + 24) % 24;
+                const endInZone   = ((u.endUtc   + zOff) % 24 + 24) % 24;
+                return {
+                    name: s.name,
+                    lane: s.lane,
+                    startInZone,
+                    endInZone,
+                    active: state.active,
+                    nextOpen: state.nextOpen
+                };
+            });
+        }
+        const ranges = cachedRanges;
 
         const chromeKey = `${isDark}|${tok.txt}`;
         if (chromeKey !== lastChromeKey) {
@@ -925,10 +997,10 @@ function initSessionsClock() {
             lastSessionsKey = '';
         }
         // Session arcs change at most once per minute (active state flips on hour boundaries)
-        const sessionsKey = `${chromeKey}|${zone.id}|${utcH}:${utcM}`;
+        const sessionsKey = `${chromeKey}|${scheduleKey}`;
         if (sessionsKey !== lastSessionsKey) {
             lastSessionsKey = sessionsKey;
-            buildSessions(tok, isDark, ranges, utcFrac);
+            buildSessions(tok, isDark, ranges);
         }
         updateHands(zoneFrac, zoneM, zoneS);
 
@@ -937,7 +1009,7 @@ function initSessionsClock() {
         document.getElementById('msTimeSuffix').textContent = fmtOffset(zOff);
         document.getElementById('msTzLabel').textContent = zone.short;
 
-        const dom = dominantActive(ranges, utcFrac);
+        const dom = dominantActive(ranges);
         const activeLineEl = document.getElementById('msActiveLine');
         const pulseEl = document.getElementById('msPulse');
         const nextLineEl = document.getElementById('msNextLine');
@@ -948,13 +1020,17 @@ function initSessionsClock() {
             activeLineEl.innerHTML = '— · Off hours';
             if (pulseEl) pulseEl.style.opacity = '0.2';
         }
-        const nx = nextSession(ranges, utcFrac);
+        const nx = nextSession(ranges);
         if (nx) {
-            // Show next session's opening time in the SELECTED zone
-            const totalMin = Math.round(nx.startInZone * 60) % 1440;
-            const sH = Math.floor(totalMin / 60);
-            const sM = totalMin % 60;
-            nextLineEl.textContent = `Next · ${nx.name} ${fmtH(sH)}:${String(sM).padStart(2,'0')}`;
+            const nextLocal = getZonedParts(zone.iana, nx.nextOpen);
+            const currentLocal = getZonedParts(zone.iana, now);
+            const currentDate = Date.UTC(currentLocal.year, currentLocal.month - 1, currentLocal.day);
+            const nextDate = Date.UTC(nextLocal.year, nextLocal.month - 1, nextLocal.day);
+            const dayDelta = Math.round((nextDate - currentDate) / 86400000);
+            const dayLabel = dayDelta > 0
+                ? `${['SUN','MON','TUE','WED','THU','FRI','SAT'][weekdayOf(nextLocal)]} `
+                : '';
+            nextLineEl.textContent = `Next · ${nx.name} ${dayLabel}${fmtH(nextLocal.hour)}:${String(nextLocal.minute).padStart(2,'0')}`;
         } else {
             nextLineEl.textContent = '';
         }
