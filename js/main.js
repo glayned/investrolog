@@ -253,10 +253,13 @@ class ParticlesSystem {
             this.running = false;
             return;
         }
-        if (!this.lastFrame || now - this.lastFrame >= this.frameInterval) {
+        const sinceFrame = now - this.lastFrame;
+        if (!this.lastFrame || sinceFrame >= this.frameInterval) {
             const elapsed = this.lastTick ? Math.min(now - this.lastTick, 50) : this.frameInterval;
             this.lastTick = now;
-            this.lastFrame = now;
+            this.lastFrame = this.lastFrame
+                ? now - (sinceFrame % this.frameInterval)
+                : now;
             this.drawFrame(now, true, elapsed / 16.667);
         }
         this.rafId = requestAnimationFrame(next => this.tick(next));
