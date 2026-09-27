@@ -278,7 +278,7 @@ class ParticlesSystem {
         if (pointer.glow < 0.01) return;
 
         const color = isDark ? '190,205,220' : '45,55,65';
-        const strength = (isDark ? 0.07 : 0.032) * pointer.glow;
+        const strength = (isDark ? 0.11 : 0.045) * pointer.glow;
         const gradient = this.ctx.createRadialGradient(
             pointer.x, pointer.y, 0,
             pointer.x, pointer.y, GLOW_RADIUS
@@ -347,7 +347,7 @@ class ParticlesSystem {
                 const distance = Math.sqrt(distanceSq);
                 const alpha = (1 - distance / LOCAL_LINK_DIST)
                     * Math.min(a.boost, b.boost)
-                    * (isDark ? 0.18 : 0.1);
+                    * (isDark ? 0.22 : 0.12);
                 ctx.beginPath();
                 ctx.moveTo(a.x, a.y);
                 ctx.lineTo(b.x, b.y);
