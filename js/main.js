@@ -93,53 +93,55 @@ function motionAllowed() { return !reducedMotionQuery.matches && !document.hidde
 function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
 
 /* ════════════════════════════════════════
-   PARTICLES
+   MARKET CONSTELLATION
 ════════════════════════════════════════ */
-const LINK_DIST = 110;
-const LINK_DIST_SQ = LINK_DIST * LINK_DIST;
-const MAX_PARTICLES = 220;
+const STAR_COUNT = {
+    desktop: { min: 65, max: 110, area: 11000 },
+    mobile: { min: 36, max: 55, area: 14000 },
+    lowPower: { min: 28, max: 40, area: 18000 }
+};
+const CURSOR_RADIUS = 170;
+const CURSOR_RADIUS_SQ = CURSOR_RADIUS * CURSOR_RADIUS;
+const GLOW_RADIUS = 260;
+const LOCAL_LINK_DIST = 130;
+const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
+const MAX_LOCAL_STARS = 8;
+const COMET_DELAY_MIN = 12000;
+const COMET_DELAY_MAX = 20000;
 
-class Particle {
+function randomBetween(min, max) {
+    return min + Math.random() * (max - min);
+}
+
+class Star {
     constructor(w, h) {
         this.reset(w, h);
     }
     reset(w, h) {
         this.x = Math.random() * w;
         this.y = Math.random() * h;
-        this.baseX = this.x;
-        this.baseY = this.y;
-        this.size = Math.random() * 2.2 + 0.8;
-        this.speedX = (Math.random() - 0.5) * 0.4;
-        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.depth = randomBetween(0.35, 1);
+        this.size = this.pickSize();
+        this.vx = randomBetween(-0.018, 0.018);
+        this.vy = randomBetween(-0.045, -0.012);
+        this.phase = Math.random() * Math.PI * 2;
+        this.twinkleSpeed = randomBetween(0.55, 1.25);
     }
-    update(mouse, w, h) {
-        if (mouse.x != null && mouse.y != null) {
-            const dx = mouse.x - this.x, dy = mouse.y - this.y;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            if (d > 0 && d < mouse.radius) {
-                const f = (mouse.radius - d) / mouse.radius;
-                this.x -= (dx/d) * f * 3;
-                this.y -= (dy/d) * f * 3;
-            }
-        }
-        this.x += (this.baseX - this.x) * 0.05;
-        this.y += (this.baseY - this.y) * 0.05;
-        this.baseX += this.speedX;
-        this.baseY += this.speedY;
-        if (this.baseX < 0 || this.baseX > w) {
-            this.baseX = Math.max(0, Math.min(this.baseX, w));
-            this.speedX *= -1;
-        }
-        if (this.baseY < 0 || this.baseY > h) {
-            this.baseY = Math.max(0, Math.min(this.baseY, h));
-            this.speedY *= -1;
-        }
+    pickSize() {
+        const roll = Math.random();
+        if (roll < 0.7) return randomBetween(0.45, 0.9);
+        if (roll < 0.95) return randomBetween(0.95, 1.45);
+        return randomBetween(1.55, 2.1);
     }
-    draw(ctx, isDark) {
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.55)';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
-        ctx.fill();
+    update(frameScale, w, h) {
+        this.x += this.vx * this.depth * frameScale;
+        this.y += this.vy * this.depth * frameScale;
+        if (this.y < -4) {
+            this.y = h + 4;
+            this.x = Math.random() * w;
+        }
+        if (this.x < -4) this.x = w + 4;
+        else if (this.x > w + 4) this.x = -4;
     }
 }
 
@@ -147,89 +149,264 @@ class ParticlesSystem {
     constructor() {
         this.canvas = document.getElementById('particles-canvas');
         this.ctx = this.canvas.getContext('2d');
-        this.particles = [];
-        this.mouse = { x: null, y: null, radius: 140 };
+        this.stars = [];
+        this.pointer = {
+            targetX: -999,
+            targetY: -999,
+            x: -999,
+            y: -999,
+            active: false,
+            glow: 0
+        };
+        this.comet = null;
+        this.nextCometAt = performance.now() + this.cometDelay();
         this.running = false;
+        this.rafId = 0;
+        this.lastTick = 0;
+        this.lastFrame = 0;
+        this.updateCapabilities();
         this.resize();
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(() => this.resize(), 150);
         });
-        window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
-        window.addEventListener('mouseout', e => {
-            if (!e.relatedTarget) { this.mouse.x = null; this.mouse.y = null; }
+        window.addEventListener('pointermove', e => this.onPointerMove(e), { passive: true });
+        document.addEventListener('pointerleave', () => { this.pointer.active = false; });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) this.stop();
+            else this.start();
         });
-        document.addEventListener('visibilitychange', () => this.start());
         reducedMotionQuery.addEventListener('change', () => {
-            if (reducedMotionQuery.matches) this.drawFrame(false); else this.start();
+            if (reducedMotionQuery.matches) {
+                this.stop();
+                this.pointer.glow = 0;
+                this.comet = null;
+                this.drawFrame(0, false);
+            } else {
+                this.nextCometAt = performance.now() + this.cometDelay();
+                this.start();
+            }
         });
-        new MutationObserver(() => { if (!this.running) this.drawFrame(false); })
+        new MutationObserver(() => {
+            if (!this.running) this.drawFrame(performance.now(), false);
+        })
             .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-        if (reducedMotionQuery.matches) this.drawFrame(false); else this.start();
+        if (reducedMotionQuery.matches) this.drawFrame(0, false);
+        else this.start();
+    }
+    updateCapabilities() {
+        this.mobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+        this.finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        const memory = navigator.deviceMemory;
+        const cores = navigator.hardwareConcurrency || 8;
+        const saveData = navigator.connection && navigator.connection.saveData;
+        this.lowPower = this.mobile && (cores <= 4 || (memory != null && memory <= 4) || saveData);
+        this.frameInterval = 1000 / (this.lowPower ? 20 : this.mobile ? 24 : 30);
+        if (!this.finePointer && this.pointer) {
+            this.pointer.active = false;
+            this.pointer.glow = 0;
+        }
+    }
+    cometDelay() {
+        return randomBetween(COMET_DELAY_MIN, COMET_DELAY_MAX);
+    }
+    onPointerMove(event) {
+        if (!this.finePointer || reducedMotionQuery.matches) return;
+        this.pointer.targetX = event.clientX;
+        this.pointer.targetY = event.clientY;
+        if (!this.pointer.active) {
+            this.pointer.x = event.clientX;
+            this.pointer.y = event.clientY;
+            this.pointer.active = true;
+        }
     }
     resize() {
-        const dpr = getDpr();
+        this.updateCapabilities();
+        const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2);
+        const previousW = this.w || window.innerWidth;
+        const previousH = this.h || window.innerHeight;
         this.w = window.innerWidth;
         this.h = window.innerHeight;
-        this.canvas.width = this.w * dpr;
-        this.canvas.height = this.h * dpr;
+        for (const star of this.stars) {
+            star.x = star.x / previousW * this.w;
+            star.y = star.y / previousH * this.h;
+        }
+        this.canvas.width = Math.round(this.w * dpr);
+        this.canvas.height = Math.round(this.h * dpr);
         this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const target = Math.min(MAX_PARTICLES, Math.floor((this.w * this.h) / 16000));
-        while (this.particles.length < target) this.particles.push(new Particle(this.w, this.h));
-        if (this.particles.length > target) this.particles.length = target;
-        if (reducedMotionQuery.matches) this.drawFrame(false);
+        const profile = this.lowPower
+            ? STAR_COUNT.lowPower
+            : this.mobile ? STAR_COUNT.mobile : STAR_COUNT.desktop;
+        const target = Math.min(
+            profile.max,
+            Math.max(profile.min, Math.round((this.w * this.h) / profile.area))
+        );
+        while (this.stars.length < target) this.stars.push(new Star(this.w, this.h));
+        if (this.stars.length > target) this.stars.length = target;
+        if (reducedMotionQuery.matches) this.drawFrame(0, false);
     }
     start() {
         if (this.running || !motionAllowed()) return;
         this.running = true;
-        requestAnimationFrame(() => this.tick());
+        this.lastTick = 0;
+        this.lastFrame = 0;
+        this.rafId = requestAnimationFrame(now => this.tick(now));
     }
-    tick() {
-        if (!motionAllowed()) { this.running = false; return; }
-        this.drawFrame(true);
-        requestAnimationFrame(() => this.tick());
+    stop() {
+        this.running = false;
+        cancelAnimationFrame(this.rafId);
     }
-    drawFrame(update) {
+    tick(now) {
+        if (!motionAllowed()) {
+            this.running = false;
+            return;
+        }
+        if (!this.lastFrame || now - this.lastFrame >= this.frameInterval) {
+            const elapsed = this.lastTick ? Math.min(now - this.lastTick, 50) : this.frameInterval;
+            this.lastTick = now;
+            this.lastFrame = now;
+            this.drawFrame(now, true, elapsed / 16.667);
+        }
+        this.rafId = requestAnimationFrame(next => this.tick(next));
+    }
+    drawGlow(isDark, frameScale) {
+        const pointer = this.pointer;
+        pointer.x += (pointer.targetX - pointer.x) * 0.08 * frameScale;
+        pointer.y += (pointer.targetY - pointer.y) * 0.08 * frameScale;
+        pointer.glow += ((pointer.active ? 1 : 0) - pointer.glow) * 0.07 * frameScale;
+        if (pointer.glow < 0.01) return;
+
+        const color = isDark ? '190,205,220' : '45,55,65';
+        const strength = (isDark ? 0.07 : 0.032) * pointer.glow;
+        const gradient = this.ctx.createRadialGradient(
+            pointer.x, pointer.y, 0,
+            pointer.x, pointer.y, GLOW_RADIUS
+        );
+        gradient.addColorStop(0, `rgba(${color},${strength})`);
+        gradient.addColorStop(0.55, `rgba(${color},${strength * 0.32})`);
+        gradient.addColorStop(1, `rgba(${color},0)`);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(
+            pointer.x - GLOW_RADIUS,
+            pointer.y - GLOW_RADIUS,
+            GLOW_RADIUS * 2,
+            GLOW_RADIUS * 2
+        );
+    }
+    drawStars(isDark, now, update, frameScale) {
+        const ctx = this.ctx;
+        const pointer = this.pointer;
+        const interactive = this.finePointer && pointer.glow > 0.02 && update;
+        const near = [];
+        const baseColor = isDark ? '245,247,250' : '18,22,26';
+        const time = now / 1000;
+
+        for (const star of this.stars) {
+            if (update) star.update(frameScale, this.w, this.h);
+            let x = star.x;
+            let y = star.y;
+            let boost = 0;
+
+            if (interactive) {
+                const dx = star.x - pointer.x;
+                const dy = star.y - pointer.y;
+                const distanceSq = dx * dx + dy * dy;
+                if (distanceSq < CURSOR_RADIUS_SQ) {
+                    const distance = Math.sqrt(distanceSq) || 0.001;
+                    boost = (1 - distance / CURSOR_RADIUS) * pointer.glow;
+                    x += (dx / distance) * 8 * boost;
+                    y += (dy / distance) * 8 * boost;
+                    if (near.length < MAX_LOCAL_STARS) near.push({ x, y, boost });
+                }
+            }
+
+            const twinkle = update
+                ? 0.62 + 0.38 * Math.sin(time * star.twinkleSpeed + star.phase)
+                : 0.8;
+            const alpha = Math.min(
+                1,
+                (isDark ? 0.26 + star.depth * 0.46 : 0.18 + star.depth * 0.3) * twinkle
+                    + boost * (isDark ? 0.36 : 0.22)
+            );
+            ctx.beginPath();
+            ctx.arc(x, y, star.size * (1 + boost * 0.3), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${baseColor},${alpha})`;
+            ctx.fill();
+        }
+
+        ctx.lineWidth = 0.6;
+        for (let i = 0; i < near.length; i++) {
+            for (let j = i + 1; j < near.length; j++) {
+                const a = near[i];
+                const b = near[j];
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                const distanceSq = dx * dx + dy * dy;
+                if (distanceSq >= LOCAL_LINK_DIST_SQ) continue;
+                const distance = Math.sqrt(distanceSq);
+                const alpha = (1 - distance / LOCAL_LINK_DIST)
+                    * Math.min(a.boost, b.boost)
+                    * (isDark ? 0.18 : 0.1);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.strokeStyle = `rgba(${baseColor},${alpha})`;
+                ctx.stroke();
+            }
+        }
+    }
+    spawnComet(now) {
+        const angle = randomBetween(0.28, 0.42);
+        const speed = randomBetween(500, 680);
+        this.comet = {
+            x: randomBetween(-140, this.w * 0.55),
+            y: randomBetween(12, Math.max(40, this.h * 0.28)),
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            length: randomBetween(75, 110),
+            bornAt: now,
+            duration: randomBetween(900, 1250)
+        };
+        this.nextCometAt = now + this.cometDelay();
+    }
+    drawComet(isDark, now, elapsedSeconds) {
+        if (this.mobile || this.lowPower) return;
+        if (!this.comet && now >= this.nextCometAt) this.spawnComet(now);
+        if (!this.comet) return;
+
+        const comet = this.comet;
+        const progress = (now - comet.bornAt) / comet.duration;
+        if (progress >= 1 || comet.x > this.w + 140 || comet.y > this.h + 140) {
+            this.comet = null;
+            return;
+        }
+
+        comet.x += comet.vx * elapsedSeconds;
+        comet.y += comet.vy * elapsedSeconds;
+        const speed = Math.hypot(comet.vx, comet.vy);
+        const tailX = comet.x - (comet.vx / speed) * comet.length;
+        const tailY = comet.y - (comet.vy / speed) * comet.length;
+        const fade = Math.sin(Math.PI * progress) * (isDark ? 0.62 : 0.32);
+        const color = isDark ? '245,247,250' : '18,22,26';
+        const gradient = this.ctx.createLinearGradient(comet.x, comet.y, tailX, tailY);
+        gradient.addColorStop(0, `rgba(${color},${fade})`);
+        gradient.addColorStop(1, `rgba(${color},0)`);
+        this.ctx.beginPath();
+        this.ctx.moveTo(comet.x, comet.y);
+        this.ctx.lineTo(tailX, tailY);
+        this.ctx.strokeStyle = gradient;
+        this.ctx.lineWidth = 1.25;
+        this.ctx.lineCap = 'round';
+        this.ctx.stroke();
+    }
+    drawFrame(now, update, frameScale = 1) {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.w, this.h);
-        // Spatial hash: only compare particles in neighbouring cells → ~O(n)
-        const cell = LINK_DIST;
-        const cols = Math.max(1, Math.ceil(this.w / cell));
-        const grid = new Map();
-        this.particles.forEach((p, i) => {
-            if (update) p.update(this.mouse, this.w, this.h);
-            p.draw(ctx, isDark);
-            const key = Math.floor(p.x / cell) + Math.floor(p.y / cell) * cols;
-            const bucket = grid.get(key);
-            if (bucket) bucket.push(i); else grid.set(key, [i]);
-        });
-        ctx.lineWidth = 0.5;
-        this.particles.forEach((p, i) => {
-            const cx = Math.floor(p.x / cell), cy = Math.floor(p.y / cell);
-            for (let ny = cy; ny <= cy + 1; ny++) {
-                for (let nx = cx - 1; nx <= cx + 1; nx++) {
-                    if (ny === cy && nx < cx) continue; // visit each pair once
-                    const bucket = grid.get(nx + ny * cols);
-                    if (!bucket) continue;
-                    for (const j of bucket) {
-                        if (j <= i && ny === cy && nx === cx) continue;
-                        const q = this.particles[j];
-                        const dx = q.x - p.x, dy = q.y - p.y;
-                        const d2 = dx*dx + dy*dy;
-                        if (d2 < LINK_DIST_SQ) {
-                            const op = (1 - Math.sqrt(d2)/LINK_DIST) * 0.25;
-                            ctx.strokeStyle = isDark ? `rgba(255,255,255,${op})` : `rgba(0,0,0,${op})`;
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(q.x, q.y);
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
-        });
+        if (update && this.finePointer) this.drawGlow(isDark, frameScale);
+        this.drawStars(isDark, now, update, frameScale);
+        if (update) this.drawComet(isDark, now, frameScale / 60);
     }
 }
 
