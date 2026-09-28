@@ -685,6 +685,23 @@ function animateNG(canvas) {
    THEME
 ════════════════════════════════════════ */
 const THEME_KEY = 'ms-theme';
+const PAGE_LANGUAGE = document.documentElement.lang === 'en' ? 'en' : 'ru';
+const ORDER_TEXT = {
+    ru: {
+        required: 'Заполните все поля.',
+        request: (name, task, contact) =>
+            `Заявка на проект\n\nНазвание: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`,
+        copied: 'Текст заявки скопирован — вставьте его в открывшийся чат Telegram.',
+        opened: 'Открылся чат Telegram — отправьте заявку там.'
+    },
+    en: {
+        required: 'Please complete all fields.',
+        request: (name, task, contact) =>
+            `Project inquiry\n\nProject: ${name}\n\nBrief:\n${task}\n\nContact (Telegram): ${contact}`,
+        copied: 'The inquiry was copied — paste it into the Telegram chat.',
+        opened: 'Telegram is open — send your inquiry in the chat.'
+    }
+};
 
 function setTheme(isDark) {
   const html = document.documentElement;
@@ -742,6 +759,12 @@ function toggleMusic() {
 ════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
     applyTheme();
+
+    document.querySelectorAll('[data-language-link]').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.location.hash) link.hash = window.location.hash;
+        });
+    });
 
     // Scroll reveal
     const observer = new IntersectionObserver((entries) => {
@@ -1507,15 +1530,16 @@ function initOrderModal() {
 
     form.addEventListener('submit', e => {
         e.preventDefault();
+        const copy = ORDER_TEXT[PAGE_LANGUAGE];
         const name = document.getElementById('orderName').value.trim();
         const task = document.getElementById('orderTask').value.trim();
         const contact = document.getElementById('orderContact').value.trim();
         if (!name || !task || !contact) {
-            errorEl.textContent = 'Заполните все поля.';
+            errorEl.textContent = copy.required;
             return;
         }
         errorEl.textContent = '';
-        const text = `Заявка на проект\n\nНазвание: ${name}\n\nЗадача:\n${task}\n\nКонтакт (Telegram): ${contact}`;
+        const text = copy.request(name, task, contact);
         // t.me/<user>?text= не гарантирован для личных чатов — основной канал доставки текста: буфер обмена
         const copied = navigator.clipboard
             ? navigator.clipboard.writeText(text).then(() => true).catch(() => false)
@@ -1524,8 +1548,8 @@ function initOrderModal() {
         copied.then(ok => {
             errorEl.classList.add('ok');
             errorEl.textContent = ok
-                ? 'Текст заявки скопирован — вставьте его в открывшийся чат Telegram.'
-                : 'Открылся чат Telegram — отправьте заявку там.';
+                ? copy.copied
+                : copy.opened;
             setTimeout(() => {
                 closeOrderModal();
                 form.reset();
