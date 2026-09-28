@@ -18,7 +18,7 @@
             --grid-color: rgba(0,0,0,0.022);
             --signal-accent: #98671f;
             --session-halo: rgba(152, 103, 31, 0.045);
-            --font-sans: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-sans: 'Geologica', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
             --font-display: 'Syne', sans-serif;
         }
@@ -573,6 +573,7 @@
         }
 
         .skill-card h3 {
+            font-family: var(--font-display);
             font-size: 17px;
             font-weight: 700;
             margin-bottom: 14px;
@@ -713,6 +714,14 @@
             color: var(--text-secondary);
             font-size: 14px;
             line-height: 1.7;
+        }
+
+        @media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+            .project-content p {
+                font-size: 13.7px;
+                line-height: 23.8px;
+                letter-spacing: -0.5px;
+            }
         }
 
         .project-tags {
