@@ -7,6 +7,9 @@ The project focuses on trading, options, COT reports, volatility, natural gas, P
 Official website:
 https://investrolog.pro/
 
+English version:
+https://investrolog.pro/en/
+
 Official Telegram:
 https://t.me/investrolog
 
