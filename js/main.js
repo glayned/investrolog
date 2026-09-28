@@ -706,7 +706,7 @@ function applyTheme() {
     setTheme(saved === 'dark');
     return;
   }
-  setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+  setTheme(true);
 }
 
 function toggleTheme() {
@@ -742,7 +742,6 @@ function toggleMusic() {
 ════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
     applyTheme();
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
     // Scroll reveal
     const observer = new IntersectionObserver((entries) => {
