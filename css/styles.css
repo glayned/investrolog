@@ -241,8 +241,8 @@
         }
         .ms-title {
             font-family: var(--font-mono);
-            font-size: 10.5px;
-            letter-spacing: 2.5px;
+            font-size: 10px;
+            letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--text-primary);
         }
@@ -291,8 +291,8 @@
             font-variant-numeric: tabular-nums;
         }
         .ms-time .ms-suffix {
-            font-size: 9.5px;
-            letter-spacing: 1.6px;
+            font-size: 9px;
+            letter-spacing: 2px;
             color: var(--text-secondary);
             margin-left: 5px;
             font-weight: 400;
@@ -341,11 +341,12 @@
             gap: 8px;
             padding: 12px 4px 0;
             font-family: var(--font-mono);
-            font-size: 9.5px;
-            letter-spacing: 1.6px;
+            font-size: 9px;
+            letter-spacing: 2px;
             color: var(--text-secondary);
             text-transform: uppercase;
         }
+        .ms-foot > span { white-space: nowrap; }
         .ms-foot .ms-active-name { color: var(--signal-accent); font-weight: 500; }
         .ms-foot .ms-pulse {
             display: inline-block;
@@ -369,8 +370,8 @@
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            font-size: 9.5px;
-            letter-spacing: 1.6px;
+            font-size: 9px;
+            letter-spacing: 2px;
             color: var(--text-secondary);
             margin-bottom: 10px;
         }
@@ -385,12 +386,12 @@
             gap: 6px;
         }
         .ms-cot-sym {
-            font-size: 9.5px;
-            letter-spacing: 1.2px;
+            font-size: 9px;
+            letter-spacing: 1.5px;
             color: var(--text-secondary);
         }
         .ms-cot-val {
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 500;
             letter-spacing: 0.5px;
             color: var(--text-primary);
@@ -902,6 +903,7 @@
             .hero { flex-direction: column; gap: 24px; }
             .hero-widget { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 0; }
             .ms-widget { max-width: 310px; }
+            .ms-foot { letter-spacing: 1.6px; }
             footer { flex-direction: column; align-items: flex-start; margin-top: 60px; }
             .contact-info {
                 flex-direction: column;
