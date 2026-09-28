@@ -89,8 +89,24 @@ function triggerCodeAnimation() {
    MOTION / DISPLAY HELPERS
 ════════════════════════════════════════ */
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+const mobileAnimationQuery = window.matchMedia('(max-width: 768px), (pointer: coarse)');
 function motionAllowed() { return !reducedMotionQuery.matches && !document.hidden; }
-function getDpr() { return Math.min(window.devicePixelRatio || 1, 2); }
+function usesMobileAnimations() { return mobileAnimationQuery.matches; }
+function onMediaQueryChange(query, callback) {
+    if (query.addEventListener) query.addEventListener('change', callback);
+    else query.addListener(callback);
+}
+function getDpr() {
+    return Math.min(window.devicePixelRatio || 1, usesMobileAnimations() ? 1.25 : 2);
+}
+function getProjectFrameInterval() {
+    const cores = navigator.hardwareConcurrency || 8;
+    const memory = navigator.deviceMemory;
+    const saveData = navigator.connection && navigator.connection.saveData;
+    const lowPower = usesMobileAnimations()
+        && (cores <= 4 || (memory != null && memory <= 4) || saveData);
+    return 1000 / (lowPower ? 20 : usesMobileAnimations() ? 24 : 30);
+}
 
 /* ════════════════════════════════════════
    MARKET CONSTELLATION
@@ -161,19 +177,20 @@ class ParticlesSystem {
         this.lastTick = 0;
         this.lastFrame = 0;
         this.updateCapabilities();
-        this.resize();
+        this.resize(true);
         let resizeTimer;
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => this.resize(), 150);
+            resizeTimer = setTimeout(() => this.resize(false), 150);
         });
+        window.addEventListener('orientationchange', () => this.resize(true));
         window.addEventListener('pointermove', e => this.onPointerMove(e), { passive: true });
         document.addEventListener('pointerleave', () => { this.pointer.active = false; });
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) this.stop();
             else this.start();
         });
-        reducedMotionQuery.addEventListener('change', () => {
+        onMediaQueryChange(reducedMotionQuery, () => {
             if (reducedMotionQuery.matches) {
                 this.stop();
                 this.pointer.glow = 0;
@@ -217,11 +234,14 @@ class ParticlesSystem {
             this.pointer.active = true;
         }
     }
-    resize() {
+    resize(force) {
         this.updateCapabilities();
+        const nextWidth = window.innerWidth;
+        const nextHeight = window.innerHeight;
+        if (!force && this.mobile && this.w && Math.abs(nextWidth - this.w) < 2) return;
         const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2);
-        this.w = window.innerWidth;
-        this.h = window.innerHeight;
+        this.w = nextWidth;
+        this.h = nextHeight;
         for (const star of this.stars) star.update(0, this.w, this.h);
         this.canvas.width = Math.round(this.w * dpr);
         this.canvas.height = Math.round(this.h * dpr);
@@ -458,17 +478,23 @@ const PROJECT_ANIMATIONS = {
 function sizeProjectCanvas(canvas) {
     const dpr = getDpr();
     const parent = canvas.parentElement;
-    canvas._w = parent.offsetWidth;
-    canvas._h = parent.offsetHeight;
-    canvas.width = canvas._w * dpr;
-    canvas.height = canvas._h * dpr;
+    const width = parent.offsetWidth;
+    const height = parent.offsetHeight;
+    if (canvas._w === width && canvas._h === height && canvas._dpr === dpr) return false;
+    canvas._w = width;
+    canvas._h = height;
+    canvas._dpr = dpr;
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
     canvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
 }
 
 function startProjectCanvas(canvas) {
     if (canvas._running) return;
     if (!canvas._inView || !motionAllowed()) return;
     canvas._running = true;
+    canvas._lastFrame = 0;
     requestAnimationFrame(canvas._tick);
 }
 
@@ -489,17 +515,27 @@ function initProjectCanvases() {
         canvas._draw = drawFrame;
         canvas._inView = false;
         canvas._running = false;
-        canvas._tick = () => {
+        canvas._lastFrame = 0;
+        canvas._frameInterval = getProjectFrameInterval();
+        canvas._tick = now => {
             if (!canvas._inView || !motionAllowed()) { canvas._running = false; return; }
-            drawFrame();
+            const interval = canvas._frameInterval;
+            const sinceFrame = now - canvas._lastFrame;
+            if (!canvas._lastFrame || sinceFrame >= interval) {
+                const elapsed = canvas._lastFrame ? Math.min(sinceFrame, 100) : interval;
+                canvas._lastFrame = canvas._lastFrame
+                    ? now - (sinceFrame % interval)
+                    : now;
+                drawFrame(elapsed / 16.667);
+            }
             requestAnimationFrame(canvas._tick);
         };
-        drawFrame(); // static first frame (also covers prefers-reduced-motion)
+        drawFrame(0); // static first frame (also covers prefers-reduced-motion)
         io.observe(canvas);
     });
 
     document.addEventListener('visibilitychange', () => canvases.forEach(startProjectCanvas));
-    reducedMotionQuery.addEventListener('change', () => canvases.forEach(startProjectCanvas));
+    onMediaQueryChange(reducedMotionQuery, () => canvases.forEach(startProjectCanvas));
 }
 
 function animateCOT(canvas) {
@@ -507,7 +543,7 @@ function animateCOT(canvas) {
     const bars = 20;
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const bw = W / (bars * 1.6);
@@ -538,7 +574,7 @@ function animateCOT(canvas) {
             if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
         }
         ctx.stroke();
-        t += 0.006;
+        t += 0.006 * frameScale;
     };
 }
 
@@ -546,7 +582,7 @@ function animateVIX(canvas) {
     const ctx = canvas.getContext('2d');
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         // Contango curve
@@ -592,7 +628,7 @@ function animateVIX(canvas) {
             ctx.lineWidth = 1;
             ctx.stroke();
         }
-        t += 0.01;
+        t += 0.01 * frameScale;
     };
 }
 
@@ -600,7 +636,7 @@ function animateOptions(canvas) {
     const ctx = canvas.getContext('2d');
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const strikes = 14;
@@ -635,7 +671,7 @@ function animateOptions(canvas) {
         }
         ctx.stroke();
         ctx.setLineDash([]);
-        t += 0.02;
+        t += 0.02 * frameScale;
     };
 }
 
@@ -644,7 +680,7 @@ function animateNG(canvas) {
     let t = 0;
     const ensembles = 12;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         // Ensemble forecast paths
@@ -677,7 +713,7 @@ function animateNG(canvas) {
             ctx.lineWidth = 1;
             ctx.stroke();
         });
-        t += 0.012;
+        t += 0.012 * frameScale;
     };
 }
 
@@ -1328,7 +1364,7 @@ function animateAlerts(canvas) {
     const bars = 26;
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const gap = W / bars, bw = gap * 0.55;
@@ -1360,7 +1396,7 @@ function animateAlerts(canvas) {
                 ctx.globalAlpha = 1;
             }
         }
-        t += 0.01;
+        t += 0.01 * frameScale;
     };
 }
 
@@ -1370,7 +1406,7 @@ function animateDesk(canvas) {
     const levels = [0.2, 0.36, 0.64, 0.82];
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const priceAt = x => H * (0.5 + 0.18 * Math.sin(x * 0.02 + t) + 0.09 * Math.sin(x * 0.05 - t * 0.7));
@@ -1404,7 +1440,7 @@ function animateDesk(canvas) {
         ctx.fillStyle = '#cfe3ff';
         ctx.arc(W - 2, py, 2.5, 0, Math.PI * 2);
         ctx.fill();
-        t += 0.008;
+        t += 0.008 * frameScale;
     };
 }
 
@@ -1414,7 +1450,7 @@ function animateSentiment(canvas) {
     const rows = 5;
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         const rh = H / (rows + 1);
@@ -1443,7 +1479,7 @@ function animateSentiment(canvas) {
                 ctx.fill();
             }
         }
-        t += 0.01;
+        t += 0.01 * frameScale;
     };
 }
 
@@ -1461,7 +1497,7 @@ function animateAI(canvas) {
     const CHARS_PER_LINE = 26;
     let t = 0;
 
-    return function draw() {
+    return function draw(frameScale = 1) {
         const W = canvas._w, H = canvas._h;
         ctx.clearRect(0, 0, W, H);
         ctx.font = '11px "IBM Plex Mono", monospace';
@@ -1483,7 +1519,7 @@ function animateAI(canvas) {
             }
         });
         ctx.globalAlpha = 1;
-        t += 0.05;
+        t += 0.05 * frameScale;
     };
 }
 
@@ -1606,13 +1642,21 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Re-init canvases on resize
     let resizeTimer;
-    window.addEventListener('resize', () => {
+    let lastCanvasWidth = window.innerWidth;
+    const resizeCanvases = force => {
+        const nextWidth = window.innerWidth;
+        if (!force && usesMobileAnimations() && Math.abs(nextWidth - lastCanvasWidth) < 2) return;
+        lastCanvasWidth = nextWidth;
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             document.querySelectorAll('.proj-canvas').forEach(c => {
-                sizeProjectCanvas(c);
-                if (!c._running && c._draw) c._draw(); // resizing clears the canvas; repaint paused ones
+                c._frameInterval = getProjectFrameInterval();
+                if (sizeProjectCanvas(c) && c._draw) c._draw(0);
             });
-        }, 400);
+        }, force ? 0 : 400);
+    };
+    window.addEventListener('resize', () => {
+        resizeCanvases(false);
     });
+    window.addEventListener('orientationchange', () => resizeCanvases(true));
 });

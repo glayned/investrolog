@@ -75,6 +75,8 @@
             left: 0;
             width: 100%;
             height: 100%;
+            background-color: var(--bg-primary);
+            contain: strict;
             z-index: 1;
             pointer-events: none;
         }
@@ -961,6 +963,27 @@
                 width: 100%;
                 padding: 10px 0;
             }
+        }
+
+        @media (hover: none) {
+            .skill-card:hover::before { transform: translateX(-100%); }
+            .skill-card:hover {
+                transform: translateY(0) !important;
+                box-shadow: none;
+            }
+            .project-card:hover {
+                transform: translateY(0) !important;
+                box-shadow: none;
+            }
+            .project-card:hover .tag {
+                background: transparent;
+                color: var(--text-secondary);
+            }
+            .contact-item:hover {
+                color: var(--text-secondary);
+                transform: none;
+            }
+            .contact-item:hover::after { width: 0; }
         }
 
         /* ── ORDER MODAL ── */
