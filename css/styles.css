@@ -882,12 +882,6 @@
             .contact-item { font-size: 21px; }
             footer { font-size: 16px; }
 
-            .order-modal { max-width: 600px; padding: 48px 42px 40px; }
-            .order-close { width: 48px; height: 48px; }
-            .order-title { font-size: 36px; }
-            .order-sub, .order-input { font-size: 18px; }
-            .order-label, .order-error { font-size: 13px; }
-            .order-submit { padding: 17px 24px; font-size: 16px; }
         }
 
         @media (max-width: 768px) {
@@ -1045,6 +1039,16 @@
         .order-submit:hover { opacity: 0.85; transform: translateY(-1px); }
 
         body.modal-open { overflow: hidden; }
+
+        @media (min-width: 1600px) and (hover: none),
+               (min-width: 1600px) and (pointer: coarse) {
+            .order-modal { max-width: 600px; padding: 48px 42px 40px; }
+            .order-close { width: 48px; height: 48px; }
+            .order-title { font-size: 36px; }
+            .order-sub, .order-input { font-size: 18px; }
+            .order-label, .order-error { font-size: 13px; }
+            .order-submit { padding: 17px 24px; font-size: 16px; }
+        }
 
         /* ── SCROLL TO TOP ── */
         .to-top {
