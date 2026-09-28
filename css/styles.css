@@ -18,9 +18,9 @@
             --grid-color: rgba(0,0,0,0.022);
             --signal-accent: #98671f;
             --session-halo: rgba(152, 103, 31, 0.045);
-            --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-sans: 'Syne', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-            --font-display: 'Syne', var(--font-sans);
+            --font-display: 'Syne', sans-serif;
         }
 
         [data-theme="dark"] {
@@ -92,12 +92,12 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 36px 0;
+            padding: 40px 0;
             animation: fadeInDown 0.8s ease;
         }
 
         .logo {
-            font-family: var(--font-display);
+            font-family: var(--font-mono);
             font-size: 15px;
             font-weight: 600;
             letter-spacing: -0.5px;
@@ -177,12 +177,12 @@
         /* ── HERO ── */
         /* нижний отступ компенсирует высоту COT-ленты в виджете */
         .hero {
-            padding: 48px 0 24px;
+            padding: 30px 0 0;
             animation: fadeIn 2s ease;
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 64px;
+            gap: 48px;
         }
 
         .hero-content { flex: 1; min-width: 0; }
@@ -192,7 +192,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 12px;
+            padding-top: 20px;
             animation: fadeIn 2s ease 0.5s backwards;
         }
 
@@ -405,12 +405,12 @@
 
         .hero-eyebrow {
             font-family: var(--font-mono);
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 400;
             color: var(--text-secondary);
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             animation: slideInLeft 0.8s ease;
         }
 
@@ -430,32 +430,32 @@
         }
 
         .hero .subtitle {
-            font-size: 15px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 400;
             color: var(--text-secondary);
-            margin-bottom: 24px;
+            margin-bottom: 36px;
             font-family: var(--font-mono);
             animation: slideInLeft 0.8s ease 0.2s backwards;
         }
 
         .hero .description {
-            max-width: 560px;
-            font-size: 16.5px;
-            line-height: 1.68;
+            max-width: 540px;
+            font-size: 17px;
+            line-height: 1.75;
             color: var(--text-secondary);
-            margin-bottom: 36px;
+            margin-bottom: 44px;
             animation: slideInLeft 0.8s ease 0.35s backwards;
         }
 
         .cta-buttons {
             display: flex;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
             animation: fadeInUp 0.8s ease 0.5s backwards;
         }
 
         .btn {
-            padding: 11px 23px;
+            padding: 12px 28px;
             border: 1px solid var(--border);
             background: var(--bg-primary);
             color: var(--text-primary);
@@ -468,7 +468,7 @@
             display: inline-block;
             position: relative;
             overflow: hidden;
-            border-radius: 8px;
+            border-radius: 10px;
             z-index: 10;
             letter-spacing: 0.3px;
         }
@@ -493,7 +493,7 @@
 
         /* ── SECTIONS ── */
         .section {
-            padding: 72px 0;
+            padding: 60px 0;
             opacity: 0;
             transform: translateY(50px);
             transition: opacity 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94),
@@ -506,29 +506,27 @@
         }
 
         .section-title {
-            font-size: clamp(28px, 3.2vw, 40px);
-            font-weight: 600;
-            line-height: 1.12;
-            margin-bottom: 44px;
-            letter-spacing: -0.035em;
+            font-size: clamp(26px, 3.5vw, 38px);
+            font-weight: 800;
+            margin-bottom: 56px;
+            letter-spacing: -1px;
         }
 
         .section-intro {
-            max-width: 680px;
+            max-width: 640px;
             color: var(--text-secondary);
-            font-size: 16px;
-            line-height: 1.68;
-            margin: 0 0 48px;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: -36px 0 56px;
         }
-        #projects .section-title { margin-bottom: 16px; }
 
         .section-label {
             font-family: var(--font-mono);
-            font-size: 11px;
-            letter-spacing: 2.4px;
+            font-size: 12px;
+            letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--text-secondary);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: block;
         }
 
@@ -536,14 +534,14 @@
         .skills-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
+            gap: 24px;
         }
 
         .skill-card {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            padding: 28px;
-            border-radius: 14px;
+            padding: 32px;
+            border-radius: 16px;
             transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative;
             overflow: hidden;
@@ -574,16 +572,15 @@
         }
 
         .skill-card h3 {
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 1.3;
-            margin-bottom: 12px;
-            letter-spacing: -0.015em;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -0.3px;
         }
 
         .skill-card p {
             color: var(--text-secondary);
-            line-height: 1.68;
+            line-height: 1.7;
             font-size: 15px;
         }
 
@@ -705,31 +702,30 @@
 
         .project-content h3 {
             font-family: var(--font-display);
-            font-size: 21px;
-            font-weight: 600;
-            line-height: 1.25;
-            margin-bottom: 10px;
-            letter-spacing: -0.02em;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.4px;
         }
 
         .project-content p {
             color: var(--text-secondary);
-            font-size: 15px;
-            line-height: 1.65;
+            font-size: 14px;
+            line-height: 1.7;
         }
 
         .project-tags {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 18px;
         }
 
         .tag {
             padding: 4px 10px;
             border: 1px solid var(--border);
             font-family: var(--font-mono);
-            font-size: 10.5px;
+            font-size: 11px;
             border-radius: 6px;
             transition: all 0.25s ease;
             color: var(--text-secondary);
@@ -745,14 +741,14 @@
             display: flex;
             flex-wrap: wrap;
             flex-direction: row;
-            gap: 32px;
+            gap: 26px;
         }
 
         .contact-item {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            font-size: 17px;
+            font-size: 18px;
             color: var(--text-secondary);
             text-decoration: none;
             transition: all 0.25s ease;
@@ -785,7 +781,7 @@
             gap: 12px;
             color: var(--text-secondary);
             font-family: var(--font-mono);
-            font-size: 13px;
+            font-size: 14px;
             opacity: 0;
             animation: fadeInUp 0.8s ease 0.5s forwards;
         }
@@ -885,31 +881,28 @@
         }
 
         @media (max-width: 768px) {
-            .container { padding: 18px; }
-            header { padding: 24px 0; }
-            .hero { padding: 32px 0 16px; }
+            .container { padding: 15px; }
+            header { padding: 20px 0; }
+            .hero { padding: 40px 0 12px; }
             .hero h1 { letter-spacing: -1px; }
             .hero .subtitle { font-size: 14px; }
-            .hero .description { font-size: 16px; line-height: 1.65; }
-            .section { padding: 48px 0; }
-            .section-title { margin-bottom: 32px; }
-            #projects .section-title { margin-bottom: 14px; }
-            .section-intro { margin: 0 0 36px; }
+            .hero .description { font-size: 15px; }
+            .section { padding: 40px 0; }
+            .section-title { margin-bottom: 36px; }
+            .section-intro { margin: -20px 0 36px; }
             .skills-grid { grid-template-columns: 1fr; gap: 16px; }
-            .skill-card { padding: 24px; }
-            .projects-grid { grid-template-columns: 1fr; gap: 18px; }
-            .project-visual { height: 150px; }
-            .project-content { padding: 24px; }
-            .contact-item { font-size: 16px; }
+            .projects-grid { grid-template-columns: 1fr; gap: 20px; }
+            .project-visual { height: 160px; }
+            .contact-item { font-size: 15px; }
             .cta-buttons { gap: 10px; }
             .btn { padding: 11px 20px; font-size: 13px; flex: 1 1 calc(50% - 5px); text-align: center; }
             .cta-buttons .btn:last-child { flex-basis: 100%; }
             .btn-label-full { display: inline; }
             .btn-label-short { display: none; }
-            .hero { flex-direction: column; gap: 20px; }
+            .hero { flex-direction: column; gap: 24px; }
             .hero-widget { flex: none; width: 100%; display: flex; flex-direction: column; align-items: center; padding-top: 0; }
             .ms-widget { max-width: 310px; }
-            footer { flex-direction: column; align-items: flex-start; margin-top: 48px; }
+            footer { flex-direction: column; align-items: flex-start; margin-top: 60px; }
             .contact-info {
                 flex-direction: column;
                 align-items: flex-start; /* если хочешь по центру — поставь center */
