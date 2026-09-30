@@ -123,10 +123,11 @@ const GLOW_RADIUS = 230;
 const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
 const MAX_LOCAL_STARS = 7;
-const COMET_DELAY_MIN = 7000;
-const COMET_DELAY_MAX = 12000;
-const COMET_DELAY_MOBILE_MIN = 5000;
-const COMET_DELAY_MOBILE_MAX = 9000;
+const COMET_DELAY_MIN = 15000;
+const COMET_DELAY_MAX = 24000;
+const COMET_DELAY_MOBILE_MIN = 25000;
+const COMET_DELAY_MOBILE_MAX = 30000;
+const COMET_INITIAL_DELAY_MOBILE = 5000;
 
 function randomBetween(min, max) {
     return min + Math.random() * (max - min);
@@ -179,7 +180,7 @@ class ParticlesSystem {
         this.lastTick = 0;
         this.lastFrame = 0;
         this.updateCapabilities();
-        this.nextCometAt = performance.now() + this.cometDelay();
+        this.nextCometAt = performance.now() + this.initialCometDelay();
         this.resize(true);
         let resizeTimer;
         window.addEventListener('resize', () => {
@@ -208,6 +209,7 @@ class ParticlesSystem {
         this.start();
     }
     updateCapabilities() {
+        this.handset = window.matchMedia('(max-width: 768px)').matches;
         this.mobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
         this.finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         const memory = navigator.deviceMemory;
@@ -221,9 +223,17 @@ class ParticlesSystem {
         }
     }
     cometDelay() {
-        return this.mobile
+        return this.handset
             ? randomBetween(COMET_DELAY_MOBILE_MIN, COMET_DELAY_MOBILE_MAX)
             : randomBetween(COMET_DELAY_MIN, COMET_DELAY_MAX);
+    }
+    initialCometDelay() {
+        return this.handset ? COMET_INITIAL_DELAY_MOBILE : this.cometDelay();
+    }
+    mobileCometBoundary() {
+        const widget = document.getElementById('msWidget');
+        const widgetTop = widget ? widget.getBoundingClientRect().top : this.h * 0.62;
+        return Math.max(140, Math.min(this.h * 0.62, widgetTop - 24));
     }
     onPointerMove(event) {
         if (!this.finePointer || reducedMotionQuery.matches) return;
@@ -395,17 +405,28 @@ class ParticlesSystem {
         }
     }
     spawnComet(now) {
-        const vx = this.mobile ? randomBetween(220, 310) : randomBetween(280, 390);
+        const vx = this.handset ? randomBetween(220, 310) : randomBetween(280, 390);
+        const duration = this.handset ? randomBetween(1600, 2000) : randomBetween(1550, 1950);
+        const mobileBoundary = this.handset ? this.mobileCometBoundary() : 0;
+        const y = this.handset
+            ? randomBetween(18, Math.max(24, mobileBoundary * 0.3))
+            : randomBetween(0, Math.max(40, this.h * 0.28));
+        const vy = this.handset
+            ? Math.min(
+                vx * randomBetween(0.16, 0.28),
+                Math.max(35, (mobileBoundary - y) / (duration / 1000))
+            )
+            : vx * randomBetween(0.45, 0.7);
         this.comet = {
             x: Math.random() > 0.35
                 ? randomBetween(-this.w * 0.15 - 80, -80)
                 : randomBetween(0, this.w * 0.75),
-            y: randomBetween(0, Math.max(40, this.h * 0.28)),
+            y,
             vx,
-            vy: vx * randomBetween(0.45, 0.7),
-            length: this.mobile ? randomBetween(90, 145) : randomBetween(140, 220),
+            vy,
+            length: this.handset ? randomBetween(120, 180) : randomBetween(140, 220),
             bornAt: now,
-            duration: this.mobile ? randomBetween(1400, 1800) : randomBetween(1550, 1950)
+            duration
         };
         this.nextCometAt = now + this.cometDelay();
     }
