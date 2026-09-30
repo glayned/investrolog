@@ -38,6 +38,11 @@
             --session-halo: rgba(200, 146, 53, 0.07);
         }
 
+        html {
+            min-height: 100%;
+            background-color: var(--bg-primary);
+        }
+
         body {
             font-family: var(--font-sans);
             background: var(--bg-primary);
@@ -75,8 +80,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--bg-primary);
-            contain: strict;
             z-index: 1;
             pointer-events: none;
         }

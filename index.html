@@ -4,6 +4,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="dark light" name="color-scheme"/>
+<meta content="#080808" name="theme-color"/>
 <title>InvestroLog × DataMatrix — Dmitry Maltsev</title>
 <meta content="InvestroLog × DataMatrix — исследовательский проект Дмитрия Мальцева: торговая система из модулей — COT, опционы и волатильность, алерты, Market Desk, сентимент, AI-ассистент. Python-разработка и AI-автоматизация рыночного анализа." name="description"/>
 <link href="https://investrolog.pro/" rel="canonical"/>
@@ -69,8 +71,8 @@
 <link href="/favicon.ico" rel="icon" sizes="48x48"/>
 <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
 <link href="/apple-touch-icon.png" rel="apple-touch-icon"/>
-<script>try{if(localStorage.getItem('ms-theme')==='light'){document.documentElement.removeAttribute('data-theme')}}catch(e){}</script>
-<link href="/css/styles.css?v=15" rel="stylesheet"/>
+<script>try{if(localStorage.getItem('ms-theme')==='light'){document.documentElement.removeAttribute('data-theme');document.querySelector('meta[name="theme-color"]').setAttribute('content','#ffffff')}}catch(e){}</script>
+<link href="/css/styles.css?v=16" rel="stylesheet"/>
 <noscript><style>.section,.skill-card,.project-card{opacity:1;transform:none}</style></noscript>
 </head>
 <body>
@@ -427,6 +429,6 @@
 </form>
 </div>
 </div>
-<script defer src="/js/main.js?v=8"></script>
+<script defer src="/js/main.js?v=11"></script>
 </body>
 </html>

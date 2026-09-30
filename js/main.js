@@ -90,7 +90,8 @@ function triggerCodeAnimation() {
 ════════════════════════════════════════ */
 const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 const mobileAnimationQuery = window.matchMedia('(max-width: 768px), (pointer: coarse)');
-function motionAllowed() { return !reducedMotionQuery.matches && !document.hidden; }
+function motionAllowed() { return !document.hidden; }
+function getMotionScale() { return reducedMotionQuery.matches ? 0.45 : 1; }
 function usesMobileAnimations() { return mobileAnimationQuery.matches; }
 function onMediaQueryChange(query, callback) {
     if (query.addEventListener) query.addEventListener('change', callback);
@@ -105,7 +106,7 @@ function getProjectFrameInterval() {
     const saveData = navigator.connection && navigator.connection.saveData;
     const lowPower = usesMobileAnimations()
         && (cores <= 4 || (memory != null && memory <= 4) || saveData);
-    return 1000 / (lowPower ? 20 : usesMobileAnimations() ? 24 : 30);
+    return 1000 / (lowPower || reducedMotionQuery.matches ? 20 : usesMobileAnimations() ? 24 : 30);
 }
 
 /* ════════════════════════════════════════
@@ -122,8 +123,11 @@ const GLOW_RADIUS = 230;
 const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
 const MAX_LOCAL_STARS = 7;
-const COMET_DELAY_MIN = 7000;
-const COMET_DELAY_MAX = 12000;
+const COMET_DELAY_MIN = 15000;
+const COMET_DELAY_MAX = 30000;
+const COMET_DELAY_MOBILE_MIN = 25000;
+const COMET_DELAY_MOBILE_MAX = 30000;
+const COMET_INITIAL_DELAY = 5000;
 
 function randomBetween(min, max) {
     return min + Math.random() * (max - min);
@@ -171,12 +175,12 @@ class ParticlesSystem {
             glow: 0
         };
         this.comet = null;
-        this.nextCometAt = performance.now() + this.cometDelay();
         this.running = false;
         this.rafId = 0;
         this.lastTick = 0;
         this.lastFrame = 0;
         this.updateCapabilities();
+        this.nextCometAt = performance.now() + COMET_INITIAL_DELAY;
         this.resize(true);
         let resizeTimer;
         window.addEventListener('resize', () => {
@@ -191,24 +195,21 @@ class ParticlesSystem {
             else this.start();
         });
         onMediaQueryChange(reducedMotionQuery, () => {
-            if (reducedMotionQuery.matches) {
-                this.stop();
-                this.pointer.glow = 0;
-                this.comet = null;
-                this.drawFrame(0, false);
-            } else {
-                this.nextCometAt = performance.now() + this.cometDelay();
-                this.start();
-            }
+            this.pointer.glow = 0;
+            this.frameInterval = 1000 / (this.lowPower || reducedMotionQuery.matches
+                ? 20
+                : this.mobile ? 24 : 30);
+            this.nextCometAt = performance.now() + this.cometDelay();
+            this.start();
         });
         new MutationObserver(() => {
             if (!this.running) this.drawFrame(performance.now(), false);
         })
             .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-        if (reducedMotionQuery.matches) this.drawFrame(0, false);
-        else this.start();
+        this.start();
     }
     updateCapabilities() {
+        this.handset = window.matchMedia('(max-width: 768px)').matches;
         this.mobile = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
         this.finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
         const memory = navigator.deviceMemory;
@@ -222,7 +223,14 @@ class ParticlesSystem {
         }
     }
     cometDelay() {
-        return randomBetween(COMET_DELAY_MIN, COMET_DELAY_MAX);
+        return this.handset
+            ? randomBetween(COMET_DELAY_MOBILE_MIN, COMET_DELAY_MOBILE_MAX)
+            : randomBetween(COMET_DELAY_MIN, COMET_DELAY_MAX);
+    }
+    mobileCometBoundary() {
+        const widget = document.getElementById('msWidget');
+        const widgetTop = widget ? widget.getBoundingClientRect().top : this.h * 0.62;
+        return Math.max(140, Math.min(this.h * 0.62, widgetTop - 24));
     }
     onPointerMove(event) {
         if (!this.finePointer || reducedMotionQuery.matches) return;
@@ -239,7 +247,7 @@ class ParticlesSystem {
         const nextWidth = window.innerWidth;
         const nextHeight = window.innerHeight;
         if (!force && this.mobile && this.w && Math.abs(nextWidth - this.w) < 2) return;
-        const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1.5 : 2);
+        const dpr = Math.min(window.devicePixelRatio || 1, this.mobile ? 1 : 2);
         this.w = nextWidth;
         this.h = nextHeight;
         for (const star of this.stars) star.update(0, this.w, this.h);
@@ -255,7 +263,6 @@ class ParticlesSystem {
         );
         while (this.stars.length < target) this.stars.push(new Star(this.w, this.h));
         if (this.stars.length > target) this.stars.length = target;
-        if (reducedMotionQuery.matches) this.drawFrame(0, false);
     }
     start() {
         if (this.running || !motionAllowed()) return;
@@ -395,22 +402,32 @@ class ParticlesSystem {
         }
     }
     spawnComet(now) {
-        const vx = randomBetween(280, 390);
+        const vx = this.handset ? randomBetween(220, 310) : randomBetween(280, 390);
+        const duration = this.handset ? randomBetween(1600, 2000) : randomBetween(1550, 1950);
+        const mobileBoundary = this.handset ? this.mobileCometBoundary() : 0;
+        const y = this.handset
+            ? randomBetween(18, Math.max(24, mobileBoundary * 0.3))
+            : randomBetween(0, Math.max(40, this.h * 0.28));
+        const vy = this.handset
+            ? Math.min(
+                vx * randomBetween(0.16, 0.28),
+                Math.max(35, (mobileBoundary - y) / (duration / 1000))
+            )
+            : vx * randomBetween(0.45, 0.7);
         this.comet = {
             x: Math.random() > 0.35
                 ? randomBetween(-this.w * 0.15 - 80, -80)
                 : randomBetween(0, this.w * 0.75),
-            y: randomBetween(0, Math.max(40, this.h * 0.28)),
+            y,
             vx,
-            vy: vx * randomBetween(0.45, 0.7),
-            length: randomBetween(140, 220),
+            vy,
+            length: this.handset ? randomBetween(120, 180) : randomBetween(140, 220),
             bornAt: now,
-            duration: randomBetween(1550, 1950)
+            duration
         };
         this.nextCometAt = now + this.cometDelay();
     }
     drawComet(isDark, now, elapsedSeconds) {
-        if (this.mobile || this.lowPower) return;
         if (!this.comet && now >= this.nextCometAt) this.spawnComet(now);
         if (!this.comet) return;
 
@@ -454,9 +471,10 @@ class ParticlesSystem {
     drawFrame(now, update, frameScale = 1) {
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
         const ctx = this.ctx;
-        ctx.clearRect(0, 0, this.w, this.h);
+        ctx.fillStyle = isDark ? '#080808' : '#ffffff';
+        ctx.fillRect(0, 0, this.w, this.h);
         if (update && this.finePointer) this.drawGlow(isDark, frameScale);
-        this.drawStars(isDark, now, update, frameScale);
+        this.drawStars(isDark, now, update, frameScale * getMotionScale());
         if (update) this.drawComet(isDark, now, frameScale / 60);
     }
 }
@@ -526,7 +544,7 @@ function initProjectCanvases() {
                 canvas._lastFrame = canvas._lastFrame
                     ? now - (sinceFrame % interval)
                     : now;
-                drawFrame(elapsed / 16.667);
+                drawFrame((elapsed / 16.667) * getMotionScale());
             }
             requestAnimationFrame(canvas._tick);
         };
@@ -535,7 +553,12 @@ function initProjectCanvases() {
     });
 
     document.addEventListener('visibilitychange', () => canvases.forEach(startProjectCanvas));
-    onMediaQueryChange(reducedMotionQuery, () => canvases.forEach(startProjectCanvas));
+    onMediaQueryChange(reducedMotionQuery, () => {
+        canvases.forEach(canvas => {
+            canvas._frameInterval = getProjectFrameInterval();
+            startProjectCanvas(canvas);
+        });
+    });
 }
 
 function animateCOT(canvas) {
@@ -743,11 +766,14 @@ function setTheme(isDark) {
   const html = document.documentElement;
   const sunIcon = document.querySelector('.sun-icon');
   const moonIcon = document.querySelector('.moon-icon');
+  const themeColor = document.querySelector('meta[name="theme-color"]');
   if (isDark) {
     html.setAttribute('data-theme', 'dark');
+    if (themeColor) themeColor.setAttribute('content', '#080808');
     sunIcon.style.display = 'block'; moonIcon.style.display = 'none';
   } else {
     html.removeAttribute('data-theme');
+    if (themeColor) themeColor.setAttribute('content', '#ffffff');
     sunIcon.style.display = 'none'; moonIcon.style.display = 'block';
   }
 }
