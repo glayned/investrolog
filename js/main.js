@@ -127,7 +127,7 @@ const COMET_DELAY_MIN = 15000;
 const COMET_DELAY_MAX = 30000;
 const COMET_DELAY_MOBILE_MIN = 25000;
 const COMET_DELAY_MOBILE_MAX = 30000;
-const COMET_INITIAL_DELAY = 6000;
+const COMET_INITIAL_DELAY = 8000;
 
 function randomBetween(min, max) {
     return min + Math.random() * (max - min);
