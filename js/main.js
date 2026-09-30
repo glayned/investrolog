@@ -415,9 +415,9 @@ class ParticlesSystem {
             )
             : vx * randomBetween(0.45, 0.7);
         this.comet = {
-            x: Math.random() > 0.5
+            x: Math.random() > 0.7
                 ? randomBetween(-this.w * 0.15 - 80, -80)
-                : randomBetween(0, this.w * 0.6),
+                : randomBetween(0, this.w * 0.85),
             y,
             vx,
             vy,
