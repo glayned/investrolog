@@ -124,10 +124,10 @@ const LOCAL_LINK_DIST = 145;
 const LOCAL_LINK_DIST_SQ = LOCAL_LINK_DIST * LOCAL_LINK_DIST;
 const MAX_LOCAL_STARS = 7;
 const COMET_DELAY_MIN = 15000;
-const COMET_DELAY_MAX = 24000;
+const COMET_DELAY_MAX = 30000;
 const COMET_DELAY_MOBILE_MIN = 25000;
 const COMET_DELAY_MOBILE_MAX = 30000;
-const COMET_INITIAL_DELAY_MOBILE = 5000;
+const COMET_INITIAL_DELAY = 5000;
 
 function randomBetween(min, max) {
     return min + Math.random() * (max - min);
@@ -180,7 +180,7 @@ class ParticlesSystem {
         this.lastTick = 0;
         this.lastFrame = 0;
         this.updateCapabilities();
-        this.nextCometAt = performance.now() + this.initialCometDelay();
+        this.nextCometAt = performance.now() + COMET_INITIAL_DELAY;
         this.resize(true);
         let resizeTimer;
         window.addEventListener('resize', () => {
@@ -226,9 +226,6 @@ class ParticlesSystem {
         return this.handset
             ? randomBetween(COMET_DELAY_MOBILE_MIN, COMET_DELAY_MOBILE_MAX)
             : randomBetween(COMET_DELAY_MIN, COMET_DELAY_MAX);
-    }
-    initialCometDelay() {
-        return this.handset ? COMET_INITIAL_DELAY_MOBILE : this.cometDelay();
     }
     mobileCometBoundary() {
         const widget = document.getElementById('msWidget');
