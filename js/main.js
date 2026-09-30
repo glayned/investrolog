@@ -401,41 +401,45 @@ class ParticlesSystem {
             }
         }
     }
-    spawnComet(now) {
-        const vx = this.handset ? randomBetween(220, 310) : randomBetween(280, 390);
-        const duration = this.handset ? randomBetween(1600, 2000) : randomBetween(1550, 1950);
-        const mobileBoundary = this.handset ? this.mobileCometBoundary() : 0;
-        const y = this.handset
-            ? randomBetween(18, Math.max(24, mobileBoundary * 0.3))
-            : randomBetween(0, Math.max(40, this.h * 0.28));
-        const vy = this.handset
-            ? Math.min(
-                vx * randomBetween(0.16, 0.28),
-                Math.max(35, (mobileBoundary - y) / (duration / 1000))
-            )
-            : vx * randomBetween(0.45, 0.7);
-        this.comet = {
-            x: Math.random() > 0.7
-                ? randomBetween(-this.w * 0.15 - 80, -80)
-                : randomBetween(0, this.w * 0.85),
-            y,
-            vx,
-            vy,
-            length: this.handset ? randomBetween(120, 180) : randomBetween(140, 220),
-            bornAt: now,
-            duration
-        };
-        this.nextCometAt = now + this.cometDelay();
-    }
-    drawComet(isDark, now, elapsedSeconds) {
-        if (!this.comet && now >= this.nextCometAt) this.spawnComet(now);
-        if (!this.comet) return;
-
-        const comet = this.comet;
-        const progress = (now - comet.bornAt) / comet.duration;
-        if (progress >= 1 || comet.x > this.w + 140 || comet.y > this.h + 140) {
-            this.comet = null;
-            return;
+spawnComet(now) {  
+        const vx = this.handset ? randomBetween(220, 310) : randomBetween(280, 390);  
+        const duration = this.handset ? randomBetween(1600, 2000) : randomBetween(1550, 1950);  
+        const mobileBoundary = this.handset ? this.mobileCometBoundary() : 0;  
+        const y = this.handset  
+            ? randomBetween(18, Math.max(24, mobileBoundary * 0.3))  
+            : randomBetween(0, Math.max(40, this.h * 0.28));  
+        const vy = this.handset  
+            ? Math.min(  
+                vx * randomBetween(0.16, 0.28),  
+                Math.max(35, (mobileBoundary - y) / (duration / 1000))  
+            )  
+            : vx * randomBetween(0.45, 0.7);  
+        this.comet = {  
+            x: this.handset  
+                ? (Math.random() > 0.35  
+                    ? randomBetween(-this.w * 0.15 - 80, -80)  
+                    : randomBetween(0, this.w * 0.75))  
+                : (Math.random() > 0.7  
+                    ? randomBetween(-this.w * 0.15 - 80, -80)  
+                    : randomBetween(0, this.w * 0.85)),  
+            y,  
+            vx,  
+            vy,  
+            length: this.handset ? randomBetween(120, 180) : randomBetween(140, 220),  
+            bornAt: now,  
+            duration  
+        };  
+        this.nextCometAt = now + this.cometDelay();  
+    }  
+    drawComet(isDark, now, elapsedSeconds) {  
+        if (!this.comet && now >= this.nextCometAt) this.spawnComet(now);  
+        if (!this.comet) return;  
+  
+        const comet = this.comet;  
+        const progress = (now - comet.bornAt) / comet.duration;  
+        if (progress >= 1 || comet.x > this.w + 140 || comet.y > this.h + 140) {  
+            this.comet = null;  
+            return;  
         }
 
         comet.x += comet.vx * elapsedSeconds;
