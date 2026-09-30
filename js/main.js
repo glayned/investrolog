@@ -401,7 +401,7 @@ class ParticlesSystem {
             }
         }
     }
-       spawnComet(now) {  
+    spawnComet(now) {  
         const vx = this.handset ? randomBetween(220, 310) : randomBetween(280, 390);  
         const duration = this.handset ? randomBetween(1600, 2000) : randomBetween(1550, 1950);  
         const mobileBoundary = this.handset ? this.mobileCometBoundary() : 0;  
