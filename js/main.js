@@ -1062,8 +1062,8 @@ function initSessionsClock() {
         return { startUtc, endUtc };
     }
     function dominantActive(ranges) {
-        // Trader priority — LONDON / NEW YORK headline when active, otherwise first active session
-        const priority = ['LONDON', 'NEW YORK', 'MOSCOW', 'TOKYO', 'SYDNEY'];
+        // Trader priority — the latest major session leads during overlaps
+        const priority = ['NEW YORK', 'LONDON', 'MOSCOW', 'TOKYO', 'SYDNEY'];
         for (const name of priority) {
             const r = ranges.find(x => x.name === name);
             if (r && r.active) return r;
