@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_PATH = ROOT / "index.html"
 LOCALE_PATH = ROOT / "locales" / "en.json"
 OUTPUT_PATH = ROOT / "en" / "index.html"
+LANGUAGE_REDIRECT_RE = re.compile(r"<script data-lang-redirect>.*?</script>\n", re.S)
 
 
 class VisibleTextParser(HTMLParser):
@@ -41,7 +42,9 @@ def replace_once(html, source, target):
 
 
 def render_english(source, locale):
-    html = source
+    html, redirects = LANGUAGE_REDIRECT_RE.subn("", source)
+    if redirects != 1:
+        raise ValueError(f"Expected one language redirect script, found {redirects}")
     structural_replacements = (
         ('<html data-theme="dark" lang="ru">', '<html data-theme="dark" lang="en">'),
         (
@@ -125,6 +128,7 @@ def validate(source, english):
         'href="/en/"',
         'src="/js/main.js',
         'href="/css/styles.css',
+        '<script data-lang-redirect>',
     )
     required_english = (
         'lang="en"',
@@ -142,6 +146,8 @@ def validate(source, english):
     for marker in required_english:
         if marker not in english:
             raise ValueError(f"EN page is missing required marker: {marker}")
+    if "data-lang-redirect" in english:
+        raise ValueError("EN page must not contain the language redirect")
     for relative_asset in ('href="css/', 'src="js/', 'src="song.mp3"'):
         if relative_asset in source or relative_asset in english:
             raise ValueError(f"Locale-dependent asset path found: {relative_asset}")

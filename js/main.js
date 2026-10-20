@@ -829,6 +829,7 @@ window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-language-link]').forEach(link => {
         link.addEventListener('click', () => {
             if (window.location.hash) link.hash = window.location.hash;
+            try { localStorage.setItem('ms-lang', link.getAttribute('hreflang')); } catch (_) {}
         });
     });
 
