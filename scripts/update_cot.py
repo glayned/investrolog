@@ -13,7 +13,12 @@ from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 
-DATASET_URL = "https://publicreporting.cftc.gov/resource/72hh-3qpy.json"
+# Disaggregated report, futures and options combined.
+DATASET_URL = "https://publicreporting.cftc.gov/resource/kh3c-gbw2.json"
+ROOT = Path(__file__).resolve().parents[1]
+INDEX_PATH = ROOT / "index.html"
+# Pages that embed the generated strip; only the first one is required to exist.
+PAGE_PATHS = (INDEX_PATH, ROOT / "next" / "index.html")
 LOOKBACK_WEEKS = 260
 CONTRACTS = {
     "NG": "023651",
@@ -42,6 +47,21 @@ def embedded_report_date(html):
     return date.fromisoformat(match.group(1)) if match else None
 
 
+def fetch_json(dataset_url, params):
+    request = urllib.request.Request(
+        f"{dataset_url}?{urllib.parse.urlencode(params)}",
+        headers={"User-Agent": "InvestroLog-COT-Updater/1.0"},
+    )
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.load(response)
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            if attempt == 2:
+                raise
+            time.sleep(5 * (attempt + 1))
+
+
 def fetch_rows(today):
     cutoff = today - timedelta(days=6 * 366)
     codes = ",".join(f"'{code}'" for code in CONTRACTS.values())
@@ -57,18 +77,7 @@ def fetch_rows(today):
         "$order": "report_date_as_yyyy_mm_dd DESC",
         "$limit": "2000",
     }
-    request = urllib.request.Request(
-        f"{DATASET_URL}?{urllib.parse.urlencode(params)}",
-        headers={"User-Agent": "InvestroLog-COT-Updater/1.0"},
-    )
-    for attempt in range(3):
-        try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                return json.load(response)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
-            if attempt == 2:
-                raise
-            time.sleep(5 * (attempt + 1))
+    return fetch_json(DATASET_URL, params)
 
 
 def percentile_rank(values):
@@ -131,13 +140,25 @@ def render_block(report_date, percentiles):
 <div class="ms-cot">
 <div class="ms-cot-head">
 <span>COT · MM percentile</span>
-<span class="ms-cot-date" data-report-date="{report_date.isoformat()}">{display_date} · CFTC</span>
+<span class="ms-cot-date" data-report-date="{report_date.isoformat()}">{display_date} · F+O</span>
 </div>
 <div class="ms-cot-row">
 {items}
 </div>
 </div>
 <!-- COT_DATA_END -->"""
+
+
+def write_block(block):
+    for path in PAGE_PATHS:
+        if path != INDEX_PATH and not path.exists():
+            continue
+        html = path.read_text(encoding="utf-8")
+        updated, count = BLOCK_PATTERN.subn(block, html)
+        if count != 1:
+            raise ValueError(f"{path.name}: expected one generated COT block, found {count}")
+        if updated != html:
+            path.write_text(updated, encoding="utf-8")
 
 
 def main():
@@ -150,19 +171,16 @@ def main():
     args = parser.parse_args()
 
     today = datetime.now(timezone.utc).date()
-    index_path = Path(__file__).resolve().parents[1] / "index.html"
-    html = index_path.read_text(encoding="utf-8")
     expected = expected_report_date(today)
-    if args.skip_if_current and embedded_report_date(html) == expected:
+    if args.skip_if_current and all(
+        embedded_report_date(path.read_text(encoding="utf-8")) == expected
+        for path in PAGE_PATHS if path.exists()
+    ):
         print(f"COT {expected.isoformat()} is already current; skipping CFTC request.")
         return
 
     report_date, percentiles = calculate(fetch_rows(today), today)
-    updated, count = BLOCK_PATTERN.subn(render_block(report_date, percentiles), html)
-    if count != 1:
-        raise ValueError(f"Expected one generated COT block, found {count}")
-    if updated != html:
-        index_path.write_text(updated, encoding="utf-8")
+    write_block(render_block(report_date, percentiles))
 
     values = " · ".join(f"{symbol} p{value}" for symbol, value in percentiles.items())
     print(f"COT {report_date.isoformat()}: {values}")

@@ -1,0 +1,474 @@
+{
+  "schema": 1,
+  "demo": true,
+  "generated_at": "2026-11-16T06:00:00Z",
+  "layers": [
+    {
+      "id": "cot",
+      "label": "COT",
+      "short": "COT",
+      "horizon": "weeks",
+      "votes": true,
+      "source": "/next/layers/cot.json",
+      "about": {
+        "ru": "Нетто-позиция спекулянтов по отчёту CFTC (только фьючерсы), перцентиль за 5 лет. Читается контрарно: p20 и ниже — шорты перегружены, p80 и выше — перегружены лонги.",
+        "en": "Speculators' net position from the CFTC report (futures only), 5-year percentile. Read as a contrarian signal: p20 and below means crowded shorts, p80 and above means crowded longs."
+      },
+      "closed": {
+        "ru": "расхождение спекулянтов и хеджеров, сила сигнала, недели в экстремуме",
+        "en": "divergence between speculators and hedgers, signal strength, weeks at the extreme"
+      },
+      "url": "https://t.me/investrolog/1789"
+    },
+    {
+      "id": "options",
+      "label": {
+        "ru": "Опционы",
+        "en": "Options"
+      },
+      "short": "OPT",
+      "horizon": "days",
+      "votes": true,
+      "about": {
+        "ru": "Структура опционов: Net GEX, скос, баланс путов и колов.",
+        "en": "Options structure: Net GEX, skew, put/call balance."
+      },
+      "closed": {
+        "ru": "гамма-лестница, стены открытого интереса, коридор ожидаемого движения",
+        "en": "gamma ladder, open-interest walls, expected-move range"
+      },
+      "url": "https://t.me/investrolog/1757"
+    },
+    {
+      "id": "sentiment",
+      "label": {
+        "ru": "Сентимент",
+        "en": "Sentiment"
+      },
+      "short": "SENT",
+      "horizon": "days",
+      "votes": true,
+      "about": {
+        "ru": "Настроение толпы как контрарная линза: единодушие толпы читается против неё.",
+        "en": "Crowd mood as a contrarian lens: when the crowd is unanimous, it is read against the crowd."
+      },
+      "closed": {
+        "ru": "bear/bull-баланс по часам, панические экстремумы, дневной дайджест",
+        "en": "hourly bear/bull balance, panic extremes, daily digest"
+      },
+      "url": "https://t.me/investrolog/1494"
+    },
+    {
+      "id": "flow",
+      "label": {
+        "ru": "Поток",
+        "en": "Flow"
+      },
+      "short": "FLOW",
+      "horizon": "minutes",
+      "votes": true,
+      "about": {
+        "ru": "Всплески объёма к среднему и сторона, на которой они прошли.",
+        "en": "Volume spikes versus the average and the side they traded on."
+      },
+      "closed": {
+        "ru": "алерт в момент всплеска, расчётные окна TAS, поток ETF",
+        "en": "an alert at the moment of the spike, TAS settlement windows, ETF flow"
+      },
+      "url": "https://t.me/investrolog/437"
+    },
+    {
+      "id": "levels",
+      "label": {
+        "ru": "Уровни",
+        "en": "Levels"
+      },
+      "short": "LVL",
+      "horizon": "minutes",
+      "votes": true,
+      "about": {
+        "ru": "Положение цены относительно VWAP и уровней с историей тестов.",
+        "en": "Where price sits relative to VWAP and to levels with a history of tests."
+      },
+      "closed": {
+        "ru": "карта ликвидности, стопы и готовый план «если – то»",
+        "en": "liquidity map, stops and a ready if–then plan"
+      },
+      "url": "https://t.me/investrolog/1412"
+    },
+    {
+      "id": "vol",
+      "label": {
+        "ru": "Вола",
+        "en": "Vol"
+      },
+      "short": "VOL",
+      "horizon": "context",
+      "votes": false,
+      "about": {
+        "ru": "Режим волатильности: насколько дорого рынок оценивает движение.",
+        "en": "Volatility regime: how expensively the market prices a move."
+      },
+      "closed": {
+        "ru": "форма кривой, IV против HV, ожидаемый диапазон по GARCH",
+        "en": "curve shape, IV versus HV, expected range from GARCH"
+      },
+      "url": "https://t.me/investrolog/1567"
+    }
+  ],
+  "instruments": [
+    {
+      "id": "NG",
+      "name": {
+        "ru": "Природный газ",
+        "en": "Natural Gas"
+      },
+      "cells": {
+        "options": {
+          "signal": -1,
+          "metric": "GEX −",
+          "note": {
+            "ru": "Цена ниже gamma flip: короткая гамма, дилеры усиливают движение вниз.",
+            "en": "Price is below the gamma flip: short gamma, dealers amplify the move down."
+          }
+        },
+        "sentiment": {
+          "signal": -1,
+          "metric": "z +2.1",
+          "note": {
+            "ru": "Толпа единодушно ждёт роста — контрарно это аргумент против лонга.",
+            "en": "The crowd unanimously expects a rally — read as a contrarian, that argues against a long."
+          }
+        },
+        "flow": {
+          "signal": -1,
+          "metric": "×4.2",
+          "note": {
+            "ru": "Крупные всплески объёма проходят на продажах.",
+            "en": "Large volume spikes are trading on the sell side."
+          }
+        },
+        "levels": {
+          "signal": 0,
+          "metric": {
+            "ru": "у VWAP",
+            "en": "at VWAP"
+          },
+          "note": {
+            "ru": "Цена у недельного VWAP, ближайший уровень ещё не протестирован.",
+            "en": "Price is at the weekly VWAP; the nearest level has not been tested yet."
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p88",
+          "note": {
+            "ru": "Ближний контракт дороже следующего: рынок платит за риск ближайших дней.",
+            "en": "The front contract is priced above the next one: the market is paying for near-term risk."
+          }
+        }
+      }
+    },
+    {
+      "id": "CL",
+      "name": {
+        "ru": "Нефть WTI",
+        "en": "WTI Crude"
+      },
+      "cells": {
+        "options": {
+          "signal": 0,
+          "metric": "P/C 1.0",
+          "note": {
+            "ru": "Путы и колы в балансе, выраженных стен рядом с ценой нет.",
+            "en": "Puts and calls are balanced; there are no pronounced walls near the price."
+          }
+        },
+        "sentiment": {
+          "signal": 1,
+          "metric": "z −1.6",
+          "note": {
+            "ru": "Толпа настроена медвежьи — контрарно это поддержка.",
+            "en": "The crowd is bearish — read as a contrarian, that is support."
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×1.3",
+          "note": {
+            "ru": "Объём около среднего, всплесков за сессию не было.",
+            "en": "Volume is near average; there were no spikes this session."
+          }
+        },
+        "levels": {
+          "signal": -1,
+          "metric": "< VWAP",
+          "note": {
+            "ru": "Цена ниже VWAP, сверху уровень с тремя отбоями.",
+            "en": "Price is below VWAP, with a level above that has rejected it three times."
+          }
+        },
+        "vol": {
+          "level": 1,
+          "metric": "IV p61",
+          "note": {
+            "ru": "Волатильность выше средней, но без стресса.",
+            "en": "Volatility is above average, but without stress."
+          }
+        }
+      }
+    },
+    {
+      "id": "GC",
+      "name": {
+        "ru": "Золото",
+        "en": "Gold"
+      },
+      "cells": {
+        "options": {
+          "signal": 1,
+          "metric": "RR +",
+          "note": {
+            "ru": "Колы дороже путов: рынок доплачивает за движение вверх.",
+            "en": "Calls are priced above puts: the market pays extra for a move up."
+          }
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": "z +0.3",
+          "note": {
+            "ru": "Толпа разделена, перекоса нет.",
+            "en": "The crowd is split; there is no skew."
+          }
+        },
+        "flow": {
+          "signal": 1,
+          "metric": "×2.8",
+          "note": {
+            "ru": "Всплески объёма проходят на покупках.",
+            "en": "Volume spikes are trading on the buy side."
+          }
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP",
+          "note": {
+            "ru": "Цена удерживается выше VWAP после теста поддержки.",
+            "en": "Price is holding above VWAP after a test of support."
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "IV p34",
+          "note": {
+            "ru": "Спокойный режим: рынок не закладывает резких движений.",
+            "en": "Calm regime: the market is not pricing in sharp moves."
+          }
+        }
+      }
+    },
+    {
+      "id": "SI",
+      "name": {
+        "ru": "Серебро",
+        "en": "Silver"
+      },
+      "cells": {
+        "options": {
+          "signal": 1,
+          "metric": "GEX +",
+          "note": {
+            "ru": "Цена выше gamma flip: длинная гамма, откаты выкупаются.",
+            "en": "Price is above the gamma flip: long gamma, dips get bought."
+          }
+        },
+        "sentiment": {
+          "signal": 1,
+          "metric": "z −2.3",
+          "note": {
+            "ru": "Паника в комментариях — контрарный сигнал в пользу роста.",
+            "en": "Panic in the comments — a contrarian signal in favour of a rally."
+          }
+        },
+        "flow": {
+          "signal": 1,
+          "metric": "×3.6",
+          "note": {
+            "ru": "Серия всплесков на покупках с подтверждением на 5 минутах.",
+            "en": "A series of buy-side spikes, confirmed on the 5-minute chart."
+          }
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP",
+          "note": {
+            "ru": "Пробой уровня с историей тестов, цена закрепилась выше.",
+            "en": "A breakout of a level with a history of tests; price has held above it."
+          }
+        },
+        "vol": {
+          "level": 1,
+          "metric": "IV p58",
+          "note": {
+            "ru": "Волатильность растёт вместе с ценой.",
+            "en": "Volatility is rising together with price."
+          }
+        }
+      }
+    },
+    {
+      "id": "CC",
+      "name": {
+        "ru": "Какао",
+        "en": "Cocoa"
+      },
+      "cells": {
+        "options": {
+          "signal": null
+        },
+        "sentiment": {
+          "signal": 1,
+          "metric": "z −1.4",
+          "note": {
+            "ru": "Толпа пессимистична — контрарно это поддержка.",
+            "en": "The crowd is pessimistic — read as a contrarian, that is support."
+          }
+        },
+        "flow": {
+          "signal": -1,
+          "metric": "×2.2",
+          "note": {
+            "ru": "Всплески объёма проходят на продажах.",
+            "en": "Volume spikes are trading on the sell side."
+          }
+        },
+        "levels": {
+          "signal": 0,
+          "metric": {
+            "ru": "у VWAP",
+            "en": "at VWAP"
+          },
+          "note": {
+            "ru": "Цена в середине диапазона между уровнями.",
+            "en": "Price is in the middle of the range between levels."
+          }
+        },
+        "vol": {
+          "level": 1,
+          "metric": "HV p66",
+          "note": {
+            "ru": "Реализованная волатильность выше средней.",
+            "en": "Realised volatility is above average."
+          }
+        }
+      }
+    },
+    {
+      "id": "KC",
+      "name": {
+        "ru": "Кофе",
+        "en": "Coffee"
+      },
+      "cells": {
+        "options": {
+          "signal": null
+        },
+        "sentiment": {
+          "signal": null
+        },
+        "flow": {
+          "signal": 1,
+          "metric": "×2.5",
+          "note": {
+            "ru": "Всплески объёма проходят на покупках.",
+            "en": "Volume spikes are trading on the buy side."
+          }
+        },
+        "levels": {
+          "signal": 0,
+          "metric": {
+            "ru": "у VWAP",
+            "en": "at VWAP"
+          },
+          "note": {
+            "ru": "Цена у VWAP, уровень сверху ещё не тестировался.",
+            "en": "Price is at VWAP; the level above has not been tested yet."
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "HV p29",
+          "note": {
+            "ru": "Спокойный режим.",
+            "en": "Calm regime."
+          }
+        }
+      }
+    },
+    {
+      "id": "BTC",
+      "name": {
+        "ru": "Биткоин",
+        "en": "Bitcoin"
+      },
+      "cells": {
+        "options": {
+          "signal": 1,
+          "metric": "RR +",
+          "note": {
+            "ru": "Колы дороже путов на ближних сроках.",
+            "en": "Calls are priced above puts at the near expiries."
+          }
+        },
+        "sentiment": {
+          "signal": null
+        },
+        "flow": {
+          "signal": null
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP",
+          "note": {
+            "ru": "Цена выше VWAP и ближайшего уровня.",
+            "en": "Price is above VWAP and the nearest level."
+          }
+        },
+        "vol": {
+          "level": 1,
+          "metric": "IV p52",
+          "note": {
+            "ru": "Волатильность около средней.",
+            "en": "Volatility is near average."
+          }
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "title": "EIA Storage",
+      "asset": "NG",
+      "at": "2026-11-19T15:30:00Z"
+    },
+    {
+      "title": {
+        "ru": "Отчёт COT",
+        "en": "COT report"
+      },
+      "asset": {
+        "ru": "все рынки",
+        "en": "all markets"
+      },
+      "at": "2026-11-20T20:30:00Z"
+    },
+    {
+      "title": {
+        "ru": "Экспирация опционов",
+        "en": "Options expiry"
+      },
+      "asset": "NGZ26",
+      "at": "2026-11-24T19:30:00Z"
+    }
+  ]
+}
