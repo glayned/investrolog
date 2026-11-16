@@ -48,6 +48,7 @@
       "short": "SENT",
       "horizon": "days",
       "votes": true,
+      "source": "/next/layers/sentiment.json",
       "about": {
         "ru": "Настроение толпы как контрарная линза: единодушие толпы читается против неё.",
         "en": "Crowd mood as a contrarian lens: when the crowd is unanimous, it is read against the crowd."
