@@ -42,6 +42,21 @@ def embedded_report_date(html):
     return date.fromisoformat(match.group(1)) if match else None
 
 
+def fetch_json(dataset_url, params):
+    request = urllib.request.Request(
+        f"{dataset_url}?{urllib.parse.urlencode(params)}",
+        headers={"User-Agent": "InvestroLog-COT-Updater/1.0"},
+    )
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.load(response)
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            if attempt == 2:
+                raise
+            time.sleep(5 * (attempt + 1))
+
+
 def fetch_rows(today):
     cutoff = today - timedelta(days=6 * 366)
     codes = ",".join(f"'{code}'" for code in CONTRACTS.values())
@@ -57,18 +72,7 @@ def fetch_rows(today):
         "$order": "report_date_as_yyyy_mm_dd DESC",
         "$limit": "2000",
     }
-    request = urllib.request.Request(
-        f"{DATASET_URL}?{urllib.parse.urlencode(params)}",
-        headers={"User-Agent": "InvestroLog-COT-Updater/1.0"},
-    )
-    for attempt in range(3):
-        try:
-            with urllib.request.urlopen(request, timeout=30) as response:
-                return json.load(response)
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
-            if attempt == 2:
-                raise
-            time.sleep(5 * (attempt + 1))
+    return fetch_json(DATASET_URL, params)
 
 
 def percentile_rank(values):

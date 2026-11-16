@@ -12,6 +12,7 @@
     const DIRECTION_WORDS = { bull: 'вверх', bear: 'вниз' };
     const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     const MSK = 'Europe/Moscow';
+    const COT_LAYER_ID = 'cot';
 
     const grid = document.getElementById('cmx');
     const statusEl = document.getElementById('cmxStatus');
@@ -39,6 +40,10 @@
         return typeof value === 'string' && value.length <= max ? value.trim() : '';
     }
 
+    function layerPath(value) {
+        return typeof value === 'string' && /^\/next\/layers\/[a-z0-9_-]+\.json$/.test(value) ? value : null;
+    }
+
     function httpsUrl(value) {
         try {
             const url = new URL(value);
@@ -49,7 +54,7 @@
     }
 
     function normalizeCell(raw, layer) {
-        const cell = { state: 'na', level: null, metric: '', note: '' };
+        const cell = { state: 'na', level: null, value: null, metric: '', note: '' };
         if (!raw || typeof raw !== 'object') return cell;
         if (layer.votes) {
             cell.state = { 1: 'bull', '-1': 'bear', 0: 'flat' }[raw.signal] || 'na';
@@ -59,6 +64,7 @@
             cell.level = raw.level;
         }
         if (cell.state !== 'na') {
+            cell.value = Number.isFinite(raw.value) ? raw.value : null;
             cell.metric = text(raw.metric, 12);
             cell.note = text(raw.note, 240);
         }
@@ -79,7 +85,9 @@
                 votes: l.votes === true,
                 about: text(l.about, 240),
                 closed: text(l.closed, 240),
-                url: httpsUrl(l.url)
+                url: httpsUrl(l.url),
+                source: layerPath(l.source),
+                live: null
             }));
         const voting = layers.filter(l => l.votes);
         const instruments = raw.instruments
@@ -87,9 +95,7 @@
             .map(i => {
                 const cells = {};
                 for (const layer of layers) cells[layer.id] = normalizeCell((i.cells || {})[layer.id], layer);
-                const instrument = { id: text(i.id, 8), name: text(i.name, 40), cells };
-                instrument.consensus = consensus(instrument, voting);
-                return instrument;
+                return { id: text(i.id, 8), name: text(i.name, 40), cells, consensus: null };
             });
         if (!voting.length || !instruments.length) throw new Error('Snapshot has no layers or instruments');
 
@@ -104,6 +110,21 @@
             generatedAt: Number.isNaN(generated.getTime()) ? null : generated,
             layers, voting, instruments, events
         };
+    }
+
+    /* A layer with its own file replaces that column; if the file is missing the column reads "нет данных" */
+    function applyLayer(data, layer, raw) {
+        const valid = raw && raw.schema === 1 && raw.layer === layer.id
+            && raw.cells && typeof raw.cells === 'object'
+            && typeof raw.report_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.report_date);
+        for (const instrument of data.instruments) {
+            instrument.cells[layer.id] = normalizeCell(valid ? raw.cells[instrument.id] : null, layer);
+        }
+        if (valid) layer.live = { source: text(raw.source, 24), reportDate: new Date(`${raw.report_date}T00:00:00Z`) };
+    }
+
+    function liveLabel(layer) {
+        return [layer.live.source, `отчёт ${reportFormat.format(layer.live.reportDate)}`].filter(Boolean).join(', ');
     }
 
     function consensus(instrument, voting) {
@@ -150,7 +171,7 @@
 
         const headRow = el('div', { class: 'cmx-row', 'aria-hidden': 'true' }, el('span'));
         for (const layer of layers) {
-            headRow.append(el('span', { class: 'cmx-col' },
+            headRow.append(el('span', { class: `cmx-col${layer.live ? ' is-live' : ''}` },
                 el('span', { class: 'cmx-long', text: layer.label }),
                 el('span', { class: 'cmx-short', text: layer.short })));
         }
@@ -259,10 +280,11 @@
         const chip = el('span', { class: 'cmx-state', 'data-s': cell.state }, mark(cell),
             el('span', { text: [stateLabel(cell), cell.metric].filter(Boolean).join(' · ') }));
         const note = cell.state === 'na' ? 'Этот слой пока не покрывает рынок.' : cell.note;
+        const origin = layer.live ? liveLabel(layer) : snapshot.demo ? 'демо' : '';
         const closed = layer.closed ? layer.closed.charAt(0).toUpperCase() + layer.closed.slice(1) + '.' : '';
         return [
             el('div', null,
-                el('span', { class: 'cmx-detail-kicker', text: `${HORIZONS[layer.horizon]} · ${layer.label}` }),
+                el('span', { class: 'cmx-detail-kicker', text: [HORIZONS[layer.horizon], layer.label, origin].filter(Boolean).join(' · ') }),
                 el('h3', { class: 'cmx-detail-title' }, el('span', { text: instrument.name }), chip),
                 note && el('p', { class: 'cmx-detail-text', text: note }),
                 layer.about && el('p', { class: 'cmx-detail-about', text: layer.about })),
@@ -285,6 +307,8 @@
     const stampFormat = new Intl.DateTimeFormat('ru-RU', {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
+    const reportFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const stripDateFormat = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
     const eventFormat = new Intl.DateTimeFormat('ru-RU', {
         weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
@@ -313,8 +337,36 @@
     function renderMeta() {
         const demo = document.getElementById('cmxDemo');
         const stamp = document.getElementById('cmxStamp');
-        if (demo) demo.hidden = !snapshot.demo;
-        if (stamp) stamp.textContent = snapshot.generatedAt ? `Снимок · ${stampFormat.format(snapshot.generatedAt)} МСК` : '';
+        const live = snapshot.layers.filter(layer => layer.live);
+        if (demo) {
+            demo.hidden = !snapshot.demo;
+            demo.textContent = live.length ? `Демо, кроме ${live.map(layer => layer.label).join(', ')}` : 'Демо-данные';
+        }
+        if (!stamp) return;
+        if (live.length) stamp.textContent = live.map(layer => `${layer.label}: ${liveLabel(layer)}`).join(' · ');
+        else stamp.textContent = snapshot.generatedAt ? `Снимок · ${stampFormat.format(snapshot.generatedAt)} МСК` : '';
+    }
+
+    /* The hero strip repeats the COT column, so it follows the same file instead of going stale */
+    function syncCotStrip() {
+        const layer = snapshot.layers.find(l => l.id === COT_LAYER_ID && l.live);
+        if (!layer) return;
+        document.querySelectorAll('.ms-cot-item').forEach(item => {
+            const symbol = item.querySelector('.ms-cot-sym');
+            const value = item.querySelector('.ms-cot-val');
+            const instrument = symbol && snapshot.instruments.find(i => i.id === symbol.textContent.trim());
+            const percentile = instrument ? instrument.cells[layer.id].value : null;
+            if (!value || percentile === null || percentile < 0 || percentile > 100) return;
+            value.dataset.p = String(percentile);
+            value.textContent = `p${percentile}`;
+            value.classList.toggle('ext', percentile <= 10 || percentile >= 90);
+        });
+        const date = document.querySelector('.ms-cot-date');
+        if (date) {
+            const reportDate = layer.live.reportDate;
+            date.dataset.reportDate = reportDate.toISOString().slice(0, 10);
+            date.textContent = `${stripDateFormat.format(reportDate).toUpperCase()} · ${layer.live.source || 'CFTC'}`;
+        }
     }
 
     /* ── Wiring ── */
@@ -362,21 +414,35 @@
         });
     }
 
-    async function loadSnapshot() {
+    async function fetchJson(url) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
         try {
-            const response = await fetch(SNAPSHOT_URL, { signal: controller.signal, cache: 'no-cache' });
+            const response = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return normalizeSnapshot(await response.json());
+            return await response.json();
         } finally {
             clearTimeout(timer);
         }
     }
 
+    async function loadSnapshot() {
+        const data = normalizeSnapshot(await fetchJson(SNAPSHOT_URL));
+        await Promise.all(data.layers.filter(layer => layer.source).map(async layer => {
+            const raw = await fetchJson(layer.source).catch(error => {
+                console.warn(`Consensus matrix: layer ${layer.id}:`, error);
+                return null;
+            });
+            applyLayer(data, layer, raw);
+        }));
+        for (const instrument of data.instruments) instrument.consensus = consensus(instrument, data.voting);
+        return data;
+    }
+
     loadSnapshot().then(data => {
         snapshot = data;
         renderMeta();
+        syncCotStrip();
         renderMatrix();
         const aligned = dataRows().find(row => row.classList.contains('is-aligned'));
         select((aligned || dataRows()[0]).querySelector('.cmx-name'));
