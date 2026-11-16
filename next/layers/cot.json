@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "layer": "cot",
+  "source": "CFTC",
+  "report_date": "2026-11-03",
+  "cells": {
+    "NG": {
+      "signal": 1,
+      "metric": "p0",
+      "note": {
+        "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
+        "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
+      }
+    },
+    "CL": {
+      "signal": 1,
+      "metric": "p6",
+      "note": {
+        "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
+        "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
+      }
+    },
+    "GC": {
+      "signal": 0,
+      "metric": "p47",
+      "note": {
+        "ru": "Нетто-позиция управляющих внутри пятилетнего диапазона, перекоса нет.",
+        "en": "Managed money net position is inside its five-year range, no skew."
+      }
+    },
+    "SI": {
+      "signal": 1,
+      "metric": "p16",
+      "note": {
+        "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
+        "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
+      }
+    },
+    "CC": {
+      "signal": 1,
+      "metric": "p16",
+      "note": {
+        "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
+        "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
+      }
+    },
+    "KC": {
+      "signal": 1,
+      "metric": "p18",
+      "note": {
+        "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
+        "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
+      }
+    },
+    "BTC": {
+      "signal": -1,
+      "metric": "p95",
+      "note": {
+        "ru": "Нетто-позиция хедж-фондов у верхней границы пятилетнего диапазона: лонги перегружены, это аргумент в пользу разворота вниз.",
+        "en": "Leveraged funds net position is near the top of its five-year range: longs are crowded, which argues for a reversal down."
+      }
+    }
+  }
+}
