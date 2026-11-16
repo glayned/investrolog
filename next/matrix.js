@@ -84,7 +84,6 @@
     const DIRECTION_WORDS = T.direction;
     const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     const MSK = 'Europe/Moscow';
-    const COT_LAYER_ID = 'cot';
 
     const grid = document.getElementById('cmx');
     const statusEl = document.getElementById('cmxStatus');
@@ -128,7 +127,7 @@
     }
 
     function normalizeCell(raw, layer) {
-        const cell = { state: 'na', level: null, value: null, metric: '', note: '' };
+        const cell = { state: 'na', level: null, metric: '', note: '' };
         if (!raw || typeof raw !== 'object') return cell;
         if (layer.votes) {
             cell.state = { 1: 'bull', '-1': 'bear', 0: 'flat' }[raw.signal] || 'na';
@@ -138,7 +137,6 @@
             cell.level = raw.level;
         }
         if (cell.state !== 'na') {
-            cell.value = Number.isFinite(raw.value) ? raw.value : null;
             cell.metric = text(raw.metric, 12);
             cell.note = text(raw.note, 240);
         }
@@ -385,7 +383,6 @@
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
     const reportFormat = new Intl.DateTimeFormat(T.locale, { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    const stripDateFormat = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
     const eventFormat = new Intl.DateTimeFormat(T.locale, {
         weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
@@ -422,29 +419,6 @@
         if (!stamp) return;
         if (live.length) stamp.textContent = live.map(layer => `${layer.label}: ${liveLabel(layer)}`).join(' · ');
         else stamp.textContent = snapshot.generatedAt ? T.snapshot(stampFormat.format(snapshot.generatedAt)) : '';
-    }
-
-    /* The hero strip repeats the COT column, so it follows the same file instead of going stale */
-    function syncCotStrip() {
-        const layer = snapshot.layers.find(l => l.id === COT_LAYER_ID && l.live);
-        if (!layer) return;
-        document.querySelectorAll('.ms-cot-item').forEach(item => {
-            const symbol = item.querySelector('.ms-cot-sym');
-            const value = item.querySelector('.ms-cot-val');
-            const instrument = symbol && snapshot.instruments.find(i => i.id === symbol.textContent.trim());
-            if (!value) return;
-            const percentile = instrument ? instrument.cells[layer.id].value : null;
-            const known = percentile !== null && percentile >= 0 && percentile <= 100;
-            if (known) value.dataset.p = String(percentile); else delete value.dataset.p;
-            value.textContent = known ? `p${percentile}` : '—';
-            value.classList.toggle('ext', known && (percentile <= 10 || percentile >= 90));
-        });
-        const date = document.querySelector('.ms-cot-date');
-        if (date) {
-            const reportDate = layer.live.reportDate;
-            date.dataset.reportDate = reportDate.toISOString().slice(0, 10);
-            date.textContent = `${stripDateFormat.format(reportDate).toUpperCase()} · ${layer.live.source || 'CFTC'}`;
-        }
     }
 
     /* ── Wiring ── */
@@ -520,7 +494,6 @@
     loadSnapshot().then(data => {
         snapshot = data;
         renderMeta();
-        syncCotStrip();
         renderMatrix();
         const aligned = dataRows().find(row => row.classList.contains('is-aligned'));
         select((aligned || dataRows()[0]).querySelector('.cmx-name'));

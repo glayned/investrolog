@@ -35,11 +35,13 @@ jobs:
         run: python3 scripts/update_matrix_cot.py
 
       - name: Rebuild localized pages
-        run: python3 scripts/build_locales.py
+        run: |
+          python3 scripts/build_locales.py
+          python3 scripts/build_next_locales.py
 
       - name: Commit new report
         run: |
-          git add index.html en/index.html next/layers/cot.json
+          git add index.html en/index.html next/index.html next/en/index.html next/layers/cot.json
           if git diff --cached --quiet; then
             echo "COT data is already current."
             exit 0

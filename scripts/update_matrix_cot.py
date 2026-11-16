@@ -88,7 +88,7 @@ def build_cell(percentile, group):
             "ru": f"Нетто-позиция {group['ru']} внутри пятилетнего диапазона, перекоса нет.",
             "en": f"{group['en']} net position is inside its five-year range, no skew.",
         }
-    return {"signal": signal, "value": percentile, "metric": f"p{percentile}", "note": note}
+    return {"signal": signal, "metric": f"p{percentile}", "note": note}
 
 
 def build_layer(today):

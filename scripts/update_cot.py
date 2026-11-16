@@ -15,6 +15,10 @@ from pathlib import Path
 
 # Disaggregated report, futures and options combined.
 DATASET_URL = "https://publicreporting.cftc.gov/resource/kh3c-gbw2.json"
+ROOT = Path(__file__).resolve().parents[1]
+INDEX_PATH = ROOT / "index.html"
+# Pages that embed the generated strip; only the first one is required to exist.
+PAGE_PATHS = (INDEX_PATH, ROOT / "next" / "index.html")
 LOOKBACK_WEEKS = 260
 CONTRACTS = {
     "NG": "023651",
@@ -145,6 +149,18 @@ def render_block(report_date, percentiles):
 <!-- COT_DATA_END -->"""
 
 
+def write_block(block):
+    for path in PAGE_PATHS:
+        if path != INDEX_PATH and not path.exists():
+            continue
+        html = path.read_text(encoding="utf-8")
+        updated, count = BLOCK_PATTERN.subn(block, html)
+        if count != 1:
+            raise ValueError(f"{path.name}: expected one generated COT block, found {count}")
+        if updated != html:
+            path.write_text(updated, encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -155,19 +171,16 @@ def main():
     args = parser.parse_args()
 
     today = datetime.now(timezone.utc).date()
-    index_path = Path(__file__).resolve().parents[1] / "index.html"
-    html = index_path.read_text(encoding="utf-8")
     expected = expected_report_date(today)
-    if args.skip_if_current and embedded_report_date(html) == expected:
+    if args.skip_if_current and all(
+        embedded_report_date(path.read_text(encoding="utf-8")) == expected
+        for path in PAGE_PATHS if path.exists()
+    ):
         print(f"COT {expected.isoformat()} is already current; skipping CFTC request.")
         return
 
     report_date, percentiles = calculate(fetch_rows(today), today)
-    updated, count = BLOCK_PATTERN.subn(render_block(report_date, percentiles), html)
-    if count != 1:
-        raise ValueError(f"Expected one generated COT block, found {count}")
-    if updated != html:
-        index_path.write_text(updated, encoding="utf-8")
+    write_block(render_block(report_date, percentiles))
 
     values = " · ".join(f"{symbol} p{value}" for symbol, value in percentiles.items())
     print(f"COT {report_date.isoformat()}: {values}")

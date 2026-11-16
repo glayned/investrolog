@@ -11,8 +11,8 @@
       "votes": true,
       "source": "/next/layers/cot.json",
       "about": {
-        "ru": "Нетто-позиция спекулянтов по отчёту CFTC, перцентиль за 5 лет. Читается контрарно: p20 и ниже — шорты перегружены, p80 и выше — перегружены лонги.",
-        "en": "Speculators' net position from the CFTC report, 5-year percentile. Read as a contrarian signal: p20 and below means crowded shorts, p80 and above means crowded longs."
+        "ru": "Нетто-позиция спекулянтов по отчёту CFTC (только фьючерсы), перцентиль за 5 лет. Читается контрарно: p20 и ниже — шорты перегружены, p80 и выше — перегружены лонги.",
+        "en": "Speculators' net position from the CFTC report (futures only), 5-year percentile. Read as a contrarian signal: p20 and below means crowded shorts, p80 and above means crowded longs."
       },
       "closed": {
         "ru": "расхождение спекулянтов и хеджеров, сила сигнала, недели в экстремуме",
