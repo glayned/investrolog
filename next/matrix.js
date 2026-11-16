@@ -202,10 +202,12 @@
             btn.setAttribute('aria-pressed', String(btn.dataset.filter === filter));
         });
         const active = grid.querySelector('.cmx-btn.is-active');
-        if (!active || active.parentElement.hidden) {
-            const first = dataRows().find(row => !row.hidden);
-            if (first) select(first.querySelector('.cmx-name')); else detailEl.hidden = true;
-        }
+        const firstVisible = dataRows().find(row => !row.hidden);
+        const target = active && !active.parentElement.hidden
+            ? active
+            : firstVisible && firstVisible.querySelector('.cmx-name');
+        if (!target) detailEl.hidden = true;
+        else if (target !== active || detailEl.hidden) select(target);
     }
 
     /* ── Reading panel ── */
