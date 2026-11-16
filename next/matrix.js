@@ -114,13 +114,17 @@
 
     /* A layer with its own file replaces that column; if the file is missing the column reads "нет данных" */
     function applyLayer(data, layer, raw) {
-        const valid = raw && raw.schema === 1 && raw.layer === layer.id
-            && raw.cells && typeof raw.cells === 'object'
-            && typeof raw.report_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.report_date);
+        const reportDate = raw && typeof raw.report_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.report_date)
+            ? new Date(`${raw.report_date}T00:00:00Z`)
+            : null;
+        const valid = reportDate && !Number.isNaN(reportDate.getTime())
+            && reportDate.toISOString().slice(0, 10) === raw.report_date
+            && raw.schema === 1 && raw.layer === layer.id
+            && raw.cells && typeof raw.cells === 'object';
         for (const instrument of data.instruments) {
             instrument.cells[layer.id] = normalizeCell(valid ? raw.cells[instrument.id] : null, layer);
         }
-        if (valid) layer.live = { source: text(raw.source, 24), reportDate: new Date(`${raw.report_date}T00:00:00Z`) };
+        if (valid) layer.live = { source: text(raw.source, 24), reportDate };
     }
 
     function liveLabel(layer) {
