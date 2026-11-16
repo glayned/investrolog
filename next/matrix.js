@@ -355,11 +355,12 @@
             const symbol = item.querySelector('.ms-cot-sym');
             const value = item.querySelector('.ms-cot-val');
             const instrument = symbol && snapshot.instruments.find(i => i.id === symbol.textContent.trim());
+            if (!value) return;
             const percentile = instrument ? instrument.cells[layer.id].value : null;
-            if (!value || percentile === null || percentile < 0 || percentile > 100) return;
-            value.dataset.p = String(percentile);
-            value.textContent = `p${percentile}`;
-            value.classList.toggle('ext', percentile <= 10 || percentile >= 90);
+            const known = percentile !== null && percentile >= 0 && percentile <= 100;
+            if (known) value.dataset.p = String(percentile); else delete value.dataset.p;
+            value.textContent = known ? `p${percentile}` : '—';
+            value.classList.toggle('ext', known && (percentile <= 10 || percentile >= 90));
         });
         const date = document.querySelector('.ms-cot-date');
         if (date) {
