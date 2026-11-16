@@ -13,7 +13,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from pathlib import Path
 
 
-DATASET_URL = "https://publicreporting.cftc.gov/resource/72hh-3qpy.json"
+# Disaggregated report, futures and options combined.
+DATASET_URL = "https://publicreporting.cftc.gov/resource/kh3c-gbw2.json"
 LOOKBACK_WEEKS = 260
 CONTRACTS = {
     "NG": "023651",
@@ -135,7 +136,7 @@ def render_block(report_date, percentiles):
 <div class="ms-cot">
 <div class="ms-cot-head">
 <span>COT · MM percentile</span>
-<span class="ms-cot-date" data-report-date="{report_date.isoformat()}">{display_date} · CFTC</span>
+<span class="ms-cot-date" data-report-date="{report_date.isoformat()}">{display_date} · F+O</span>
 </div>
 <div class="ms-cot-row">
 {items}
