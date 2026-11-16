@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html data-theme="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="dark light" name="color-scheme"/>
+<meta content="#080808" name="theme-color"/>
+<title>Home page prototype — InvestroLog × DataMatrix</title>
+<meta content="noindex, nofollow" name="robots"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&amp;family=Geologica:wght@400..800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Syne:wght@400..800&amp;display=swap" rel="stylesheet"/>
+<link href="/favicon.ico" rel="icon" sizes="48x48"/>
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="/apple-touch-icon.png" rel="apple-touch-icon"/>
+<script>try{if(localStorage.getItem('ms-theme')==='light'){document.documentElement.removeAttribute('data-theme');document.querySelector('meta[name="theme-color"]').setAttribute('content','#ffffff')}}catch(e){}</script>
+<link href="/css/styles.css?v=16" rel="stylesheet"/>
+<link href="/next/matrix.css" rel="stylesheet"/>
+<noscript><style>.section,.skill-card,.project-card{opacity:1;transform:none}.cmx-status{display:none}</style></noscript>
+</head>
+<body>
+<canvas id="particles-canvas"></canvas>
+<div class="container">
+<!-- ── HEADER ── -->
+<header>
+<div class="logo" onclick="triggerCodeAnimation()" role="button" tabindex="0" aria-label="Play code animation" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();triggerCodeAnimation()}" title="Click me">
+<svg class="logo-icon" fill="none" height="28" viewBox="0 0 32 32" width="28" xmlns="http://www.w3.org/2000/svg">
+<!-- Candlestick / chart icon -->
+<rect fill="none" height="10" rx="1" stroke="currentColor" stroke-width="1.8" width="4" x="4" y="14"></rect>
+<line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="6" x2="6" y1="10" y2="14"></line>
+<line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="6" x2="6" y1="24" y2="27"></line>
+<rect fill="none" height="12" rx="1" stroke="currentColor" stroke-width="1.8" width="4" x="14" y="8"></rect>
+<line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="16" x2="16" y1="4" y2="8"></line>
+<line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="16" x2="16" y1="20" y2="24"></line>
+<rect fill="none" height="9" rx="1" stroke="currentColor" stroke-width="1.8" width="4" x="24" y="11"></rect>
+<line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="26" x2="26" y1="7" y2="11"></line>
+<line stroke="currentColor" stroke-linecap="round" stroke-width="1.8" x1="26" x2="26" y1="20" y2="23"></line>
+</svg>
+<pre class="code-text" id="codeText"></pre>
+</div>
+<div class="header-controls">
+<nav aria-label="Site language" class="language-switcher">
+<a class="language-link" data-language-link href="/next/" hreflang="ru" lang="ru">RU</a>
+<a aria-current="page" class="language-link active" data-language-link href="/next/en/" hreflang="en" lang="en">EN</a>
+</nav>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme">
+<svg class="theme-icon sun-icon" fill="none" height="22" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="2"></circle>
+<path d="M16 4V6M16 26V28M28 16H26M6 16H4M24.485 7.515L23.071 8.929M8.929 23.071L7.515 24.485M24.485 24.485L23.071 23.071M8.929 8.929L7.515 7.515" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+<svg class="theme-icon moon-icon" fill="none" height="22" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<path d="M28 17.053A11 11 0 1 1 14.947 4 8.5 8.5 0 0 0 28 17.053z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="music-toggle" onclick="toggleMusic()" title="Toggle music" aria-label="Toggle music" aria-pressed="false">
+<svg class="music-icon play-icon" fill="none" height="22" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 8L24 16L10 24V8Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<svg class="music-icon pause-icon" fill="none" height="22" style="display:none;" viewBox="0 0 32 32" width="22" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 8V24M20 8V24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<audio id="backgroundMusic" loop="" preload="none">
+<source src="/song.mp3" type="audio/mpeg"/>
+</audio>
+</header>
+<!-- ── HERO ── -->
+<section class="hero">
+<div class="hero-content">
+<p class="hero-eyebrow">Gas · Oil · Metals · Cocoa · Coffee · BTC</p>
+<h1>InvestroLog<br/><span class="cross">×</span> DataMatrix</h1>
+<p class="subtitle">A matrix of data and market reactions</p>
+<p class="description">
+                Seven commodity markets and five independent data layers: positioning, options, sentiment, volume flow, levels. A signal appears where the layers agree.
+            </p>
+<div class="cta-buttons">
+<a class="btn" href="#contact">Contacts</a>
+<a class="btn" href="https://t.me/investrolog" rel="noopener noreferrer" target="_blank">Terminal</a>
+<a class="btn" href="#subscribe"><span class="btn-label-full">Email newsletter</span><span class="btn-label-short">Newsletter</span></a>
+</div>
+</div>
+<div class="hero-widget">
+<div class="ms-widget" id="msWidget">
+<span class="ms-bracket tl"></span>
+<span class="ms-bracket tr"></span>
+<span class="ms-bracket bl"></span>
+<span class="ms-bracket br"></span>
+<div class="ms-head">
+<div class="ms-head-left">
+<span class="ms-title">Market Sessions</span>
+<button aria-expanded="false" aria-haspopup="listbox" class="ms-tz" id="msTzBtn" type="button">
+<span id="msTzLabel">MSK</span><span class="ms-chev"></span>
+</button>
+<div class="ms-tz-pop" id="msTzPop" role="listbox"></div>
+</div>
+<div class="ms-head-right">
+<span class="ms-rule"></span>
+<span class="ms-time"><span id="msTimeDigits">--:--</span><span class="ms-suffix" id="msTimeSuffix">UTC+3</span></span>
+</div>
+</div>
+<div class="ms-dial">
+<svg aria-hidden="true" id="msDial" viewBox="0 0 400 400"></svg>
+</div>
+<div class="ms-foot">
+<span><span class="ms-pulse" id="msPulse"></span><span id="msActiveLine">— · OFF HOURS</span></span>
+<span id="msNextLine"></span>
+</div>
+<div class="ms-cot">
+<div class="ms-cot-head">
+<span>COT · MM percentile</span>
+<span class="ms-cot-date" data-report-date="2026-11-03">03 NOV · CFTC</span>
+</div>
+<div class="ms-cot-row">
+<span class="ms-cot-item"><span class="ms-cot-sym">NG</span><span class="ms-cot-val" data-p="0">p0</span></span>
+<span class="ms-cot-item"><span class="ms-cot-sym">CL</span><span class="ms-cot-val" data-p="6">p6</span></span>
+<span class="ms-cot-item"><span class="ms-cot-sym">GC</span><span class="ms-cot-val" data-p="47">p47</span></span>
+<span class="ms-cot-item"><span class="ms-cot-sym">SI</span><span class="ms-cot-val" data-p="16">p16</span></span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ── MATRIX ── -->
+<section class="section" id="matrix">
+<span class="section-label">Today</span>
+<h2 class="section-title">Consensus matrix</h2>
+<p class="section-intro">Each cell is one independent data layer for one market. Click a cell to read it; click a ticker to see the whole market.</p>
+<div class="cmx-wrap">
+<span class="cmx-bracket tl"></span>
+<span class="cmx-bracket tr"></span>
+<span class="cmx-bracket bl"></span>
+<span class="cmx-bracket br"></span>
+<div class="cmx-toolbar">
+<div aria-label="Market filter" class="cmx-filter" role="group">
+<button aria-pressed="true" class="cmx-filter-btn" data-filter="all" type="button">All markets</button>
+<button aria-pressed="false" class="cmx-filter-btn" data-filter="aligned" type="button">Consensus only</button>
+</div>
+<div class="cmx-meta">
+<span class="cmx-demo" hidden id="cmxDemo">Demo data</span>
+<span id="cmxStamp"></span>
+</div>
+</div>
+<div aria-label="Consensus matrix" class="cmx" id="cmx" role="group"></div>
+<p class="cmx-status" id="cmxStatus" role="status">Loading the market snapshot…</p>
+<noscript><p class="cmx-empty">The matrix is built in the browser — please enable JavaScript.</p></noscript>
+<div class="cmx-legend">
+<span class="cmx-legend-item" data-s="bull"><span class="cmx-glyph"></span>bullish</span>
+<span class="cmx-legend-item" data-s="bear"><span class="cmx-glyph"></span>bearish</span>
+<span class="cmx-legend-item" data-s="flat"><span class="cmx-glyph"></span>neutral</span>
+<span class="cmx-legend-item" data-s="na"><span class="cmx-glyph"></span>no data</span>
+<span class="cmx-legend-rule">Consensus: at least 4 layers pointing one way and none against. Volatility is context and does not count.</span>
+</div>
+</div>
+<div aria-live="polite" class="cmx-detail" hidden id="cmxDetail"></div>
+<div class="cmx-events" hidden id="cmxEvents">
+<span class="cmx-events-title">Next on the calendar</span>
+<ul class="cmx-events-list" id="cmxEventsList"></ul>
+</div>
+</section>
+<!-- ── ACCESS ── -->
+<section class="section" id="access">
+<span class="section-label">Access</span>
+<h2 class="section-title">What is open and what is in the Terminal</h2>
+<div class="access-grid">
+<div class="access-col">
+<span class="access-tag">Open · website</span>
+<ul class="access-list">
+<li>The regime of every layer across seven markets</li>
+<li>COT percentiles and the consensus score</li>
+<li>A calendar of upcoming events</li>
+<li>Delayed updates, no entry levels</li>
+</ul>
+</div>
+<div class="access-col access-col-closed">
+<span class="access-tag">Private · Terminal</span>
+<ul class="access-list">
+<li>Alerts at the moment of the event, not after the candle</li>
+<li>Levels, stops and an if–then plan</li>
+<li>Option walls, gamma ladder, roll map</li>
+<li>Signal breakdowns with the AI assistant</li>
+</ul>
+<a class="btn" href="https://t.me/Dm1tryMaltsev" rel="noopener noreferrer" target="_blank">Request access</a>
+</div>
+</div>
+<form class="subscribe" id="subscribe" novalidate>
+<div class="subscribe-copy">
+<h3>The matrix in your inbox</h3>
+<p>Once a week: a snapshot of the matrix and the key points on commodities. A channel that does not depend on Telegram.</p>
+</div>
+<div class="subscribe-row">
+<label class="subscribe-label" for="subscribeEmail">Email</label>
+<input autocomplete="email" class="order-input subscribe-input" id="subscribeEmail" inputmode="email" maxlength="254" placeholder="you@example.com" type="email"/>
+<button class="btn" type="submit">Subscribe</button>
+</div>
+<p class="subscribe-status" id="subscribeStatus" role="status"></p>
+</form>
+</section>
+<!-- ── PROJECTS ── -->
+<section class="section" id="projects">
+<span class="section-label">Sources of the matrix</span>
+<h2 class="section-title">Terminal modules</h2>
+<p class="section-intro">Three horizons, one discipline. Weeks: institutional positioning. Days: options structure. Minutes: volume flow. A signal emerges where the layers align.</p>
+<div class="projects-grid">
+<!-- COT Terminal -->
+<a aria-label="Open Telegram post: COT Terminal" class="project-card" href="https://t.me/investrolog/1789" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-cot">
+<canvas class="proj-canvas" data-type="cot"></canvas>
+<span class="project-visual-label">CFTC · COT</span>
+</div>
+<div class="project-content">
+<div class="project-index">01 /</div>
+<h3>COT Terminal</h3>
+<p>In one minute, the bot completes hours of manual research: it parses raw CFTC reports and turns them into a structured view of positioning. The data becomes clear market context: who is driving the move and where funds and hedgers stand.</p>
+<div class="project-tags">
+<span class="tag">Python</span>
+<span class="tag">aiogram</span>
+<span class="tag">API</span>
+<span class="tag">lookback</span>
+</div>
+</div>
+</a>
+<!-- VIX Term Structure -->
+<a aria-label="Open Telegram post: VIX Term Structure" class="project-card" href="https://t.me/investrolog/1567" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-vix">
+<canvas class="proj-canvas" data-type="vix"></canvas>
+<span class="project-visual-label">VIX · IV</span>
+</div>
+<div class="project-content">
+<div class="project-index">02 /</div>
+<h3>VIX Term Structure</h3>
+<p>The algorithm identifies the volatility curve in real time: contango, backwardation, IV crush, the current market regime and the matching playbook. GARCH models complete the volatility triangle and frame the regime ahead.</p>
+<div class="project-tags">
+<span class="tag">Python</span>
+<span class="tag">Quant</span>
+<span class="tag">Options</span>
+</div>
+</div>
+</a>
+<!-- Options Aggregator -->
+<a aria-label="Open Telegram post: Options Dashboard" class="project-card" href="https://t.me/investrolog/1757" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-options">
+<canvas class="proj-canvas" data-type="options"></canvas>
+<span class="project-visual-label">Δ · IV · UOA</span>
+</div>
+<div class="project-content">
+<div class="project-index">03 /</div>
+<h3>Options Dashboard</h3>
+<p>A professional modular options aggregator and visualizer with advanced analytics: Delta metrics, UOA, Premium Flow, Rolling ΔOI Timeline, Risk Reversal, Max Pain, IV/HV and Net GEX, with historical data stored in SQLite.</p>
+<div class="project-tags">
+<span class="tag">SQLite</span>
+<span class="tag">Options metrics</span>
+<span class="tag">Dealer mechanics</span>
+</div>
+</div>
+</a>
+<!-- NG Weather -->
+<a aria-label="Open Telegram post: NG Weather Volatility" class="project-card" href="https://t.me/investrolog/1422" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-ng">
+<canvas class="proj-canvas" data-type="ng"></canvas>
+<span class="project-visual-label">EIA · CME</span>
+</div>
+<div class="project-content">
+<div class="project-index">04 /</div>
+<h3>NG Weather Volatility</h3>
+<p>An automated signal system for natural gas markets (Henry Hub, EIA, CME), built around ensemble uncertainty analysis of ECMWF weather forecasts.</p>
+<div class="project-tags">
+<span class="tag">SQLite</span>
+<span class="tag">ECMWF</span>
+<span class="tag">Signals</span>
+</div>
+</div>
+</a>
+<!-- Alerts / Clouds -->
+<a aria-label="Open Telegram post: Cloud Alerts" class="project-card" href="https://t.me/investrolog/437" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-alerts">
+<canvas class="proj-canvas" data-type="alerts"></canvas>
+<span class="project-visual-label">VOL · TAS</span>
+</div>
+<div class="project-content">
+<div class="project-index">05 /</div>
+<h3>Cloud Alerts</h3>
+<p>A minute-level layer tracking volume spikes versus baseline, flow in liquid instruments (NG, SILV, COCOA) and ETFs (BOIL/KOLD), calculated TAS windows and related events. The move is captured as it forms, not after it appears in a candle.</p>
+<div class="project-tags">
+<span class="tag">API</span>
+<span class="tag">Flow</span>
+<span class="tag">Scalping</span>
+</div>
+</div>
+</a>
+<!-- Market Desk -->
+<a aria-label="Open Telegram post: Market Desk" class="project-card" href="https://t.me/investrolog/1412" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-desk">
+<canvas class="proj-canvas" data-type="desk"></canvas>
+<span class="project-visual-label">S/R · ATR · VWAP</span>
+</div>
+<div class="project-content">
+<div class="project-index">06 /</div>
+<h3>Market Desk</h3>
+<p>Advanced technical analysis with decision logic for key instruments: liquidity maps, levels with test history, VWAP/ATR context, stops and a ready if-then plan instead of a directional opinion.</p>
+<div class="project-tags">
+<span class="tag">Intraday</span>
+<span class="tag">Levels</span>
+<span class="tag">Plan</span>
+</div>
+</div>
+</a>
+<!-- Sentiment Track -->
+<a aria-label="Open Telegram post: Sentiment Track" class="project-card" href="https://t.me/investrolog/1494" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-sentiment">
+<canvas class="proj-canvas" data-type="sentiment"></canvas>
+<span class="project-visual-label">BEAR · BULL</span>
+</div>
+<div class="project-content">
+<div class="project-index">07 /</div>
+<h3>Sentiment Track</h3>
+<p>Crowd sentiment from international platforms as a contrarian lens: bear/bull balance, volume z-scores and panic extremes. When the crowd becomes unanimous, it is time to examine the other side.</p>
+<div class="project-tags">
+<span class="tag">Crowd</span>
+<span class="tag">Z-score</span>
+<span class="tag">Contrarian</span>
+<span class="tag">Panic</span>
+</div>
+</div>
+</a>
+<!-- AI Assistant -->
+<a aria-label="Open Telegram post: AI Assistant" class="project-card" href="https://t.me/investrolog/1756" rel="noopener noreferrer" target="_blank">
+<div class="project-visual visual-ai">
+<canvas class="proj-canvas" data-type="ai"></canvas>
+<span class="project-visual-label">AI · LLM</span>
+</div>
+<div class="project-content">
+<div class="project-index">08 /</div>
+<h3>AI Assistant</h3>
+<p>An assistant inside the Terminal that explains module signals and helps users learn and navigate the research library. It does not tell users where to enter; it reveals why the system reads the market the way it does.</p>
+<div class="project-tags">
+<span class="tag">Learning</span>
+<span class="tag">Library</span>
+<span class="tag tag-dev">In development</span>
+</div>
+</div>
+</a>
+</div>
+</section>
+<!-- ── SKILLS ── -->
+<section class="section" id="dev">
+<span class="section-label">For clients</span>
+<h2 class="section-title">Custom development</h2>
+<div class="skills-grid">
+<div class="skill-card">
+<div class="skill-number">01 /</div>
+<h3>Trading &amp; Research</h3>
+<p>Hands-on trading experience across options and digital assets. Research into market cycles and structure, disciplined risk management, and systematic strategy development and refinement.</p>
+</div>
+<div class="skill-card">
+<div class="skill-number">02 /</div>
+<h3>Python Development</h3>
+<p>Development of Telegram bots with aiogram, JSON and SQLite data pipelines, Docker deployment, API integrations, logging systems and reliable automation for data-intensive workflows.</p>
+</div>
+<div class="skill-card">
+<div class="skill-number">03 /</div>
+<h3>AI Agents Deployment</h3>
+<p>Deployment of AI agents on VPS infrastructure, integration into business processes and workflow automation. Consulting, implementation and operational support for applied AI solutions.</p>
+</div>
+</div>
+</section>
+<!-- ── CONTACT ── -->
+<section class="section" id="contact">
+<div class="section-head">
+<div>
+<span class="section-label">Connect</span>
+<h2 class="section-title">Contacts</h2>
+</div>
+<button class="btn" onclick="openOrderModal()" type="button">Start a project</button>
+</div>
+<div class="contact-info">
+<a class="contact-item" href="https://t.me/investrolog" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 2L14 21L10 13L2 9L21 2Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M10 13L21 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Telegram</span>
+</a>
+<a class="contact-item" href="https://t.me/+B1HexV7AX1Q1ZDRi" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<circle cx="9" cy="7" r="4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle>
+<path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45768C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Community chat</span>
+</a>
+<a class="contact-item" href="https://teletype.in/@dm1trymaltsev" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 7h16M4 12h10M4 17h7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Teletype</span>
+</a>
+<a class="contact-item" href="https://bastyon.com/dimaltcev" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+<path d="M12 8v4l3 3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Bastyon</span>
+</a>
+<a class="contact-item" href="https://pay.cloudtips.ru/p/1f99d686" rel="noopener noreferrer" target="_blank">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Support</span>
+</a>
+<a class="contact-item" href="mailto:dmitry.maltcev@investrolog.pro">
+<svg fill="none" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg">
+<rect height="16" rx="2" stroke="currentColor" stroke-width="2" width="20" x="2" y="4"></rect>
+<path d="M22 7L12 13L2 7" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+<span>dmitry.maltcev@investrolog.pro</span>
+</a>
+</div>
+</section>
+<footer>
+<span>© 2026 InvestroLog × DataMatrix</span>
+<span class="footer-tagline">Trading as a symphony of numbers.</span>
+</footer>
+</div><!-- /container -->
+<button aria-label="Back to top" class="to-top" id="toTop" type="button">
+<svg fill="none" height="18" viewBox="0 0 24 24" width="18" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</button>
+<!-- Order modal -->
+<div aria-hidden="true" class="order-overlay" id="orderOverlay">
+<div aria-labelledby="orderTitle" aria-modal="true" class="order-modal" role="dialog">
+<button aria-label="Close" class="order-close" onclick="closeOrderModal()" type="button">
+<svg fill="none" height="14" viewBox="0 0 24 24" width="14" xmlns="http://www.w3.org/2000/svg">
+<path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-linecap="round" stroke-width="2.5"></path>
+</svg>
+</button>
+<h3 class="order-title" id="orderTitle">Start a project</h3>
+<p class="order-sub">Describe your project and I will contact you on Telegram.</p>
+<form id="orderForm" novalidate>
+<label class="order-label" for="orderName">Project name</label>
+<input class="order-input" id="orderName" maxlength="120" placeholder="For example, a Telegram bot for an online store" type="text"/>
+<label class="order-label" for="orderTask">Project brief</label>
+<textarea class="order-input order-textarea" id="orderTask" maxlength="2000" placeholder="What needs to be built"></textarea>
+<label class="order-label" for="orderContact">Contact (Telegram)</label>
+<input class="order-input" id="orderContact" maxlength="64" placeholder="@username" type="text"/>
+<p class="order-error" id="orderError" role="alert"></p>
+<button class="order-submit" type="submit">Send inquiry</button>
+</form>
+</div>
+</div>
+<script defer src="/js/main.js?v=13"></script>
+<script defer src="/next/matrix.js"></script>
+
+</body>
+</html>

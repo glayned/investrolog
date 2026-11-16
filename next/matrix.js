@@ -6,10 +6,82 @@
     const MIN_ALIGNED = 4;
     const MAX_EVENTS = 3;
     const TERMINAL_URL = 'https://t.me/investrolog';
-    const HORIZONS = { weeks: 'Недели', days: 'Дни', minutes: 'Минуты', context: 'Фон' };
-    const STATE_LABELS = { bull: 'бычий', bear: 'медвежий', flat: 'нейтрально', na: 'нет данных' };
-    const VOL_LABELS = ['спокойно', 'повышена', 'стресс'];
-    const DIRECTION_WORDS = { bull: 'вверх', bear: 'вниз' };
+    const LANG = document.documentElement.lang === 'en' ? 'en' : 'ru';
+    const STRINGS = {
+        ru: {
+            locale: 'ru-RU',
+            horizons: { weeks: 'Недели', days: 'Дни', minutes: 'Минуты', context: 'Фон' },
+            states: { bull: 'бычий', bear: 'медвежий', flat: 'нейтрально', na: 'нет данных' },
+            vol: ['спокойно', 'повышена', 'стресс'],
+            direction: { bull: 'вверх', bear: 'вниз' },
+            consensus: 'Согласие',
+            wholeMarket: 'рынок целиком',
+            aligned: 'слои сошлись',
+            notAligned: 'согласия нет',
+            noneAligned: 'Сегодня слои нигде не сошлись — это тоже информация.',
+            inTerminal: 'В Терминале',
+            openTerminal: 'Открыть Терминал',
+            aboutModule: 'О модуле',
+            rowClosed: 'Уровни, стопы и план «если – то» по этому рынку, алерты в момент события.',
+            cellClosed: 'Полный разбор слоя и алерты в момент события.',
+            notCovered: 'Этот слой пока не покрывает рынок.',
+            demo: 'демо',
+            demoBadge: 'Демо-данные',
+            demoExcept: labels => `Демо, кроме ${labels}`,
+            report: date => `отчёт ${date}`,
+            snapshot: stamp => `Снимок · ${stamp} МСК`,
+            eventTime: time => `${time} МСК`,
+            verdictAligned: (c, dir) => `${c.lead} из ${c.total} слоёв ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir}, против — ни одного.`,
+            verdictSplit: c => `Слои расходятся: ${c.bull} вверх, ${c.bear} вниз.`,
+            verdictShort: (c, dir, min) => `${c.lead} из ${c.total} слоёв ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir} — для согласия нужно не меньше ${min}.`,
+            verdictNone: 'Ни один слой не даёт направления.',
+            inDays: (d, h) => `через ${d} д ${h} ч`,
+            inHours: (h, m) => `через ${h} ч ${m} мин`,
+            inMinutes: m => `через ${m} мин`,
+            subscribeStub: 'Прототип: форма ещё не подключена, адрес никуда не отправлен.',
+            subscribeInvalid: 'Проверьте адрес почты.',
+            unavailable: 'Снимок рынка временно недоступен. Свежие данные — в Терминале.'
+        },
+        en: {
+            locale: 'en-GB',
+            horizons: { weeks: 'Weeks', days: 'Days', minutes: 'Minutes', context: 'Regime' },
+            states: { bull: 'bullish', bear: 'bearish', flat: 'neutral', na: 'no data' },
+            vol: ['calm', 'elevated', 'stress'],
+            direction: { bull: 'up', bear: 'down' },
+            consensus: 'Consensus',
+            wholeMarket: 'whole market',
+            aligned: 'layers aligned',
+            notAligned: 'no consensus',
+            noneAligned: 'No market has its layers aligned today — that is information too.',
+            inTerminal: 'In the Terminal',
+            openTerminal: 'Open the Terminal',
+            aboutModule: 'About the module',
+            rowClosed: 'Levels, stops and an if–then plan for this market, alerts at the moment of the event.',
+            cellClosed: 'Full breakdown of the layer and alerts at the moment of the event.',
+            notCovered: 'This layer does not cover the market yet.',
+            demo: 'demo',
+            demoBadge: 'Demo data',
+            demoExcept: labels => `Demo, except ${labels}`,
+            report: date => `report of ${date}`,
+            snapshot: stamp => `Snapshot · ${stamp} MSK`,
+            eventTime: time => `${time} MSK`,
+            verdictAligned: (c, dir) => `${c.lead} of ${c.total} layers ${c.lead === 1 ? 'points' : 'point'} ${dir}, none against.`,
+            verdictSplit: c => `Layers disagree: ${c.bull} up, ${c.bear} down.`,
+            verdictShort: (c, dir, min) => `${c.lead} of ${c.total} layers ${c.lead === 1 ? 'points' : 'point'} ${dir} — consensus needs at least ${min}.`,
+            verdictNone: 'No layer gives a direction.',
+            inDays: (d, h) => `in ${d}d ${h}h`,
+            inHours: (h, m) => `in ${h}h ${m}m`,
+            inMinutes: m => `in ${m}m`,
+            subscribeStub: 'Prototype: the form is not connected yet, your address was not sent anywhere.',
+            subscribeInvalid: 'Check the email address.',
+            unavailable: 'The market snapshot is temporarily unavailable. Fresh data is in the Terminal.'
+        }
+    };
+    const T = STRINGS[LANG];
+    const HORIZONS = T.horizons;
+    const STATE_LABELS = T.states;
+    const VOL_LABELS = T.vol;
+    const DIRECTION_WORDS = T.direction;
     const ARROWS = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
     const MSK = 'Europe/Moscow';
     const COT_LAYER_ID = 'cot';
@@ -35,9 +107,11 @@
         return node;
     }
 
-    /* ── Snapshot validation: anything malformed degrades to "нет данных" ── */
+    /* ── Snapshot validation: anything malformed degrades to "no data" ── */
+    /* Text may be a plain string or {ru, en}; a missing translation falls back to Russian */
     function text(value, max) {
-        return typeof value === 'string' && value.length <= max ? value.trim() : '';
+        const localized = value && typeof value === 'object' ? value[LANG] || value.ru : value;
+        return typeof localized === 'string' && localized.length <= max ? localized.trim() : '';
     }
 
     function layerPath(value) {
@@ -112,7 +186,7 @@
         };
     }
 
-    /* A layer with its own file replaces that column; if the file is missing the column reads "нет данных" */
+    /* A layer with its own file replaces that column; if the file is missing the column reads "no data" */
     function applyLayer(data, layer, raw) {
         const reportDate = raw && typeof raw.report_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.report_date)
             ? new Date(`${raw.report_date}T00:00:00Z`)
@@ -128,7 +202,7 @@
     }
 
     function liveLabel(layer) {
-        return [layer.live.source, `отчёт ${reportFormat.format(layer.live.reportDate)}`].filter(Boolean).join(', ');
+        return [layer.live.source, T.report(reportFormat.format(layer.live.reportDate))].filter(Boolean).join(', ');
     }
 
     function consensus(instrument, voting) {
@@ -179,14 +253,14 @@
                 el('span', { class: 'cmx-long', text: layer.label }),
                 el('span', { class: 'cmx-short', text: layer.short })));
         }
-        headRow.append(el('span', { class: 'cmx-col', text: 'Согласие' }));
+        headRow.append(el('span', { class: 'cmx-col', text: T.consensus }));
 
         const rows = instruments.map((instrument, index) => {
             const c = instrument.consensus;
             const row = el('div', { class: `cmx-row${c.aligned ? ' is-aligned' : ''}`, 'data-r': String(index) });
             row.append(el('button', {
                 class: 'cmx-btn cmx-name', type: 'button', 'data-kind': 'row',
-                'aria-label': `${instrument.name}: рынок целиком`
+                'aria-label': `${instrument.name}: ${T.wholeMarket}`
             }, el('span', { class: 'cmx-ticker', text: instrument.id }),
                el('span', { class: 'cmx-fullname', text: instrument.name })));
 
@@ -203,7 +277,7 @@
             for (const state of c.states) bar.append(el('i', { 'data-s': state }));
             row.append(el('button', {
                 class: 'cmx-btn cmx-sum', type: 'button', 'data-kind': 'row',
-                'aria-label': `${instrument.name}, согласие: ${scoreText(c)} ${DIRECTION_WORDS[c.dir] || ''}${c.aligned ? ', слои сошлись' : ''}`
+                'aria-label': `${instrument.name}, ${T.consensus}: ${scoreText(c)} ${DIRECTION_WORDS[c.dir] || ''}${c.aligned ? `, ${T.aligned}` : ''}`
             }, bar, el('span', { class: 'cmx-score' },
                 el('span', { text: scoreText(c) }),
                 el('span', { class: 'cmx-score-dir', 'data-s': c.dir }, glyph()))));
@@ -222,7 +296,7 @@
             if (!row.hidden) visible++;
         }
         statusEl.hidden = visible > 0;
-        if (!visible) statusEl.textContent = 'Сегодня слои нигде не сошлись — это тоже информация.';
+        if (!visible) statusEl.textContent = T.noneAligned;
         document.querySelectorAll('.cmx-filter-btn').forEach(btn => {
             btn.setAttribute('aria-pressed', String(btn.dataset.filter === filter));
         });
@@ -238,19 +312,18 @@
     /* ── Reading panel ── */
     function closedBlock(body, moduleUrl) {
         const links = el('div', { class: 'cmx-closed-links' },
-            el('a', { class: 'btn', href: TERMINAL_URL, target: '_blank', rel: 'noopener noreferrer', text: 'Открыть Терминал' }),
-            moduleUrl && el('a', { class: 'btn', href: moduleUrl, target: '_blank', rel: 'noopener noreferrer', text: 'О модуле' }));
+            el('a', { class: 'btn', href: TERMINAL_URL, target: '_blank', rel: 'noopener noreferrer', text: T.openTerminal }),
+            moduleUrl && el('a', { class: 'btn', href: moduleUrl, target: '_blank', rel: 'noopener noreferrer', text: T.aboutModule }));
         return el('div', { class: 'cmx-closed' },
-            el('span', { class: 'cmx-detail-kicker', text: 'В Терминале' }),
+            el('span', { class: 'cmx-detail-kicker', text: T.inTerminal }),
             el('p', { text: body }), links);
     }
 
     function verdict(c) {
-        const verb = c.lead === 1 ? 'смотрит' : 'смотрят';
-        if (c.aligned) return `${c.lead} из ${c.total} слоёв ${verb} ${DIRECTION_WORDS[c.dir]}, против — ни одного.`;
-        if (c.bull && c.bear) return `Слои расходятся: ${c.bull} вверх, ${c.bear} вниз.`;
-        if (c.lead) return `${c.lead} из ${c.total} слоёв ${verb} ${DIRECTION_WORDS[c.dir]} — для согласия нужно не меньше ${MIN_ALIGNED}.`;
-        return 'Ни один слой не даёт направления.';
+        if (c.aligned) return T.verdictAligned(c, DIRECTION_WORDS[c.dir]);
+        if (c.bull && c.bear) return T.verdictSplit(c);
+        if (c.lead) return T.verdictShort(c, DIRECTION_WORDS[c.dir], MIN_ALIGNED);
+        return T.verdictNone;
     }
 
     function renderRowDetail(instrument) {
@@ -267,15 +340,15 @@
                 el('span', { text: body })));
         }
         const chip = c.aligned
-            ? el('span', { class: 'cmx-state is-aligned', 'data-s': c.dir }, glyph(), el('span', { text: 'слои сошлись' }))
-            : el('span', { class: 'cmx-state', text: 'согласия нет' });
+            ? el('span', { class: 'cmx-state is-aligned', 'data-s': c.dir }, glyph(), el('span', { text: T.aligned }))
+            : el('span', { class: 'cmx-state', text: T.notAligned });
         return [
             el('div', null,
-                el('span', { class: 'cmx-detail-kicker', text: `${instrument.id} · рынок целиком` }),
+                el('span', { class: 'cmx-detail-kicker', text: `${instrument.id} · ${T.wholeMarket}` }),
                 el('h3', { class: 'cmx-detail-title' }, el('span', { text: instrument.name }), chip),
                 el('p', { class: 'cmx-detail-text', text: verdict(c) }),
                 lines),
-            closedBlock('Уровни, стопы и план «если – то» по этому рынку, алерты в момент события.', null)
+            closedBlock(T.rowClosed, null)
         ];
     }
 
@@ -283,8 +356,8 @@
         const cell = instrument.cells[layer.id];
         const chip = el('span', { class: 'cmx-state', 'data-s': cell.state }, mark(cell),
             el('span', { text: [stateLabel(cell), cell.metric].filter(Boolean).join(' · ') }));
-        const note = cell.state === 'na' ? 'Этот слой пока не покрывает рынок.' : cell.note;
-        const origin = layer.live ? liveLabel(layer) : snapshot.demo ? 'демо' : '';
+        const note = cell.state === 'na' ? T.notCovered : cell.note;
+        const origin = layer.live ? liveLabel(layer) : snapshot.demo ? T.demo : '';
         const closed = layer.closed ? layer.closed.charAt(0).toUpperCase() + layer.closed.slice(1) + '.' : '';
         return [
             el('div', null,
@@ -292,7 +365,7 @@
                 el('h3', { class: 'cmx-detail-title' }, el('span', { text: instrument.name }), chip),
                 note && el('p', { class: 'cmx-detail-text', text: note }),
                 layer.about && el('p', { class: 'cmx-detail-about', text: layer.about })),
-            closedBlock(closed || 'Полный разбор слоя и алерты в момент события.', layer.url)
+            closedBlock(closed || T.cellClosed, layer.url)
         ];
     }
 
@@ -308,21 +381,21 @@
     }
 
     /* ── Stamp + events ── */
-    const stampFormat = new Intl.DateTimeFormat('ru-RU', {
+    const stampFormat = new Intl.DateTimeFormat(T.locale, {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
-    const reportFormat = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const reportFormat = new Intl.DateTimeFormat(T.locale, { day: 'numeric', month: 'short', timeZone: 'UTC' });
     const stripDateFormat = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
-    const eventFormat = new Intl.DateTimeFormat('ru-RU', {
+    const eventFormat = new Intl.DateTimeFormat(T.locale, {
         weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
 
     function countdown(ms) {
         const minutes = Math.floor(ms / 60000);
         const d = Math.floor(minutes / 1440), h = Math.floor((minutes % 1440) / 60), m = minutes % 60;
-        if (d) return `через ${d} д ${h} ч`;
-        if (h) return `через ${h} ч ${m} мин`;
-        return `через ${Math.max(m, 1)} мин`;
+        if (d) return T.inDays(d, h);
+        if (h) return T.inHours(h, m);
+        return T.inMinutes(Math.max(m, 1));
     }
 
     function renderEvents() {
@@ -333,7 +406,7 @@
         const upcoming = snapshot.events.filter(e => e.at.getTime() > now).slice(0, MAX_EVENTS);
         list.replaceChildren(...upcoming.map(e => el('li', null,
             el('b', { text: e.title }),
-            ` ${e.asset ? `· ${e.asset} ` : ''}· ${eventFormat.format(e.at)} МСК · `,
+            ` ${e.asset ? `· ${e.asset} ` : ''}· ${T.eventTime(eventFormat.format(e.at))} · `,
             el('span', { class: 'cmx-in', text: countdown(e.at.getTime() - now) }))));
         box.hidden = upcoming.length === 0;
     }
@@ -344,11 +417,11 @@
         const live = snapshot.layers.filter(layer => layer.live);
         if (demo) {
             demo.hidden = !snapshot.demo;
-            demo.textContent = live.length ? `Демо, кроме ${live.map(layer => layer.label).join(', ')}` : 'Демо-данные';
+            demo.textContent = live.length ? T.demoExcept(live.map(layer => layer.label).join(', ')) : T.demoBadge;
         }
         if (!stamp) return;
         if (live.length) stamp.textContent = live.map(layer => `${layer.label}: ${liveLabel(layer)}`).join(' · ');
-        else stamp.textContent = snapshot.generatedAt ? `Снимок · ${stampFormat.format(snapshot.generatedAt)} МСК` : '';
+        else stamp.textContent = snapshot.generatedAt ? T.snapshot(stampFormat.format(snapshot.generatedAt)) : '';
     }
 
     /* The hero strip repeats the COT column, so it follows the same file instead of going stale */
@@ -413,8 +486,8 @@
             const valid = input.value.trim() !== '' && input.checkValidity();
             status.classList.toggle('is-error', !valid);
             status.textContent = valid
-                ? 'Прототип: форма ещё не подключена, адрес никуда не отправлен.'
-                : 'Проверьте адрес почты.';
+                ? T.subscribeStub
+                : T.subscribeInvalid;
             if (!valid) input.focus();
         });
     }
@@ -457,6 +530,6 @@
     }).catch(error => {
         console.warn('Consensus matrix:', error);
         statusEl.hidden = false;
-        statusEl.textContent = 'Снимок рынка временно недоступен. Свежие данные — в Терминале.';
+        statusEl.textContent = T.unavailable;
     });
 })();

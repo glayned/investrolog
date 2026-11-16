@@ -22,13 +22,13 @@ REPORTS = {
         "url": "https://publicreporting.cftc.gov/resource/72hh-3qpy.json",
         "long": "m_money_positions_long_all",
         "short": "m_money_positions_short_all",
-        "group": "управляющих",
+        "group": {"ru": "управляющих", "en": "Managed money"},
     },
     "tff": {
         "url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json",
         "long": "lev_money_positions_long",
         "short": "lev_money_positions_short",
-        "group": "хедж-фондов",
+        "group": {"ru": "хедж-фондов", "en": "Leveraged funds"},
     },
 }
 CONTRACTS = {
@@ -68,15 +68,26 @@ def fetch_history(code, report, today):
 def build_cell(percentile, group):
     if percentile <= CROWDED_SHORT_MAX:
         signal = 1
-        note = (f"Нетто-позиция {group} у нижней границы пятилетнего диапазона: "
-                "шорты перегружены, это аргумент в пользу отскока.")
+        note = {
+            "ru": (f"Нетто-позиция {group['ru']} у нижней границы пятилетнего диапазона: "
+                   "шорты перегружены, это аргумент в пользу отскока."),
+            "en": (f"{group['en']} net position is near the bottom of its five-year range: "
+                   "shorts are crowded, which argues for a rebound."),
+        }
     elif percentile >= CROWDED_LONG_MIN:
         signal = -1
-        note = (f"Нетто-позиция {group} у верхней границы пятилетнего диапазона: "
-                "лонги перегружены, это аргумент в пользу разворота вниз.")
+        note = {
+            "ru": (f"Нетто-позиция {group['ru']} у верхней границы пятилетнего диапазона: "
+                   "лонги перегружены, это аргумент в пользу разворота вниз."),
+            "en": (f"{group['en']} net position is near the top of its five-year range: "
+                   "longs are crowded, which argues for a reversal down."),
+        }
     else:
         signal = 0
-        note = f"Нетто-позиция {group} внутри пятилетнего диапазона, перекоса нет."
+        note = {
+            "ru": f"Нетто-позиция {group['ru']} внутри пятилетнего диапазона, перекоса нет.",
+            "en": f"{group['en']} net position is inside its five-year range, no skew.",
+        }
     return {"signal": signal, "value": percentile, "metric": f"p{percentile}", "note": note}
 
 

@@ -434,7 +434,15 @@
 }
 .subscribe-status.is-error { color: var(--bear); }
 
-.dev-cta { margin-top: 32px; }
+.section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 56px;
+}
+.section-head .section-title { margin-bottom: 0; }
+.section-head .btn { flex: none; }
 
 @media (max-width: 768px) {
     :root {
@@ -459,6 +467,7 @@
     .cmx-closed { padding: 18px 0 0; border-left: 0; border-top: 1px solid var(--border); }
     .cmx-closed .btn { flex: 1 1 auto; }
     .cmx-line { grid-template-columns: 74px 14px minmax(0, 1fr); }
+    .section-head { margin-bottom: 36px; }
     .access-grid, .subscribe { grid-template-columns: 1fr; }
     .access-col, .subscribe { padding: 22px 20px; }
     .subscribe-row { flex-wrap: wrap; }
