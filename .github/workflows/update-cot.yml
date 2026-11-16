@@ -31,6 +31,7 @@ jobs:
 
       - name: Update COT layer of the consensus matrix
         continue-on-error: true
+        timeout-minutes: 2
         run: python3 scripts/update_matrix_cot.py
 
       - name: Rebuild localized pages
