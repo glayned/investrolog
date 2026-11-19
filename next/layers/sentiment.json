@@ -7,17 +7,6 @@
     "NG": {
       "signal": 0,
       "metric": {
-        "ru": "быки 57%",
-        "en": "bulls 57%"
-      },
-      "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
-        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
-      }
-    },
-    "CL": {
-      "signal": 0,
-      "metric": {
         "ru": "медведи 53%",
         "en": "bears 53%"
       },
@@ -26,7 +15,29 @@
         "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
       }
     },
+    "CL": {
+      "signal": 0,
+      "metric": {
+        "ru": "быки 63%",
+        "en": "bulls 63%"
+      },
+      "note": {
+        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
+        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
+      }
+    },
     "GC": {
+      "signal": 0,
+      "metric": {
+        "ru": "быки 58%",
+        "en": "bulls 58%"
+      },
+      "note": {
+        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
+        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
+      }
+    },
+    "SI": {
       "signal": 0,
       "metric": {
         "ru": "быки 54%",
@@ -37,26 +48,11 @@
         "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
       }
     },
-    "SI": {
-      "signal": 0,
-      "metric": {
-        "ru": "медведи 53%",
-        "en": "bears 53%"
-      },
-      "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
-        "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
-      }
-    },
     "CC": {
       "signal": 0,
-      "metric": {
-        "ru": "быки 100%",
-        "en": "bulls 100%"
-      },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
-        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
+        "ru": "Контрарного сигнала за последние сутки нет. Медведи и быки в комментариях уравновешены.",
+        "en": "No contrarian signal in the last 24 hours. Bears and bulls in the comments are balanced."
       }
     }
   }
