@@ -7,8 +7,8 @@
     "NG": {
       "signal": 0,
       "metric": {
-        "ru": "быки 55%",
-        "en": "bulls 55%"
+        "ru": "быки 56%",
+        "en": "bulls 56%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -18,30 +18,26 @@
     "CL": {
       "signal": 0,
       "metric": {
-        "ru": "медведи 60%",
-        "en": "bears 60%"
-      },
-      "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
-        "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
-      }
-    },
-    "GC": {
-      "signal": 0,
-      "metric": {
-        "ru": "быки 59%",
-        "en": "bulls 59%"
+        "ru": "быки 67%",
+        "en": "bulls 67%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
         "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
       }
     },
+    "GC": {
+      "signal": 0,
+      "note": {
+        "ru": "Контрарного сигнала за последние сутки нет. Медведи и быки в комментариях уравновешены.",
+        "en": "No contrarian signal in the last 24 hours. Bears and bulls in the comments are balanced."
+      }
+    },
     "SI": {
       "signal": 0,
       "metric": {
-        "ru": "быки 53%",
-        "en": "bulls 53%"
+        "ru": "быки 51%",
+        "en": "bulls 51%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -49,10 +45,14 @@
       }
     },
     "CC": {
-      "signal": 1,
+      "signal": 0,
+      "metric": {
+        "ru": "медведи 56%",
+        "en": "bears 56%"
+      },
       "note": {
-        "ru": "Толпа в медвежьей крайности на всплеске обсуждений — контрарный сигнал в пользу роста. Действует сутки.",
-        "en": "The crowd is at a bearish extreme on a surge of comments — a contrarian signal in favour of a rally. Valid for 24 hours."
+        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
+        "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
       }
     }
   }
