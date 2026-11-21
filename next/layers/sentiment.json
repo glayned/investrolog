@@ -7,8 +7,8 @@
     "NG": {
       "signal": 0,
       "metric": {
-        "ru": "быки 56%",
-        "en": "bulls 56%"
+        "ru": "быки 53%",
+        "en": "bulls 53%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -18,8 +18,8 @@
     "CL": {
       "signal": 0,
       "metric": {
-        "ru": "быки 67%",
-        "en": "bulls 67%"
+        "ru": "быки 54%",
+        "en": "bulls 54%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -28,16 +28,20 @@
     },
     "GC": {
       "signal": 0,
+      "metric": {
+        "ru": "быки 53%",
+        "en": "bulls 53%"
+      },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Медведи и быки в комментариях уравновешены.",
-        "en": "No contrarian signal in the last 24 hours. Bears and bulls in the comments are balanced."
+        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
+        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
       }
     },
     "SI": {
       "signal": 0,
       "metric": {
-        "ru": "быки 51%",
-        "en": "bulls 51%"
+        "ru": "быки 57%",
+        "en": "bulls 57%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -45,14 +49,14 @@
       }
     },
     "CC": {
-      "signal": 0,
+      "signal": 1,
       "metric": {
-        "ru": "медведи 56%",
-        "en": "bears 56%"
+        "ru": "быки 62%",
+        "en": "bulls 62%"
       },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
-        "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
+        "ru": "Толпа в медвежьей крайности на всплеске обсуждений — контрарный сигнал в пользу роста. Действует сутки.",
+        "en": "The crowd is at a bearish extreme on a surge of comments — a contrarian signal in favour of a rally. Valid for 24 hours."
       }
     }
   }
