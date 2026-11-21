@@ -2,11 +2,11 @@
   "schema": 1,
   "layer": "cot",
   "source": "CFTC",
-  "report_date": "2026-11-03",
+  "report_date": "2026-11-17",
   "cells": {
     "NG": {
       "signal": 1,
-      "metric": "p0",
+      "metric": "p1",
       "note": {
         "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
         "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
@@ -30,7 +30,7 @@
     },
     "SI": {
       "signal": 1,
-      "metric": "p16",
+      "metric": "p13",
       "note": {
         "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
         "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
@@ -38,7 +38,7 @@
     },
     "CC": {
       "signal": 1,
-      "metric": "p16",
+      "metric": "p9",
       "note": {
         "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
         "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
@@ -46,7 +46,7 @@
     },
     "KC": {
       "signal": 1,
-      "metric": "p18",
+      "metric": "p14",
       "note": {
         "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
         "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
@@ -54,7 +54,7 @@
     },
     "BTC": {
       "signal": -1,
-      "metric": "p95",
+      "metric": "p99",
       "note": {
         "ru": "Нетто-позиция хедж-фондов у верхней границы пятилетнего диапазона: лонги перегружены, это аргумент в пользу разворота вниз.",
         "en": "Leveraged funds net position is near the top of its five-year range: longs are crowded, which argues for a reversal down."
