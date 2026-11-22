@@ -68,6 +68,7 @@
       "short": "FLOW",
       "horizon": "minutes",
       "votes": true,
+      "source": "/next/layers/flow.json",
       "about": {
         "ru": "Всплески объёма к среднему и сторона, на которой они прошли.",
         "en": "Volume spikes versus the average and the side they traded on."

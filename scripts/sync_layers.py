@@ -20,7 +20,10 @@ ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
 BUCKET_URL = "https://storage.yandexcloud.net/investrolog-matrix-layers/layers"
 # Layer id -> days after report_date for which the file is still shown.
-LAYERS = {"sentiment": 2, "levels": 3}
+LAYERS = {"sentiment": 2, "levels": 3, "flow": 3}
+# Layers published as one file per ticker (<layer>/<ticker>.json): each
+# instrument of the module is a separate process.
+SPLIT_LAYERS = {"flow"}
 TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC")
 MAX_BYTES = 64 * 1024
 METRIC_MAX = 12  # same limits as next/matrix.js
@@ -89,11 +92,36 @@ def clean_layer(raw, layer_id, max_age_days, today):
     }
 
 
+def fetch_split(base_url, layer_id, max_age_days, today):
+    """One layer assembled from per-ticker files; stale or bad files are skipped."""
+    cells, source, latest = {}, None, None
+    for ticker in TICKERS:
+        try:
+            raw = fetch(f"{base_url}/{layer_id}/{ticker}.json")
+            if not isinstance(raw, dict) or raw.get("ticker") != ticker:
+                raise ValueError("unexpected ticker")
+            part = clean_layer(
+                {**raw, "cells": {ticker: raw.get("cell")}}, layer_id, max_age_days, today)
+        except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
+            print(f"{layer_id}/{ticker}: skipped ({error})")
+            continue
+        cells.update(part["cells"])
+        if latest is None or part["report_date"] > latest:
+            source, latest = part["source"], part["report_date"]
+    if not cells:
+        raise ValueError("no ticker files")
+    return {"schema": 1, "layer": layer_id, "source": source, "report_date": latest, "cells": cells}
+
+
 def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_DIR):
     """Write or remove one layer file. Returns a short status string."""
     path = layers_dir / f"{layer_id}.json"
     try:
-        layer = clean_layer(fetch(f"{base_url}/{layer_id}.json"), layer_id, max_age_days, today)
+        if layer_id in SPLIT_LAYERS:
+            raw = fetch_split(base_url, layer_id, max_age_days, today)
+        else:
+            raw = fetch(f"{base_url}/{layer_id}.json")
+        layer = clean_layer(raw, layer_id, max_age_days, today)
     except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
         if path.exists():
             path.unlink()
