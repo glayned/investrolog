@@ -38,5 +38,5 @@ python3 scripts/build_locales.py --check
 python3 scripts/build_next_locales.py          # rebuild /next/en/
 python3 scripts/build_next_locales.py --check  # verify it is current
 python3 scripts/update_matrix_cot.py           # refresh the COT layer from CFTC
-python3 scripts/sync_layers.py                 # pull validated public layers (sentiment) into next/layers/
+python3 scripts/sync_layers.py                 # pull validated public layers (sentiment, levels) into next/layers/
 ```

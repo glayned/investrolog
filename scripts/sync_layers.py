@@ -20,8 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
 BUCKET_URL = "https://storage.yandexcloud.net/investrolog-matrix-layers/layers"
 # Layer id -> days after report_date for which the file is still shown.
-LAYERS = {"sentiment": 2}
-TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC", "BTC")
+LAYERS = {"sentiment": 2, "levels": 3}
+TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC")
 MAX_BYTES = 64 * 1024
 METRIC_MAX = 12  # same limits as next/matrix.js
 NOTE_MAX = 240

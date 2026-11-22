@@ -38,7 +38,6 @@ CONTRACTS = {
     "SI": ("084691", "disaggregated"),
     "CC": ("073732", "disaggregated"),
     "KC": ("083731", "disaggregated"),
-    "BTC": ("133741", "tff"),
 }
 
 

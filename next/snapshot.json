@@ -87,6 +87,7 @@
       "short": "LVL",
       "horizon": "minutes",
       "votes": true,
+      "source": "/next/layers/levels.json",
       "about": {
         "ru": "Положение цены относительно VWAP и уровней с историей тестов.",
         "en": "Where price sits relative to VWAP and to levels with a history of tests."
@@ -402,45 +403,6 @@
           "note": {
             "ru": "Спокойный режим.",
             "en": "Calm regime."
-          }
-        }
-      }
-    },
-    {
-      "id": "BTC",
-      "name": {
-        "ru": "Биткоин",
-        "en": "Bitcoin"
-      },
-      "cells": {
-        "options": {
-          "signal": 1,
-          "metric": "RR +",
-          "note": {
-            "ru": "Колы дороже путов на ближних сроках.",
-            "en": "Calls are priced above puts at the near expiries."
-          }
-        },
-        "sentiment": {
-          "signal": null
-        },
-        "flow": {
-          "signal": null
-        },
-        "levels": {
-          "signal": 1,
-          "metric": "> VWAP",
-          "note": {
-            "ru": "Цена выше VWAP и ближайшего уровня.",
-            "en": "Price is above VWAP and the nearest level."
-          }
-        },
-        "vol": {
-          "level": 1,
-          "metric": "IV p52",
-          "note": {
-            "ru": "Волатильность около средней.",
-            "en": "Volatility is near average."
           }
         }
       }
