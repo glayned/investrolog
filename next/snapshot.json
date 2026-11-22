@@ -175,8 +175,8 @@
     {
       "id": "CL",
       "name": {
-        "ru": "Нефть WTI",
-        "en": "WTI Crude"
+        "ru": "Нефть",
+        "en": "Crude Oil"
       },
       "cells": {
         "options": {
