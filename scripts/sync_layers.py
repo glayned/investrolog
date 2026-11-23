@@ -32,6 +32,12 @@ MAX_BYTES = 64 * 1024
 METRIC_MAX = 12  # same limits as next/matrix.js
 NOTE_MAX = 240
 SOURCE_MAX = 24
+# The "next on the calendar" strip: not a matrix column, a list of events.
+CALENDAR_ID = "calendar"
+CALENDAR_MAX_AGE_DAYS = 8  # published weekly on Sunday, refreshed every weekday morning
+EVENTS_MAX = 40
+EVENT_TITLE_MAX = 60
+EVENT_ASSET_MAX = 24
 
 
 def fetch(url):
@@ -53,8 +59,8 @@ def clean_text(value, limit):
     return None
 
 
-def clean_layer(raw, layer_id, max_age_days, today):
-    """Validated copy of a layer with only the fields the page reads."""
+def clean_header(raw, layer_id, max_age_days, today):
+    """(source, report_date) of a layer file with the expected id and age."""
     if not isinstance(raw, dict) or raw.get("schema") != 1 or raw.get("layer") != layer_id:
         raise ValueError("unexpected schema or layer id")
     report_date = dt.date.fromisoformat(str(raw.get("report_date")))
@@ -64,6 +70,38 @@ def clean_layer(raw, layer_id, max_age_days, today):
     source = raw.get("source")
     if not isinstance(source, str) or not 0 < len(source) <= SOURCE_MAX:
         raise ValueError("bad source")
+    return source, report_date
+
+
+def clean_calendar(raw, layer_id, max_age_days, today):
+    """Validated copy of the calendar file: a title, a market and a UTC time per event."""
+    source, report_date = clean_header(raw, layer_id, max_age_days, today)
+    events = raw.get("events")
+    if not isinstance(events, list) or len(events) > EVENTS_MAX:
+        raise ValueError("events must be a short list")
+    clean_events = []
+    for event in events:
+        if not isinstance(event, dict):
+            raise ValueError("bad event")
+        title = clean_text(event.get("title"), EVENT_TITLE_MAX)
+        asset = clean_text(event.get("asset"), EVENT_ASSET_MAX)
+        at = event.get("at")
+        if title is None or asset is None or not isinstance(at, str):
+            raise ValueError("bad event")
+        dt.datetime.strptime(at, "%Y-%m-%dT%H:%M:%SZ")
+        clean_events.append({"title": title, "asset": asset, "at": at})
+    return {
+        "schema": 1,
+        "layer": layer_id,
+        "source": source,
+        "report_date": report_date.isoformat(),
+        "events": clean_events,
+    }
+
+
+def clean_layer(raw, layer_id, max_age_days, today):
+    """Validated copy of a layer with only the fields the page reads."""
+    source, report_date = clean_header(raw, layer_id, max_age_days, today)
     cells = raw.get("cells")
     if not isinstance(cells, dict):
         raise ValueError("cells must be an object")
@@ -129,7 +167,8 @@ def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_D
             raw = fetch_split(base_url, layer_id, max_age_days, today)
         else:
             raw = fetch(f"{base_url}/{layer_id}.json")
-        layer = clean_layer(raw, layer_id, max_age_days, today)
+        clean = clean_calendar if layer_id == CALENDAR_ID else clean_layer
+        layer = clean(raw, layer_id, max_age_days, today)
     except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
         if path.exists():
             path.unlink()
@@ -147,7 +186,7 @@ def main():
     parser.add_argument("--base-url", default=BUCKET_URL)
     args = parser.parse_args()
     today = dt.datetime.now(dt.timezone.utc).date()
-    for layer_id, max_age_days in LAYERS.items():
+    for layer_id, max_age_days in {**LAYERS, CALENDAR_ID: CALENDAR_MAX_AGE_DAYS}.items():
         print(f"{layer_id}: {sync(layer_id, max_age_days, today, args.base_url)}")
     return 0
 
