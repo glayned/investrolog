@@ -1,0 +1,49 @@
+name: Update options layers
+
+on:
+  schedule:
+    # The options database is refreshed around 04:00 UTC; the second run covers a late refresh.
+    - cron: "40 4 * * *"
+    - cron: "40 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-options
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Build the Options and Vol layers
+        id: build
+        continue-on-error: true
+        env:
+          OPTIONS_DB_S3_BUCKET: ${{ secrets.OPTIONS_DB_S3_BUCKET }}
+          OPTIONS_DB_S3_ACCESS_KEY_ID: ${{ secrets.OPTIONS_DB_S3_ACCESS_KEY_ID }}
+          OPTIONS_DB_S3_SECRET_ACCESS_KEY: ${{ secrets.OPTIONS_DB_S3_SECRET_ACCESS_KEY }}
+        run: python3 scripts/update_matrix_options.py
+
+      # Runs after a failed build too: the script has already removed stale layer files.
+      - name: Commit changed layer files
+        run: |
+          git add -A next/layers
+          if git diff --cached --quiet; then
+            echo "Options layers are unchanged."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: update options layers"
+            git push
+          fi
+
+      - name: Report a failed build
+        if: steps.build.outcome == 'failure'
+        run: exit 1
