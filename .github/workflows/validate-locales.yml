@@ -24,3 +24,6 @@ jobs:
 
       - name: Test the options layer builder
         run: cd scripts && python3 test_update_matrix_options.py
+
+      - name: Test the layer sync trigger
+        run: cd scripts && python3 test_sync_trigger.py

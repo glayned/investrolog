@@ -2,7 +2,8 @@ name: Sync matrix layers
 
 on:
   schedule:
-    # The sentiment layer is published at :20 every hour; the flow layer changes on the hour.
+    # Fallback only: GitHub runs schedules hours late. The run is normally started
+    # by scripts/sync_trigger.py within minutes of a change in the layers bucket.
     - cron: "35 * * * *"
   workflow_dispatch:
 

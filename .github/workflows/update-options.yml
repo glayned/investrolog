@@ -3,6 +3,7 @@ name: Update options layers
 on:
   schedule:
     # The options database is refreshed around 04:00 UTC; the second run covers a late refresh.
+    # Fallback only: scripts/sync_trigger.py starts the run at 04:45 and 08:45 UTC.
     - cron: "40 4 * * *"
     - cron: "40 8 * * *"
   workflow_dispatch:
