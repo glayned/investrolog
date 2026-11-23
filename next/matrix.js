@@ -219,9 +219,16 @@
             .sort((a, b) => a.at - b.at);
     }
 
+    /* Layer files carry the last day they may be shown; past it the data reads as missing even if the site copy was not refreshed */
+    function expired(raw) {
+        const until = raw && raw.valid_until;
+        return typeof until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(until)
+            && until < new Date().toISOString().slice(0, 10);
+    }
+
     /* The VIX file is one reading for the whole page: a regime step, a curve shape and a percentile */
     function normalizeRegime(raw) {
-        if (!raw || raw.schema !== 1 || raw.layer !== 'vix' || typeof raw.report_date !== 'string') return null;
+        if (!raw || raw.schema !== 1 || raw.layer !== 'vix' || typeof raw.report_date !== 'string' || expired(raw)) return null;
         const reportDate = new Date(`${raw.report_date}T00:00:00Z`);
         const rank = raw.vix_percentile;
         const known = (labels, key) => typeof key === 'string' && Object.prototype.hasOwnProperty.call(labels, key);
@@ -237,7 +244,7 @@
             : null;
         const valid = reportDate && !Number.isNaN(reportDate.getTime())
             && reportDate.toISOString().slice(0, 10) === raw.report_date
-            && raw.schema === 1 && raw.layer === layer.id
+            && raw.schema === 1 && raw.layer === layer.id && !expired(raw)
             && raw.cells && typeof raw.cells === 'object';
         for (const instrument of data.instruments) {
             instrument.cells[layer.id] = normalizeCell(valid ? raw.cells[instrument.id] : null, layer);

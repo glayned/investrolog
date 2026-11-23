@@ -15,6 +15,9 @@ from update_cot import LOOKBACK_WEEKS, fetch_json, percentile_rank
 
 LAYER_PATH = Path(__file__).resolve().parents[1] / "next" / "layers" / "cot.json"
 # Same reading as cot_terminal: crowded speculative positioning is a contrarian signal.
+# The report is dated Tuesday and released on Friday, so a current one is up to 11 days
+# old, a holiday week adds a few more. Past this the page hides the column.
+MAX_AGE_DAYS = 21
 CROWDED_SHORT_MAX = 20
 CROWDED_LONG_MIN = 80
 REPORTS = {
@@ -116,6 +119,7 @@ def build_layer(today):
         "layer": "cot",
         "source": "CFTC",
         "report_date": report_date.isoformat(),
+        "valid_until": (report_date + timedelta(days=MAX_AGE_DAYS)).isoformat(),
         "cells": cells,
     }
 
