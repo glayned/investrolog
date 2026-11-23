@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
-BUCKET_URL = "https://storage.yandexcloud.net/investrolog-matrix-layers/layers"
+BUCKET_URL = "https://storage.yandexcloud.net/investrolog-layers/layers"
 # Layer id -> days after report_date for which the file is still shown.
 # MOEX is a previous-close reading: after a weekend it is up to 4 days old.
 LAYERS = {"sentiment": 2, "levels": 3, "flow": 3, "moex": 5}
