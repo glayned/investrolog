@@ -224,8 +224,9 @@
         if (!raw || raw.schema !== 1 || raw.layer !== 'vix' || typeof raw.report_date !== 'string') return null;
         const reportDate = new Date(`${raw.report_date}T00:00:00Z`);
         const rank = raw.vix_percentile;
-        if (Number.isNaN(reportDate.getTime()) || !Object.hasOwn(T.regimes, raw.regime)
-            || !Object.hasOwn(T.curves, raw.curve) || !Number.isInteger(rank) || rank < 0 || rank > 100) return null;
+        const known = (labels, key) => typeof key === 'string' && Object.prototype.hasOwnProperty.call(labels, key);
+        if (Number.isNaN(reportDate.getTime()) || !known(T.regimes, raw.regime)
+            || !known(T.curves, raw.curve) || !Number.isInteger(rank) || rank < 0 || rank > 100) return null;
         return { regime: raw.regime, curve: raw.curve, rank, reportDate };
     }
 
