@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "layer": "flow",
+  "source": "Cloud Detected",
+  "report_date": "2026-11-23",
+  "cells": {
+    "NG": {
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
+      "note": {
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
+      }
+    },
+    "CL": {
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
+      "note": {
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
+      }
+    },
+    "GC": {
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
+      "note": {
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
+      }
+    },
+    "SI": {
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
+      "note": {
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
+      }
+    }
+  }
+}
