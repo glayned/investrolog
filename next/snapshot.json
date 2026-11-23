@@ -68,6 +68,7 @@
       "short": "FLOW",
       "horizon": "minutes",
       "votes": true,
+      "source": "/next/layers/flow.json",
       "about": {
         "ru": "Всплески объёма к среднему и сторона, на которой они прошли.",
         "en": "Volume spikes versus the average and the side they traded on."
@@ -87,6 +88,7 @@
       "short": "LVL",
       "horizon": "minutes",
       "votes": true,
+      "source": "/next/layers/levels.json",
       "about": {
         "ru": "Положение цены относительно VWAP и уровней с историей тестов.",
         "en": "Where price sits relative to VWAP and to levels with a history of tests."
@@ -96,6 +98,34 @@
         "en": "liquidity map, stops and a ready if–then plan"
       },
       "url": "https://t.me/investrolog/1412"
+    },
+    {
+      "id": "moex",
+      "label": "MOEX",
+      "short": "MOEX",
+      "horizon": "context",
+      "votes": false,
+      "source": "/next/layers/moex.json",
+      "scale": {
+        "ru": [
+          "середина",
+          "смещена",
+          "экстремум"
+        ],
+        "en": [
+          "mid-range",
+          "skewed",
+          "extreme"
+        ]
+      },
+      "about": {
+        "ru": "Чистая позиция юрлиц на фьючерсах Мосбиржи: перцентиль за год на закрытие прошлого дня. Физлица держат зеркальную позицию. Контекст для позиционной торговли, в счёт согласия не входит.",
+        "en": "Net position of institutions in Moscow Exchange futures: one-year percentile at the previous day's close. Retail holds the mirror position. Context for position trading; it does not count toward consensus."
+      },
+      "closed": {
+        "ru": "события позиционирования в момент появления: крупные покупки и продажи юрлиц, ликвидации физлиц",
+        "en": "positioning events as they happen: large institutional buying and selling, retail liquidations"
+      }
     },
     {
       "id": "vol",
@@ -173,8 +203,8 @@
     {
       "id": "CL",
       "name": {
-        "ru": "Нефть WTI",
-        "en": "WTI Crude"
+        "ru": "Нефть",
+        "en": "Crude Oil"
       },
       "cells": {
         "options": {
@@ -402,45 +432,6 @@
           "note": {
             "ru": "Спокойный режим.",
             "en": "Calm regime."
-          }
-        }
-      }
-    },
-    {
-      "id": "BTC",
-      "name": {
-        "ru": "Биткоин",
-        "en": "Bitcoin"
-      },
-      "cells": {
-        "options": {
-          "signal": 1,
-          "metric": "RR +",
-          "note": {
-            "ru": "Колы дороже путов на ближних сроках.",
-            "en": "Calls are priced above puts at the near expiries."
-          }
-        },
-        "sentiment": {
-          "signal": null
-        },
-        "flow": {
-          "signal": null
-        },
-        "levels": {
-          "signal": 1,
-          "metric": "> VWAP",
-          "note": {
-            "ru": "Цена выше VWAP и ближайшего уровня.",
-            "en": "Price is above VWAP and the nearest level."
-          }
-        },
-        "vol": {
-          "level": 1,
-          "metric": "IV p52",
-          "note": {
-            "ru": "Волатильность около средней.",
-            "en": "Volatility is near average."
           }
         }
       }

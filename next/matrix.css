@@ -3,7 +3,7 @@
     --bear: #b93a2c;
     --bull-tint: rgba(28, 128, 72, 0.09);
     --bear-tint: rgba(185, 58, 44, 0.08);
-    --cmx-cols: minmax(132px, 1.5fr) repeat(6, minmax(0, 1fr)) minmax(112px, 1.3fr);
+    --cmx-cols: minmax(132px, 1.5fr) repeat(7, minmax(0, 1fr)) minmax(112px, 1.3fr);
     --cmx-gap: 4px;
     --cmx-cell-h: 54px;
 }
@@ -446,7 +446,7 @@
 
 @media (max-width: 768px) {
     :root {
-        --cmx-cols: 46px repeat(6, minmax(0, 1fr)) 56px;
+        --cmx-cols: 46px repeat(7, minmax(0, 1fr)) 56px;
         --cmx-gap: 3px;
         --cmx-cell-h: 44px;
     }

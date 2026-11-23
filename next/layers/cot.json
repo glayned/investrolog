@@ -51,14 +51,6 @@
         "ru": "Нетто-позиция управляющих у нижней границы пятилетнего диапазона: шорты перегружены, это аргумент в пользу отскока.",
         "en": "Managed money net position is near the bottom of its five-year range: shorts are crowded, which argues for a rebound."
       }
-    },
-    "BTC": {
-      "signal": -1,
-      "metric": "p99",
-      "note": {
-        "ru": "Нетто-позиция хедж-фондов у верхней границы пятилетнего диапазона: лонги перегружены, это аргумент в пользу разворота вниз.",
-        "en": "Leveraged funds net position is near the top of its five-year range: longs are crowded, which argues for a reversal down."
-      }
     }
   }
 }

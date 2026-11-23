@@ -20,8 +20,14 @@ ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
 BUCKET_URL = "https://storage.yandexcloud.net/investrolog-matrix-layers/layers"
 # Layer id -> days after report_date for which the file is still shown.
-LAYERS = {"sentiment": 2}
-TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC", "BTC")
+# MOEX is a previous-close reading: after a weekend it is up to 4 days old.
+LAYERS = {"sentiment": 2, "levels": 3, "flow": 3, "moex": 5}
+# Layers published as one file per ticker (<layer>/<ticker>.json): each
+# instrument of the module is a separate process.
+SPLIT_LAYERS = {"flow", "moex"}
+# Context layers do not vote: their cells carry level 0..2 instead of a signal.
+CONTEXT_LAYERS = {"moex"}
+TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC")
 MAX_BYTES = 64 * 1024
 METRIC_MAX = 12  # same limits as next/matrix.js
 NOTE_MAX = 240
@@ -66,11 +72,12 @@ def clean_layer(raw, layer_id, max_age_days, today):
         cell = cells.get(ticker)
         if cell is None:
             continue
-        if not isinstance(cell, dict) or cell.get("signal") not in (-1, 0, 1):
+        field, allowed = ("level", (0, 1, 2)) if layer_id in CONTEXT_LAYERS else ("signal", (-1, 0, 1))
+        if not isinstance(cell, dict) or cell.get(field) not in allowed:
             raise ValueError(f"bad cell for {ticker}")
-        if isinstance(cell["signal"], bool):
-            raise ValueError(f"bad signal for {ticker}")
-        clean = {"signal": cell["signal"]}
+        if isinstance(cell[field], bool):
+            raise ValueError(f"bad {field} for {ticker}")
+        clean = {field: cell[field]}
         for field, limit in (("metric", METRIC_MAX), ("note", NOTE_MAX)):
             if field in cell:
                 text = clean_text(cell[field], limit)
@@ -89,11 +96,40 @@ def clean_layer(raw, layer_id, max_age_days, today):
     }
 
 
+def fetch_split(base_url, layer_id, max_age_days, today):
+    """One layer assembled from per-ticker files; stale or bad files are skipped.
+
+    The page shows one date per layer, so the layer takes the oldest date
+    among its cells: no cell is presented as fresher than it is.
+    """
+    cells, source, oldest = {}, None, None
+    for ticker in TICKERS:
+        try:
+            raw = fetch(f"{base_url}/{layer_id}/{ticker}.json")
+            if not isinstance(raw, dict) or raw.get("ticker") != ticker:
+                raise ValueError("unexpected ticker")
+            part = clean_layer(
+                {**raw, "cells": {ticker: raw.get("cell")}}, layer_id, max_age_days, today)
+        except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
+            print(f"{layer_id}/{ticker}: skipped ({error})")
+            continue
+        cells.update(part["cells"])
+        if oldest is None or part["report_date"] < oldest:
+            source, oldest = part["source"], part["report_date"]
+    if not cells:
+        raise ValueError("no ticker files")
+    return {"schema": 1, "layer": layer_id, "source": source, "report_date": oldest, "cells": cells}
+
+
 def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_DIR):
     """Write or remove one layer file. Returns a short status string."""
     path = layers_dir / f"{layer_id}.json"
     try:
-        layer = clean_layer(fetch(f"{base_url}/{layer_id}.json"), layer_id, max_age_days, today)
+        if layer_id in SPLIT_LAYERS:
+            raw = fetch_split(base_url, layer_id, max_age_days, today)
+        else:
+            raw = fetch(f"{base_url}/{layer_id}.json")
+        layer = clean_layer(raw, layer_id, max_age_days, today)
     except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
         if path.exists():
             path.unlink()
