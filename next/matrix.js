@@ -536,26 +536,23 @@
 
     async function loadSnapshot() {
         const data = normalizeSnapshot(await fetchJson(SNAPSHOT_URL));
-        await Promise.all(data.layers.filter(layer => layer.source).map(async layer => {
-            const raw = await fetchJson(layer.source).catch(error => {
-                console.warn(`Consensus matrix: layer ${layer.id}:`, error);
+        /* Optional strips load alongside the layers, so they add no time to the first paint */
+        const optional = (source, name) => source
+            ? fetchJson(source).catch(error => {
+                console.warn(`Consensus matrix: ${name}:`, error);
                 return null;
-            });
-            applyLayer(data, layer, raw);
-        }));
+            })
+            : null;
+        const [events, regime] = await Promise.all([
+            optional(data.eventsSource, 'calendar'),
+            optional(data.regimeSource, 'VIX regime'),
+            ...data.layers.filter(layer => layer.source).map(async layer => {
+                applyLayer(data, layer, await optional(layer.source, `layer ${layer.id}`));
+            })
+        ]);
         for (const instrument of data.instruments) instrument.consensus = consensus(instrument, data.voting);
-        if (data.eventsSource) {
-            data.events = normalizeEvents(await fetchJson(data.eventsSource).catch(error => {
-                console.warn('Consensus matrix: calendar:', error);
-                return null;
-            }));
-        }
-        if (data.regimeSource) {
-            data.regime = normalizeRegime(await fetchJson(data.regimeSource).catch(error => {
-                console.warn('Consensus matrix: VIX regime:', error);
-                return null;
-            }));
-        }
+        data.events = normalizeEvents(events);
+        data.regime = normalizeRegime(regime);
         return data;
     }
 
