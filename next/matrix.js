@@ -41,7 +41,15 @@
             inMinutes: m => `через ${m} мин`,
             subscribeStub: 'Прототип: форма ещё не подключена, адрес никуда не отправлен.',
             subscribeInvalid: 'Проверьте адрес почты.',
-            unavailable: 'Снимок рынка временно недоступен. Свежие данные — в Терминале.'
+            unavailable: 'Снимок рынка временно недоступен. Свежие данные — в Терминале.',
+            regimeTitle: 'Режим волатильности',
+            regimes: { calm: 'спокойный', neutral: 'нейтральный', caution: 'настороженный', stress: 'стресс' },
+            curves: {
+                contango: 'кривая VIX в контанго', flat: 'кривая VIX плоская',
+                spot_stress: 'стресс на споте VIX', backwardation: 'кривая VIX в бэквордации'
+            },
+            regimeRank: rank => `VIX на ${rank}-м перцентиле`,
+            regimeDate: date => `на закрытие ${date}`
         },
         en: {
             locale: 'en-GB',
@@ -76,7 +84,15 @@
             inMinutes: m => `in ${m}m`,
             subscribeStub: 'Prototype: the form is not connected yet, your address was not sent anywhere.',
             subscribeInvalid: 'Check the email address.',
-            unavailable: 'The market snapshot is temporarily unavailable. Fresh data is in the Terminal.'
+            unavailable: 'The market snapshot is temporarily unavailable. Fresh data is in the Terminal.',
+            regimeTitle: 'Volatility regime',
+            regimes: { calm: 'calm', neutral: 'neutral', caution: 'cautious', stress: 'stress' },
+            curves: {
+                contango: 'VIX curve in contango', flat: 'VIX curve flat',
+                spot_stress: 'stress in spot VIX', backwardation: 'VIX curve in backwardation'
+            },
+            regimeRank: rank => `VIX at percentile ${rank}`,
+            regimeDate: date => `as of the ${date} close`
         }
     };
     const T = STRINGS[LANG];
@@ -188,7 +204,9 @@
             generatedAt: Number.isNaN(generated.getTime()) ? null : generated,
             layers, voting, instruments,
             eventsSource: layerPath(raw.events_source),
-            events: []
+            events: [],
+            regimeSource: layerPath(raw.regime_source),
+            regime: null
         };
     }
 
@@ -199,6 +217,16 @@
             .map(e => ({ title: text(e && e.title, 60), asset: text(e && e.asset, 24), at: new Date(e && e.at) }))
             .filter(e => e.title && !Number.isNaN(e.at.getTime()))
             .sort((a, b) => a.at - b.at);
+    }
+
+    /* The VIX file is one reading for the whole page: a regime step, a curve shape and a percentile */
+    function normalizeRegime(raw) {
+        if (!raw || raw.schema !== 1 || raw.layer !== 'vix' || typeof raw.report_date !== 'string') return null;
+        const reportDate = new Date(`${raw.report_date}T00:00:00Z`);
+        const rank = raw.vix_percentile;
+        if (Number.isNaN(reportDate.getTime()) || !Object.hasOwn(T.regimes, raw.regime)
+            || !Object.hasOwn(T.curves, raw.curve) || !Number.isInteger(rank) || rank < 0 || rank > 100) return null;
+        return { regime: raw.regime, curve: raw.curve, rank, reportDate };
     }
 
     /* A layer with its own file replaces that column; if the file is missing the column reads "no data" */
@@ -426,6 +454,15 @@
         box.hidden = upcoming.length === 0;
     }
 
+    function renderRegime() {
+        const r = snapshot.regime;
+        if (!r) return;
+        grid.before(el('p', { class: 'cmx-regime', 'data-regime': r.regime },
+            el('span', { class: 'cmx-regime-title', text: T.regimeTitle }),
+            el('b', { text: T.regimes[r.regime] }),
+            ` · ${T.curves[r.curve]} · ${T.regimeRank(r.rank)} · ${T.regimeDate(reportFormat.format(r.reportDate))}`));
+    }
+
     function renderMeta() {
         const demo = document.getElementById('cmxDemo');
         const stamp = document.getElementById('cmxStamp');
@@ -512,12 +549,19 @@
                 return null;
             }));
         }
+        if (data.regimeSource) {
+            data.regime = normalizeRegime(await fetchJson(data.regimeSource).catch(error => {
+                console.warn('Consensus matrix: VIX regime:', error);
+                return null;
+            }));
+        }
         return data;
     }
 
     loadSnapshot().then(data => {
         snapshot = data;
         renderMeta();
+        renderRegime();
         renderMatrix();
         const aligned = dataRows().find(row => row.classList.contains('is-aligned'));
         select((aligned || dataRows()[0]).querySelector('.cmx-name'));
