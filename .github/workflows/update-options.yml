@@ -34,7 +34,7 @@ jobs:
       # Runs after a failed build too: the script has already removed stale layer files.
       - name: Commit changed layer files
         run: |
-          git add -A next/layers/options.json next/layers/vol.json
+          git add -A next/layers
           if git diff --cached --quiet; then
             echo "Options layers are unchanged."
           else
