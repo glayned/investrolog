@@ -93,8 +93,12 @@ def clean_layer(raw, layer_id, max_age_days, today):
 
 
 def fetch_split(base_url, layer_id, max_age_days, today):
-    """One layer assembled from per-ticker files; stale or bad files are skipped."""
-    cells, source, latest = {}, None, None
+    """One layer assembled from per-ticker files; stale or bad files are skipped.
+
+    The page shows one date per layer, so the layer takes the oldest date
+    among its cells: no cell is presented as fresher than it is.
+    """
+    cells, source, oldest = {}, None, None
     for ticker in TICKERS:
         try:
             raw = fetch(f"{base_url}/{layer_id}/{ticker}.json")
@@ -106,11 +110,11 @@ def fetch_split(base_url, layer_id, max_age_days, today):
             print(f"{layer_id}/{ticker}: skipped ({error})")
             continue
         cells.update(part["cells"])
-        if latest is None or part["report_date"] > latest:
-            source, latest = part["source"], part["report_date"]
+        if oldest is None or part["report_date"] < oldest:
+            source, oldest = part["source"], part["report_date"]
     if not cells:
         raise ValueError("no ticker files")
-    return {"schema": 1, "layer": layer_id, "source": source, "report_date": latest, "cells": cells}
+    return {"schema": 1, "layer": layer_id, "source": source, "report_date": oldest, "cells": cells}
 
 
 def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_DIR):
