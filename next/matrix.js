@@ -212,7 +212,7 @@
 
     /* The calendar file is public schedule only: a title, a market and a UTC time */
     function normalizeEvents(raw) {
-        if (!raw || raw.schema !== 1 || raw.layer !== 'calendar' || !Array.isArray(raw.events)) return [];
+        if (!raw || raw.schema !== 1 || raw.layer !== 'calendar' || !Array.isArray(raw.events) || expired(raw)) return [];
         return raw.events
             .map(e => ({ title: text(e && e.title, 60), asset: text(e && e.asset, 24), at: new Date(e && e.at) }))
             .filter(e => e.title && !Number.isNaN(e.at.getTime()))

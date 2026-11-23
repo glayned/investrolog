@@ -128,6 +128,31 @@ class FetchTest(unittest.TestCase):
             with self.assertRaises(sl.Unavailable):
                 sl.fetch("https://x")
 
+    def test_response_cut_short_is_not_a_malformed_file(self):
+        class Response:
+            def __init__(self, body, declared):
+                self.body, self.headers = body, {"Content-Length": declared}
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def read(self, amount):
+                return self.body[:amount]
+
+        whole = json.dumps(layer("sentiment")).encode("utf-8")
+        sl.urllib.request.urlopen = lambda request, timeout: Response(whole[:40], str(len(whole)))
+        with self.assertRaises(sl.Unavailable):
+            sl.fetch("https://x")
+        sl.urllib.request.urlopen = lambda request, timeout: Response(whole, str(len(whole)))
+        self.assertEqual(sl.fetch("https://x")["layer"], "sentiment")
+        big = b" " * (sl.MAX_BYTES + 10)
+        sl.urllib.request.urlopen = lambda request, timeout: Response(big, str(len(big)))
+        with self.assertRaises(ValueError):
+            sl.fetch("https://x")
+
 
 if __name__ == "__main__":
     unittest.main()
