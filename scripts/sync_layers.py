@@ -36,6 +36,11 @@ SOURCE_MAX = 24
 CALENDAR_ID = "calendar"
 CALENDAR_MAX_AGE_DAYS = 8  # published weekly on Sunday, refreshed every weekday morning
 EVENTS_MAX = 40
+# The VIX regime strip: not a matrix column, one reading for the whole page.
+REGIME_ID = "vix"
+REGIME_MAX_AGE_DAYS = 4  # published after each US close: Friday's reading is shown until Tuesday
+REGIMES = {"calm", "neutral", "caution", "stress"}
+CURVES = {"contango", "flat", "spot_stress", "backwardation"}
 EVENT_TITLE_MAX = 60
 EVENT_ASSET_MAX = 24
 
@@ -97,6 +102,30 @@ def clean_calendar(raw, layer_id, max_age_days, today):
         "report_date": report_date.isoformat(),
         "events": clean_events,
     }
+
+
+def clean_regime(raw, layer_id, max_age_days, today):
+    """Validated copy of the VIX regime file: a regime step, a curve shape and a percentile."""
+    source, report_date = clean_header(raw, layer_id, max_age_days, today)
+    regime, curve, rank = raw.get("regime"), raw.get("curve"), raw.get("vix_percentile")
+    if not isinstance(regime, str) or not isinstance(curve, str):
+        raise ValueError("bad regime or curve")
+    if regime not in REGIMES or curve not in CURVES:
+        raise ValueError("bad regime or curve")
+    if isinstance(rank, bool) or not isinstance(rank, int) or not 0 <= rank <= 100:
+        raise ValueError("bad percentile")
+    return {
+        "schema": 1,
+        "layer": layer_id,
+        "source": source,
+        "report_date": report_date.isoformat(),
+        "regime": regime,
+        "curve": curve,
+        "vix_percentile": rank,
+    }
+
+
+CLEANERS = {CALENDAR_ID: clean_calendar, REGIME_ID: clean_regime}
 
 
 def clean_layer(raw, layer_id, max_age_days, today):
@@ -167,8 +196,7 @@ def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_D
             raw = fetch_split(base_url, layer_id, max_age_days, today)
         else:
             raw = fetch(f"{base_url}/{layer_id}.json")
-        clean = clean_calendar if layer_id == CALENDAR_ID else clean_layer
-        layer = clean(raw, layer_id, max_age_days, today)
+        layer = CLEANERS.get(layer_id, clean_layer)(raw, layer_id, max_age_days, today)
     except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
         if path.exists():
             path.unlink()
@@ -186,7 +214,9 @@ def main():
     parser.add_argument("--base-url", default=BUCKET_URL)
     args = parser.parse_args()
     today = dt.datetime.now(dt.timezone.utc).date()
-    for layer_id, max_age_days in {**LAYERS, CALENDAR_ID: CALENDAR_MAX_AGE_DAYS}.items():
+    for layer_id, max_age_days in {
+        **LAYERS, CALENDAR_ID: CALENDAR_MAX_AGE_DAYS, REGIME_ID: REGIME_MAX_AGE_DAYS,
+    }.items():
         print(f"{layer_id}: {sync(layer_id, max_age_days, today, args.base_url)}")
     return 0
 

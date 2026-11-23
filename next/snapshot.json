@@ -193,5 +193,6 @@
       }
     }
   ],
-  "events_source": "/next/layers/calendar.json"
+  "events_source": "/next/layers/calendar.json",
+  "regime_source": "/next/layers/vix.json"
 }

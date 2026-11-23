@@ -344,6 +344,20 @@
 .cmx-closed-links { display: flex; flex-wrap: wrap; gap: 10px; }
 .cmx-closed .btn { padding: 9px 16px; font-size: 12px; }
 
+/* ── VIX regime strip ── */
+.cmx-regime {
+    margin: 0 0 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.6px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+.cmx-regime-title { margin-right: 12px; letter-spacing: 2px; text-transform: uppercase; font-size: 10px; }
+.cmx-regime b { font-weight: 500; color: var(--text-primary); }
+.cmx-regime[data-regime="caution"] b,
+.cmx-regime[data-regime="stress"] b { color: var(--signal-accent); }
+
 /* ── Events ── */
 .cmx-events {
     display: flex;
