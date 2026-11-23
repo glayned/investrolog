@@ -6,11 +6,11 @@
   "valid_until": "2026-11-26",
   "cells": {
     "NG": {
-      "signal": -1,
+      "signal": 0,
       "metric": "×5.1",
       "note": {
-        "ru": "Всплесков объёма за сутки: 2, перевес на стороне продажи; крупнейший — ×5.1 к среднему объёму.",
-        "en": "Volume spikes over the last day: 2, the balance favours sellers; the largest was ×5.1 the average volume."
+        "ru": "Всплесков объёма за сутки: 4, перевеса одной стороны нет; крупнейший — ×5.1 к среднему объёму.",
+        "en": "Volume spikes over the last day: 4, neither side dominates; the largest was ×5.1 the average volume."
       }
     },
     "CL": {
@@ -22,30 +22,27 @@
       }
     },
     "GC": {
-      "signal": -1,
+      "signal": 0,
       "metric": "×15.8",
       "note": {
-        "ru": "Всплесков объёма за сутки: 6, перевес на стороне продажи; крупнейший — ×15.8 к среднему объёму.",
-        "en": "Volume spikes over the last day: 6, the balance favours sellers; the largest was ×15.8 the average volume."
+        "ru": "Всплесков объёма за сутки: 7, перевеса одной стороны нет; крупнейший — ×15.8 к среднему объёму.",
+        "en": "Volume spikes over the last day: 7, neither side dominates; the largest was ×15.8 the average volume."
       }
     },
     "SI": {
-      "signal": 0,
-      "metric": "×6.2",
+      "signal": -1,
+      "metric": "×6.3",
       "note": {
-        "ru": "Всплесков объёма за сутки: 6, перевеса одной стороны нет; крупнейший — ×6.2 к среднему объёму.",
-        "en": "Volume spikes over the last day: 6, neither side dominates; the largest was ×6.2 the average volume."
+        "ru": "Всплесков объёма за сутки: 8, перевес на стороне продажи; крупнейший — ×6.3 к среднему объёму.",
+        "en": "Volume spikes over the last day: 8, the balance favours sellers; the largest was ×6.3 the average volume."
       }
     },
     "CC": {
       "signal": 0,
-      "metric": {
-        "ru": "тихо",
-        "en": "quiet"
-      },
+      "metric": "×4.1",
       "note": {
-        "ru": "За сутки всплесков объёма не было.",
-        "en": "No volume spikes over the last day."
+        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×4.1 к среднему объёму.",
+        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×4.1 the average volume."
       }
     },
     "KC": {
