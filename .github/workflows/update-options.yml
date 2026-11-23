@@ -44,7 +44,7 @@ jobs:
             git commit -m "data: update options layers"
             # Another layer workflow may have pushed since the checkout; the files do not overlap.
             for attempt in 1 2 3; do
-              git pull --rebase origin main && git push && exit 0
+              git pull --rebase origin "$GITHUB_REF_NAME" && git push && exit 0
               sleep 5
             done
             exit 1
