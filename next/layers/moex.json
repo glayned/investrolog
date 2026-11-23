@@ -12,8 +12,8 @@
         "en": "INST p87"
       },
       "note": {
-        "ru": "Чистая позиция юрлиц MOEX — шорт, 87-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 65% из них. События за сутки: ▲0 ▼2.",
-        "en": "MOEX institutions are net short, 87th percentile over 250 trading days; retail mirrors them, 65% of retail traders are long. Events over the last day: ▲0 ▼2."
+        "ru": "Чистая позиция юрлиц MOEX — шорт, 87-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 65% из них. События за сутки: ▲0 ▼3.",
+        "en": "MOEX institutions are net short, 87th percentile over 250 trading days; retail mirrors them, 65% of retail traders are long. Events over the last day: ▲0 ▼3."
       }
     },
     "CL": {
@@ -56,8 +56,8 @@
         "en": "INST p52"
       },
       "note": {
-        "ru": "Чистая позиция юрлиц MOEX — шорт, 52-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 73% из них. Событий с подтверждённым направлением за сутки не было.",
-        "en": "MOEX institutions are net short, 52nd percentile over 250 trading days; retail mirrors them, 73% of retail traders are long. No events with a confirmed direction over the last day."
+        "ru": "Чистая позиция юрлиц MOEX — шорт, 52-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 73% из них. События за сутки: ▲0 ▼1.",
+        "en": "MOEX institutions are net short, 52nd percentile over 250 trading days; retail mirrors them, 73% of retail traders are long. Events over the last day: ▲0 ▼1."
       }
     },
     "KC": {
