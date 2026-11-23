@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "layer": "vix",
+  "source": "VIX Term Structure",
+  "report_date": "2026-11-23",
+  "valid_until": "2026-11-27",
+  "regime": "stress",
+  "curve": "backwardation",
+  "vix_percentile": 89
+}
