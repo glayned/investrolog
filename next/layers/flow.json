@@ -3,6 +3,7 @@
   "layer": "flow",
   "source": "Cloud Detected",
   "report_date": "2026-11-23",
+  "valid_until": "2026-11-26",
   "cells": {
     "NG": {
       "signal": 0,

@@ -3,6 +3,7 @@
   "layer": "sentiment",
   "source": "Sentinel",
   "report_date": "2026-11-23",
+  "valid_until": "2026-11-25",
   "cells": {
     "NG": {
       "signal": 0,
