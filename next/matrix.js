@@ -183,16 +183,22 @@
         if (!voting.length || !instruments.length) throw new Error('Snapshot has no layers or instruments');
 
         const generated = new Date(raw.generated_at);
-        const events = (Array.isArray(raw.events) ? raw.events : [])
-            .map(e => ({ title: text(e && e.title, 60), asset: text(e && e.asset, 24), at: new Date(e && e.at) }))
-            .filter(e => e.title && !Number.isNaN(e.at.getTime()))
-            .sort((a, b) => a.at - b.at);
-
         return {
             demo: raw.demo === true,
             generatedAt: Number.isNaN(generated.getTime()) ? null : generated,
-            layers, voting, instruments, events
+            layers, voting, instruments,
+            eventsSource: layerPath(raw.events_source),
+            events: []
         };
+    }
+
+    /* The calendar file is public schedule only: a title, a market and a UTC time */
+    function normalizeEvents(raw) {
+        if (!raw || raw.schema !== 1 || raw.layer !== 'calendar' || !Array.isArray(raw.events)) return [];
+        return raw.events
+            .map(e => ({ title: text(e && e.title, 60), asset: text(e && e.asset, 24), at: new Date(e && e.at) }))
+            .filter(e => e.title && !Number.isNaN(e.at.getTime()))
+            .sort((a, b) => a.at - b.at);
     }
 
     /* A layer with its own file replaces that column; if the file is missing the column reads "no data" */
@@ -500,6 +506,12 @@
             applyLayer(data, layer, raw);
         }));
         for (const instrument of data.instruments) instrument.consensus = consensus(instrument, data.voting);
+        if (data.eventsSource) {
+            data.events = normalizeEvents(await fetchJson(data.eventsSource).catch(error => {
+                console.warn('Consensus matrix: calendar:', error);
+                return null;
+            }));
+        }
         return data;
     }
 

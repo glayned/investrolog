@@ -437,30 +437,5 @@
       }
     }
   ],
-  "events": [
-    {
-      "title": "EIA Storage",
-      "asset": "NG",
-      "at": "2026-11-19T15:30:00Z"
-    },
-    {
-      "title": {
-        "ru": "Отчёт COT",
-        "en": "COT report"
-      },
-      "asset": {
-        "ru": "все рынки",
-        "en": "all markets"
-      },
-      "at": "2026-11-20T20:30:00Z"
-    },
-    {
-      "title": {
-        "ru": "Экспирация опционов",
-        "en": "Options expiry"
-      },
-      "asset": "NGZ26",
-      "at": "2026-11-24T19:30:00Z"
-    }
-  ]
+  "events_source": "/next/layers/calendar.json"
 }
