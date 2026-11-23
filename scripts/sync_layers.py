@@ -19,6 +19,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
 BUCKET_URL = "https://storage.yandexcloud.net/investrolog-layers/layers"
+# Layers still published to another bucket (the module lives in a different
+# cloud account and has not been moved yet).
+LAYER_URLS = {
+    "sentiment": "https://storage.yandexcloud.net/investrolog-matrix-layers/layers",
+}
 # Layer id -> days after report_date for which the file is still shown.
 # MOEX is a previous-close reading: after a weekend it is up to 4 days old.
 LAYERS = {"sentiment": 2, "levels": 3, "flow": 3, "moex": 5}
@@ -211,13 +216,14 @@ def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_D
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--base-url", default=BUCKET_URL)
+    parser.add_argument("--base-url", help="one bucket for every layer (tests)")
     args = parser.parse_args()
     today = dt.datetime.now(dt.timezone.utc).date()
     for layer_id, max_age_days in {
         **LAYERS, CALENDAR_ID: CALENDAR_MAX_AGE_DAYS, REGIME_ID: REGIME_MAX_AGE_DAYS,
     }.items():
-        print(f"{layer_id}: {sync(layer_id, max_age_days, today, args.base_url)}")
+        base_url = args.base_url or LAYER_URLS.get(layer_id, BUCKET_URL)
+        print(f"{layer_id}: {sync(layer_id, max_age_days, today, base_url)}")
     return 0
 
 
