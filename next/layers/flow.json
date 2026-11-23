@@ -6,13 +6,10 @@
   "cells": {
     "NG": {
       "signal": 0,
-      "metric": {
-        "ru": "тихо",
-        "en": "quiet"
-      },
+      "metric": "×3.5",
       "note": {
-        "ru": "За сутки всплесков объёма не было.",
-        "en": "No volume spikes over the last day."
+        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×3.5 к среднему объёму.",
+        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×3.5 the average volume."
       }
     },
     "CL": {
@@ -38,6 +35,28 @@
       }
     },
     "SI": {
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
+      "note": {
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
+      }
+    },
+    "CC": {
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
+      "note": {
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
+      }
+    },
+    "KC": {
       "signal": 0,
       "metric": {
         "ru": "тихо",
