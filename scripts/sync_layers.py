@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
-BUCKET_URL = "https://storage.yandexcloud.net/investrolog-layers/layers"
+BUCKET_URL = "https://storage.yandexcloud.net/investrolog-matrix/layers"
 # Layers still published to another bucket (the module lives in a different
 # cloud account and has not been moved yet).
 LAYER_URLS = {
