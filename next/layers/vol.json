@@ -2,14 +2,14 @@
   "schema": 1,
   "layer": "vol",
   "source": "InvestroLog Options",
-  "report_date": "2026-11-19",
+  "report_date": "2026-11-20",
   "cells": {
     "NG": {
       "level": 2,
-      "metric": "IV p100",
+      "metric": "IV p94",
       "note": {
-        "ru": "ATM IV 92% — 100-й перцентиль за 107 торг. дн. Историческая за 20 дн. — 48%. Ближний контракт дороже следующего: рынок платит за риск ближайших дней.",
-        "en": "ATM IV 92% is at percentile 100 of 107 sessions. 20-day realised is 48%. The front contract is priced above the next one: the market pays for near-term risk."
+        "ru": "ATM IV 83% — 94-й перцентиль за 108 торг. дн. Историческая за 20 дн. — 37%.",
+        "en": "ATM IV 83% is at percentile 94 of 108 sessions. 20-day realised is 37%."
       }
     },
     "CL": {
