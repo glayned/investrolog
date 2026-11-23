@@ -130,17 +130,24 @@ def options_cell(series):
         return None
     rank = percentile(skews, front["rr_25"])
     signal = 1 if rank >= SKEW_UP_MIN else -1 if rank <= SKEW_DOWN_MAX else 0
+    # The rank says how the skew compares with its own history; which side is dearer is its sign.
     lead = {
-        1: {"ru": "Скос в пользу колов: рынок переплачивает за движение вверх.",
-            "en": "Skew favours calls: the market pays extra for a move up."},
-        -1: {"ru": "Скос в пользу путов: рынок переплачивает за защиту от падения.",
-             "en": "Skew favours puts: the market pays extra for downside protection."},
+        1: {"ru": "Скос сдвинут к колам сильнее обычного.",
+            "en": "Skew leans towards calls more than usual."},
+        -1: {"ru": "Скос сдвинут к путам сильнее обычного.",
+             "en": "Skew leans towards puts more than usual."},
         0: {"ru": "Скос около своей нормы.", "en": "Skew is near its usual level."},
     }[signal]
+    dearer = {
+        "ru": "Колы дороже путов." if front["rr_25"] > 0 else "Путы дороже колов.",
+        "en": "Calls are priced above puts." if front["rr_25"] > 0 else "Puts are priced above calls.",
+    }
     parts = [lead, {
         "ru": f"Risk reversal 25Δ — {rank}-й перцентиль за {len(skews)} торг. дн.",
         "en": f"25Δ risk reversal is at percentile {rank} of {len(skews)} sessions.",
     }]
+    if front["rr_25"] != 0:
+        parts.append(dearer)
     if front["flip_quality"] == "ok" and front["flip_strike"] and front["futures_price"]:
         parts.append({
             "ru": "Цена выше gamma flip: длинная гамма, движения гасятся.",

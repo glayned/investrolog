@@ -64,6 +64,16 @@ class BuildLayers(unittest.TestCase):
         self.assertEqual(cells["options"]["signal"], 0)
         self.assertIn("below the gamma flip", cells["options"]["note"]["en"])
 
+    def test_dearer_side_follows_the_sign_not_the_rank(self):
+        # Always-positive skew at its low: leans to puts versus history, yet calls are still dearer.
+        cells, _ = self.cells(make_db(skew=lambda n: 1 - n / 1000))
+        self.assertEqual(cells["options"]["signal"], -1)
+        self.assertIn("towards puts more than usual", cells["options"]["note"]["en"])
+        self.assertIn("Calls are priced above puts", cells["options"]["note"]["en"])
+        cells, _ = self.cells(make_db(skew=lambda n: n / 1000 - 1))
+        self.assertEqual(cells["options"]["signal"], 1)
+        self.assertIn("Puts are priced above calls", cells["options"]["note"]["en"])
+
     def test_thresholds(self):
         for rank, signal in ((75, 1), (74, 0), (26, 0), (25, -1)):
             # 100 sessions with distinct skews 0..99: the last one sits at the given percentile.
