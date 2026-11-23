@@ -100,6 +100,34 @@
       "url": "https://t.me/investrolog/1412"
     },
     {
+      "id": "moex",
+      "label": "MOEX",
+      "short": "MOEX",
+      "horizon": "context",
+      "votes": false,
+      "source": "/next/layers/moex.json",
+      "scale": {
+        "ru": [
+          "середина",
+          "смещена",
+          "экстремум"
+        ],
+        "en": [
+          "mid-range",
+          "skewed",
+          "extreme"
+        ]
+      },
+      "about": {
+        "ru": "Чистая позиция юрлиц на фьючерсах Мосбиржи: перцентиль за год на закрытие прошлого дня. Физлица держат зеркальную позицию. Контекст для позиционной торговли, в счёт согласия не входит.",
+        "en": "Net position of institutions in Moscow Exchange futures: one-year percentile at the previous day's close. Retail holds the mirror position. Context for position trading; it does not count toward consensus."
+      },
+      "closed": {
+        "ru": "события позиционирования в момент появления: крупные покупки и продажи юрлиц, ликвидации физлиц",
+        "en": "positioning events as they happen: large institutional buying and selling, retail liquidations"
+      }
+    },
+    {
       "id": "vol",
       "label": {
         "ru": "Вола",

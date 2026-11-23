@@ -20,10 +20,13 @@ ROOT = Path(__file__).resolve().parents[1]
 LAYERS_DIR = ROOT / "next" / "layers"
 BUCKET_URL = "https://storage.yandexcloud.net/investrolog-matrix-layers/layers"
 # Layer id -> days after report_date for which the file is still shown.
-LAYERS = {"sentiment": 2, "levels": 3, "flow": 3}
+# MOEX is a previous-close reading: after a weekend it is up to 4 days old.
+LAYERS = {"sentiment": 2, "levels": 3, "flow": 3, "moex": 5}
 # Layers published as one file per ticker (<layer>/<ticker>.json): each
 # instrument of the module is a separate process.
-SPLIT_LAYERS = {"flow"}
+SPLIT_LAYERS = {"flow", "moex"}
+# Context layers do not vote: their cells carry level 0..2 instead of a signal.
+CONTEXT_LAYERS = {"moex"}
 TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC")
 MAX_BYTES = 64 * 1024
 METRIC_MAX = 12  # same limits as next/matrix.js
@@ -69,11 +72,12 @@ def clean_layer(raw, layer_id, max_age_days, today):
         cell = cells.get(ticker)
         if cell is None:
             continue
-        if not isinstance(cell, dict) or cell.get("signal") not in (-1, 0, 1):
+        field, allowed = ("level", (0, 1, 2)) if layer_id in CONTEXT_LAYERS else ("signal", (-1, 0, 1))
+        if not isinstance(cell, dict) or cell.get(field) not in allowed:
             raise ValueError(f"bad cell for {ticker}")
-        if isinstance(cell["signal"], bool):
-            raise ValueError(f"bad signal for {ticker}")
-        clean = {"signal": cell["signal"]}
+        if isinstance(cell[field], bool):
+            raise ValueError(f"bad {field} for {ticker}")
+        clean = {field: cell[field]}
         for field, limit in (("metric", METRIC_MAX), ("note", NOTE_MAX)):
             if field in cell:
                 text = clean_text(cell[field], limit)

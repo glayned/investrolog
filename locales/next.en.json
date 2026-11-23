@@ -19,7 +19,7 @@
     "медвежий": "bearish",
     "нейтрально": "neutral",
     "нет данных": "no data",
-    "Согласие: не меньше 4 слоёв в одну сторону и ни одного против. Волатильность — контекст, в счёт не входит.": "Consensus: at least 4 layers pointing one way and none against. Volatility is context and does not count.",
+    "Согласие: не меньше 4 слоёв в одну сторону и ни одного против; счёт идёт от слоёв с данными. MOEX и волатильность — контекст, в счёт не входят.": "Consensus: at least 4 layers pointing one way and none against, counted over the layers with data. MOEX and volatility are context and do not count.",
     "Дальше по календарю": "Next on the calendar",
     "Доступ": "Access",
     "Что открыто, а что в Терминале": "What is open and what is in the Terminal",

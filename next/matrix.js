@@ -31,10 +31,11 @@
             report: date => `отчёт ${date}`,
             snapshot: stamp => `Снимок · ${stamp} МСК`,
             eventTime: time => `${time} МСК`,
-            verdictAligned: (c, dir) => `${c.lead} из ${c.total} слоёв ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir}, против — ни одного.`,
+            verdictAligned: (c, dir) => `${c.lead} из ${c.total} слоёв с данными ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir}, против — ни одного.`,
             verdictSplit: c => `Слои расходятся: ${c.bull} вверх, ${c.bear} вниз.`,
-            verdictShort: (c, dir, min) => `${c.lead} из ${c.total} слоёв ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir} — для согласия нужно не меньше ${min}.`,
+            verdictShort: (c, dir, min) => `${c.lead} из ${c.total} слоёв с данными ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir} — для согласия нужно не меньше ${min}.`,
             verdictNone: 'Ни один слой не даёт направления.',
+            verdictNoData: 'По этому рынку пока нет данных ни в одном слое.',
             inDays: (d, h) => `через ${d} д ${h} ч`,
             inHours: (h, m) => `через ${h} ч ${m} мин`,
             inMinutes: m => `через ${m} мин`,
@@ -65,10 +66,11 @@
             report: date => `report of ${date}`,
             snapshot: stamp => `Snapshot · ${stamp} MSK`,
             eventTime: time => `${time} MSK`,
-            verdictAligned: (c, dir) => `${c.lead} of ${c.total} layers ${c.lead === 1 ? 'points' : 'point'} ${dir}, none against.`,
+            verdictAligned: (c, dir) => `${c.lead} of ${c.total} layers with data ${c.lead === 1 ? 'points' : 'point'} ${dir}, none against.`,
             verdictSplit: c => `Layers disagree: ${c.bull} up, ${c.bear} down.`,
-            verdictShort: (c, dir, min) => `${c.lead} of ${c.total} layers ${c.lead === 1 ? 'points' : 'point'} ${dir} — consensus needs at least ${min}.`,
+            verdictShort: (c, dir, min) => `${c.lead} of ${c.total} layers with data ${c.lead === 1 ? 'points' : 'point'} ${dir} — consensus needs at least ${min}.`,
             verdictNone: 'No layer gives a direction.',
+            verdictNoData: 'No layer has data for this market yet.',
             inDays: (d, h) => `in ${d}d ${h}h`,
             inHours: (h, m) => `in ${h}h ${m}m`,
             inMinutes: m => `in ${m}m`,
@@ -113,6 +115,14 @@
         return typeof localized === 'string' && localized.length <= max ? localized.trim() : '';
     }
 
+    /* Labels of a context layer's three levels; without them the volatility wording is used */
+    function scale(value) {
+        const labels = value && typeof value === 'object' ? value[LANG] || value.ru : null;
+        return Array.isArray(labels) && labels.length === 3 && labels.every(l => text(l, 16))
+            ? labels.map(l => text(l, 16))
+            : null;
+    }
+
     function layerPath(value) {
         return typeof value === 'string' && /^\/next\/layers\/[a-z0-9_-]+\.json$/.test(value) ? value : null;
     }
@@ -127,7 +137,7 @@
     }
 
     function normalizeCell(raw, layer) {
-        const cell = { state: 'na', level: null, metric: '', note: '' };
+        const cell = { state: 'na', level: null, metric: '', note: '', scale: layer.scale };
         if (!raw || typeof raw !== 'object') return cell;
         if (layer.votes) {
             cell.state = { 1: 'bull', '-1': 'bear', 0: 'flat' }[raw.signal] || 'na';
@@ -155,6 +165,7 @@
                 short: text(l.short, 6) || text(l.label, 24),
                 horizon: l.horizon,
                 votes: l.votes === true,
+                scale: scale(l.scale),
                 about: text(l.about, 240),
                 closed: text(l.closed, 240),
                 url: httpsUrl(l.url),
@@ -203,6 +214,7 @@
         return [layer.live.source, T.report(reportFormat.format(layer.live.reportDate))].filter(Boolean).join(', ');
     }
 
+    /* Counted over the layers that have data; MIN_ALIGNED on one side still means at least that many have it */
     function consensus(instrument, voting) {
         const states = voting.map(layer => instrument.cells[layer.id].state);
         const bull = states.filter(s => s === 'bull').length;
@@ -210,7 +222,7 @@
         const lead = Math.max(bull, bear);
         return {
             states, bull, bear, lead,
-            total: voting.length,
+            total: states.filter(s => s !== 'na').length,
             dir: bull > bear ? 'bull' : bear > bull ? 'bear' : 'flat',
             aligned: lead >= MIN_ALIGNED && Math.min(bull, bear) === 0
         };
@@ -227,7 +239,7 @@
     function mark(cell) { return cell.state === 'ctx' ? meter(cell.level) : glyph(); }
 
     function stateLabel(cell) {
-        return cell.state === 'ctx' ? VOL_LABELS[cell.level] : STATE_LABELS[cell.state];
+        return cell.state === 'ctx' ? (cell.scale || VOL_LABELS)[cell.level] : STATE_LABELS[cell.state];
     }
 
     function scoreText(c) { return `${c.lead}/${c.total}`; }
@@ -321,7 +333,7 @@
         if (c.aligned) return T.verdictAligned(c, DIRECTION_WORDS[c.dir]);
         if (c.bull && c.bear) return T.verdictSplit(c);
         if (c.lead) return T.verdictShort(c, DIRECTION_WORDS[c.dir], MIN_ALIGNED);
-        return T.verdictNone;
+        return c.total ? T.verdictNone : T.verdictNoData;
     }
 
     function renderRowDetail(instrument) {
