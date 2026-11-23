@@ -3,6 +3,7 @@
   "layer": "options",
   "source": "InvestroLog Options",
   "report_date": "2026-11-20",
+  "valid_until": "2026-11-25",
   "cells": {
     "NG": {
       "signal": 1,
@@ -48,8 +49,8 @@
       "signal": 0,
       "metric": "RR p68",
       "note": {
-        "ru": "Скос около своей нормы. Risk reversal 25Δ — 68-й перцентиль за 93 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 1.1.",
-        "en": "Skew is near its usual level. 25Δ risk reversal is at percentile 68 of 93 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 1.1."
+        "ru": "Скос около своей нормы. Risk reversal 25Δ — 68-й перцентиль за 93 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 1.0.",
+        "en": "Skew is near its usual level. 25Δ risk reversal is at percentile 68 of 93 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 1.0."
       }
     }
   }

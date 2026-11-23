@@ -3,6 +3,7 @@
   "layer": "vol",
   "source": "InvestroLog Options",
   "report_date": "2026-11-20",
+  "valid_until": "2026-11-25",
   "cells": {
     "NG": {
       "level": 2,
