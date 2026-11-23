@@ -1,7 +1,9 @@
 import datetime as dt
 import http.client
+import http.server
 import json
 import tempfile
+import threading
 import unittest
 import urllib.error
 from pathlib import Path
@@ -152,6 +154,43 @@ class FetchTest(unittest.TestCase):
         sl.urllib.request.urlopen = lambda request, timeout: Response(big, str(len(big)))
         with self.assertRaises(ValueError):
             sl.fetch("https://x")
+
+
+class DisconnectTest(unittest.TestCase):
+    """A real server that promises a whole file and hangs up after the first bytes."""
+
+    def test_sync_keeps_the_fresh_copy_when_the_connection_drops(self):
+        whole = json.dumps(layer("sentiment")).encode("utf-8")
+        sent = []
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(whole)))
+                self.end_headers()
+                self.wfile.write(whole if sent else whole[:40])
+                sent.append(self.path)
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with tempfile.TemporaryDirectory() as folder:
+                copy = Path(folder) / "sentiment.json"
+                # First request is cut short and nothing is on the site yet: no file appears.
+                self.assertTrue(sl.sync("sentiment", 2, TODAY, base, Path(folder)).startswith("absent"))
+                self.assertEqual(sl.sync("sentiment", 2, TODAY, base, Path(folder)), "updated")
+                before = copy.read_text(encoding="utf-8")
+                sent.clear()
+                self.assertEqual(
+                    sl.sync("sentiment", 2, TODAY, base, Path(folder)), "kept (truncated response)")
+                self.assertEqual(copy.read_text(encoding="utf-8"), before)
+        finally:
+            server.shutdown()
+            server.server_close()
 
 
 if __name__ == "__main__":
