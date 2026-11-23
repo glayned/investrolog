@@ -59,6 +59,10 @@ def fetch(url):
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             body = response.read(MAX_BYTES + 1)
+            # read(n) returns a body cut short by a dropped connection without an error.
+            declared = response.headers.get("Content-Length")
+            if declared and declared.isdigit() and len(body) < min(int(declared), MAX_BYTES + 1):
+                raise Unavailable("truncated response")
     except urllib.error.HTTPError as error:
         if error.code == 404:
             raise  # the module has not published the file, or took it down
