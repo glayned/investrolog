@@ -108,6 +108,8 @@ def clean_regime(raw, layer_id, max_age_days, today):
     """Validated copy of the VIX regime file: a regime step, a curve shape and a percentile."""
     source, report_date = clean_header(raw, layer_id, max_age_days, today)
     regime, curve, rank = raw.get("regime"), raw.get("curve"), raw.get("vix_percentile")
+    if not isinstance(regime, str) or not isinstance(curve, str):
+        raise ValueError("bad regime or curve")
     if regime not in REGIMES or curve not in CURVES:
         raise ValueError("bad regime or curve")
     if isinstance(rank, bool) or not isinstance(rank, int) or not 0 <= rank <= 100:
