@@ -17,6 +17,7 @@ IAM token of the function's service account.
 """
 
 import datetime as dt
+import http.client
 import json
 import os
 import urllib.error
@@ -105,14 +106,14 @@ def handler(event, context):
     failures = []
     try:
         modified = list_layers(os.environ["LAYERS_BUCKET"], context.token["access_token"])
-    except (OSError, ValueError, KeyError, ET.ParseError) as error:
+    except (OSError, http.client.HTTPException, ValueError, KeyError, ET.ParseError) as error:
         modified = None
         failures.append(f"listing failed: {type(error).__name__}")
     due = workflows_due(modified, now)
     for workflow in due:
         try:
             dispatch(os.environ["GITHUB_REPO"], workflow, os.environ["GITHUB_TOKEN"])
-        except (OSError, RuntimeError) as error:
+        except (OSError, http.client.HTTPException, RuntimeError) as error:
             failures.append(f"{workflow} not started: {type(error).__name__}")
     changed = changed_keys(modified, now) if modified else []
     print(f"layers: {len(modified or {})}, changed: {changed}, due: {due}, failures: {failures}")

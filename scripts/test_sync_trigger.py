@@ -1,4 +1,5 @@
 import datetime as dt
+import http.client
 import unittest
 
 import sync_trigger as st
@@ -81,14 +82,16 @@ class HandlerTest(unittest.TestCase):
         st.dt = Module
 
     def test_failed_listing_still_starts_options_and_reports(self):
-        def fail(bucket, token):
-            raise OSError("storage is down")
+        for error in (OSError("storage is down"), http.client.IncompleteRead(b"<List")):
+            def fail(bucket, token, error=error):
+                raise error
 
-        st.list_layers = fail
-        self.clock(at(8, 45))
-        with self.assertRaises(RuntimeError):
-            st.handler({}, self.Context())
-        self.assertEqual(self.started, [st.OPTIONS_WORKFLOW])
+            st.list_layers = fail
+            self.clock(at(8, 45))
+            self.started.clear()
+            with self.assertRaises(RuntimeError):
+                st.handler({}, self.Context())
+            self.assertEqual(self.started, [st.OPTIONS_WORKFLOW])
 
     def test_one_failed_dispatch_does_not_stop_the_other(self):
         def dispatch(repo, workflow, token):
