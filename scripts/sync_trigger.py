@@ -61,8 +61,9 @@ def options_due(now):
 
 
 def workflows_due(modified, now):
+    """Workflows to start; `modified` is None when the bucket could not be listed."""
     due = []
-    if changed_keys(modified, now):
+    if modified and changed_keys(modified, now):
         due.append(SYNC_WORKFLOW)
     if options_due(now):
         due.append(OPTIONS_WORKFLOW)
@@ -100,9 +101,22 @@ def dispatch(repo, workflow, token):
 
 def handler(event, context):
     now = dt.datetime.now(dt.timezone.utc)
-    modified = list_layers(os.environ["LAYERS_BUCKET"], context.token["access_token"])
+    # The options database is in another bucket: a failed listing must not hold its run back.
+    failures = []
+    try:
+        modified = list_layers(os.environ["LAYERS_BUCKET"], context.token["access_token"])
+    except (OSError, ValueError, KeyError, ET.ParseError) as error:
+        modified = None
+        failures.append(f"listing failed: {type(error).__name__}")
     due = workflows_due(modified, now)
     for workflow in due:
-        dispatch(os.environ["GITHUB_REPO"], workflow, os.environ["GITHUB_TOKEN"])
-    print(f"layers: {len(modified)}, changed: {changed_keys(modified, now)}, started: {due}")
+        try:
+            dispatch(os.environ["GITHUB_REPO"], workflow, os.environ["GITHUB_TOKEN"])
+        except (OSError, RuntimeError) as error:
+            failures.append(f"{workflow} not started: {type(error).__name__}")
+    changed = changed_keys(modified, now) if modified else []
+    print(f"layers: {len(modified or {})}, changed: {changed}, due: {due}, failures: {failures}")
+    if failures:
+        # Seen in the function's error metric; the timer trigger retries the tick.
+        raise RuntimeError("; ".join(failures))
     return {"statusCode": 200, "body": json.dumps({"started": due})}

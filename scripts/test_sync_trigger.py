@@ -47,6 +47,68 @@ class SyncTriggerTest(unittest.TestCase):
         for hour, minute in ((4, 5), (4, 25), (5, 45), (9, 5)):
             self.assertEqual(st.workflows_due({}, at(hour, minute)), [])
 
+    def test_failed_listing_does_not_hold_back_options(self):
+        self.assertEqual(st.workflows_due(None, at(4, 45)), [st.OPTIONS_WORKFLOW])
+        self.assertEqual(st.workflows_due(None, at(10, 25)), [])
+
+
+class HandlerTest(unittest.TestCase):
+    """The handler with the network calls replaced."""
+
+    class Context:
+        token = {"access_token": "iam"}
+
+    def setUp(self):
+        self.saved = st.list_layers, st.dispatch, st.dt, dict(st.os.environ)
+        st.os.environ.update(LAYERS_BUCKET="bucket", GITHUB_REPO="o/r", GITHUB_TOKEN="t")
+        self.started = []
+        st.dispatch = lambda repo, workflow, token: self.started.append(workflow)
+
+    def tearDown(self):
+        st.list_layers, st.dispatch, st.dt, env = self.saved
+        st.os.environ.clear()
+        st.os.environ.update(env)
+
+    def clock(self, now):
+        class Clock(dt.datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return now
+
+        class Module:
+            datetime, timezone, timedelta = Clock, dt.timezone, dt.timedelta
+
+        st.dt = Module
+
+    def test_failed_listing_still_starts_options_and_reports(self):
+        def fail(bucket, token):
+            raise OSError("storage is down")
+
+        st.list_layers = fail
+        self.clock(at(8, 45))
+        with self.assertRaises(RuntimeError):
+            st.handler({}, self.Context())
+        self.assertEqual(self.started, [st.OPTIONS_WORKFLOW])
+
+    def test_one_failed_dispatch_does_not_stop_the_other(self):
+        def dispatch(repo, workflow, token):
+            if workflow == st.SYNC_WORKFLOW:
+                raise RuntimeError("GitHub answered 500")
+            self.started.append(workflow)
+
+        st.dispatch = dispatch
+        st.list_layers = lambda bucket, token: {"layers/moex/NG.json": at(4, 30)}
+        self.clock(at(4, 45))
+        with self.assertRaises(RuntimeError):
+            st.handler({}, self.Context())
+        self.assertEqual(self.started, [st.OPTIONS_WORKFLOW])
+
+    def test_quiet_tick_starts_nothing(self):
+        st.list_layers = lambda bucket, token: {"layers/moex/NG.json": at(4, 30)}
+        self.clock(at(10, 25))
+        self.assertEqual(st.handler({}, self.Context())["statusCode"], 200)
+        self.assertEqual(self.started, [])
+
 
 if __name__ == "__main__":
     unittest.main()
