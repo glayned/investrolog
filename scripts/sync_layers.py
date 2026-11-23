@@ -5,11 +5,16 @@ The matrix page only reads same-origin /next/layers/*.json. Each module
 publishes its layer to a public bucket; this script fetches it, keeps
 nothing but the fields the page uses, and writes it next to the site.
 A layer that is missing, malformed or stale is removed, so its column
-reads "no data" instead of showing an old signal.
+reads "no data" instead of showing an old signal. When the bucket does not
+answer, the copy already on the site stays until it goes stale itself.
+
+Every file gets `valid_until`: the page hides a layer after that day even
+if this script stopped running.
 """
 
 import argparse
 import datetime as dt
+import http.client
 import json
 import sys
 import urllib.error
@@ -45,10 +50,25 @@ EVENT_TITLE_MAX = 60
 EVENT_ASSET_MAX = 24
 
 
+class Unavailable(Exception):
+    """The bucket did not answer: this says nothing about the layer itself."""
+
+
 def fetch(url):
     request = urllib.request.Request(url, headers={"User-Agent": "InvestroLog-Layer-Sync/1.0"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        body = response.read(MAX_BYTES + 1)
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            body = response.read(MAX_BYTES + 1)
+            # read(n) returns a body cut short by a dropped connection without an error.
+            declared = response.headers.get("Content-Length")
+            if declared and declared.isdigit() and len(body) < min(int(declared), MAX_BYTES + 1):
+                raise Unavailable("truncated response")
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            raise  # the module has not published the file, or took it down
+        raise Unavailable(f"HTTP {error.code}") from error
+    except (OSError, http.client.HTTPException) as error:
+        raise Unavailable(type(error).__name__) from error
     if len(body) > MAX_BYTES:
         raise ValueError("layer file is too large")
     return json.loads(body.decode("utf-8"))
@@ -163,11 +183,22 @@ def clean_layer(raw, layer_id, max_age_days, today):
     }
 
 
-def fetch_split(base_url, layer_id, max_age_days, today):
+def load_fresh(path, layer_id, max_age_days, today):
+    """The layer file already on the site, or None if it is absent, unreadable or stale."""
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        return CLEANERS.get(layer_id, clean_layer)(raw, layer_id, max_age_days, today)
+    except (OSError, ValueError):
+        return None
+
+
+def fetch_split(base_url, layer_id, max_age_days, today, previous=None):
     """One layer assembled from per-ticker files; stale or bad files are skipped.
 
     The page shows one date per layer, so the layer takes the oldest date
-    among its cells: no cell is presented as fresher than it is.
+    among its cells: no cell is presented as fresher than it is. A ticker
+    whose file could not be fetched keeps its cell from `previous`, the
+    still fresh copy on the site, under that copy's date.
     """
     cells, source, oldest = {}, None, None
     for ticker in TICKERS:
@@ -177,7 +208,13 @@ def fetch_split(base_url, layer_id, max_age_days, today):
                 raise ValueError("unexpected ticker")
             part = clean_layer(
                 {**raw, "cells": {ticker: raw.get("cell")}}, layer_id, max_age_days, today)
-        except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
+        except Unavailable as error:
+            if not previous or ticker not in previous["cells"]:
+                print(f"{layer_id}/{ticker}: skipped ({error})")
+                continue
+            print(f"{layer_id}/{ticker}: kept ({error})")
+            part = {**previous, "cells": {ticker: previous["cells"][ticker]}}
+        except (urllib.error.URLError, ValueError) as error:
             print(f"{layer_id}/{ticker}: skipped ({error})")
             continue
         cells.update(part["cells"])
@@ -188,20 +225,41 @@ def fetch_split(base_url, layer_id, max_age_days, today):
     return {"schema": 1, "layer": layer_id, "source": source, "report_date": oldest, "cells": cells}
 
 
+def with_valid_until(layer, max_age_days):
+    """The layer with the last day it may be shown, placed after report_date."""
+    last_day = dt.date.fromisoformat(layer["report_date"]) + dt.timedelta(days=max_age_days)
+    result = {}
+    for key, value in layer.items():
+        result[key] = value
+        if key == "report_date":
+            result["valid_until"] = last_day.isoformat()
+    return result
+
+
+def remove(path, error):
+    if path.exists():
+        path.unlink()
+        return f"removed ({error})"
+    return f"absent ({error})"
+
+
 def sync(layer_id, max_age_days, today, base_url=BUCKET_URL, layers_dir=LAYERS_DIR):
     """Write or remove one layer file. Returns a short status string."""
     path = layers_dir / f"{layer_id}.json"
+    previous = load_fresh(path, layer_id, max_age_days, today)
     try:
         if layer_id in SPLIT_LAYERS:
-            raw = fetch_split(base_url, layer_id, max_age_days, today)
+            raw = fetch_split(base_url, layer_id, max_age_days, today, previous)
         else:
             raw = fetch(f"{base_url}/{layer_id}.json")
         layer = CLEANERS.get(layer_id, clean_layer)(raw, layer_id, max_age_days, today)
-    except (urllib.error.URLError, TimeoutError, ValueError, UnicodeDecodeError) as error:
-        if path.exists():
-            path.unlink()
-            return f"removed ({error})"
-        return f"absent ({error})"
+    except Unavailable as error:
+        if previous:
+            return f"kept ({error})"
+        return remove(path, error)
+    except (urllib.error.URLError, ValueError) as error:
+        return remove(path, error)
+    layer = with_valid_until(layer, max_age_days)
     text = json.dumps(layer, ensure_ascii=False, indent=2) + "\n"
     if path.exists() and path.read_text(encoding="utf-8") == text:
         return "unchanged"

@@ -87,7 +87,12 @@ class BuildLayers(unittest.TestCase):
         for secret in ("4321", "4288", "GCF27", "flip_strike", "futures_price"):
             self.assertNotIn(secret, text)
         for layer in layers.values():
-            self.assertEqual(set(layer), {"schema", "layer", "source", "report_date", "cells"})
+            self.assertEqual(
+                set(layer), {"schema", "layer", "source", "report_date", "valid_until", "cells"})
+            self.assertEqual(
+                layer["valid_until"],
+                (dt.date.fromisoformat(layer["report_date"])
+                 + dt.timedelta(days=umo.MAX_AGE_DAYS)).isoformat())
             for cell in layer["cells"].values():
                 self.assertLessEqual(len(cell["metric"]), 12)
                 self.assertTrue(all(0 < len(v) <= umo.NOTE_MAX for v in cell["note"].values()))

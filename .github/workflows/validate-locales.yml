@@ -27,3 +27,6 @@ jobs:
 
       - name: Test the layer sync trigger
         run: cd scripts && python3 test_sync_trigger.py
+
+      - name: Test the layer sync
+        run: cd scripts && python3 test_sync_layers.py

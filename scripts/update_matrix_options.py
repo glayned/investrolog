@@ -207,9 +207,12 @@ def build_layers(db, today):
                 cells[layer_id][ticker] = cell
                 dates[layer_id].append(date)
     # One date per layer: the oldest among its cells, so none looks fresher than it is.
+    # valid_until: the page hides the layer after that day even if this script stopped running.
     return {
         layer_id: {"schema": 1, "layer": layer_id, "source": SOURCE,
-                   "report_date": min(dates[layer_id]).isoformat(), "cells": layer_cells}
+                   "report_date": min(dates[layer_id]).isoformat(),
+                   "valid_until": (min(dates[layer_id]) + dt.timedelta(days=MAX_AGE_DAYS)).isoformat(),
+                   "cells": layer_cells}
         for layer_id, layer_cells in cells.items() if layer_cells
     }
 
