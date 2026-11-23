@@ -25,24 +25,18 @@
     },
     "GC": {
       "signal": 0,
-      "metric": {
-        "ru": "тихо",
-        "en": "quiet"
-      },
+      "metric": "×4.1",
       "note": {
-        "ru": "За сутки всплесков объёма не было.",
-        "en": "No volume spikes over the last day."
+        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×4.1 к среднему объёму.",
+        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×4.1 the average volume."
       }
     },
     "SI": {
       "signal": 0,
-      "metric": {
-        "ru": "тихо",
-        "en": "quiet"
-      },
+      "metric": "×5.1",
       "note": {
-        "ru": "За сутки всплесков объёма не было.",
-        "en": "No volume spikes over the last day."
+        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×5.1 к среднему объёму.",
+        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×5.1 the average volume."
       }
     },
     "CC": {
