@@ -2,8 +2,8 @@
   "schema": 1,
   "layer": "flow",
   "source": "Cloud Detected",
-  "report_date": "2026-11-23",
-  "valid_until": "2026-11-26",
+  "report_date": "2026-11-24",
+  "valid_until": "2026-11-27",
   "cells": {
     "NG": {
       "signal": 0,
