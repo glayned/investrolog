@@ -8,8 +8,8 @@
     "NG": {
       "signal": 0,
       "metric": {
-        "ru": "быки 57%",
-        "en": "bulls 57%"
+        "ru": "быки 55%",
+        "en": "bulls 55%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -19,8 +19,8 @@
     "CL": {
       "signal": 0,
       "metric": {
-        "ru": "быки 66%",
-        "en": "bulls 66%"
+        "ru": "быки 67%",
+        "en": "bulls 67%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
@@ -30,8 +30,8 @@
     "GC": {
       "signal": 0,
       "metric": {
-        "ru": "медведи 54%",
-        "en": "bears 54%"
+        "ru": "медведи 51%",
+        "en": "bears 51%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
@@ -41,23 +41,19 @@
     "SI": {
       "signal": 0,
       "metric": {
-        "ru": "быки 51%",
-        "en": "bulls 51%"
+        "ru": "медведи 51%",
+        "en": "bears 51%"
       },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
-        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
+        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
+        "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
       }
     },
     "CC": {
       "signal": 0,
-      "metric": {
-        "ru": "быки 83%",
-        "en": "bulls 83%"
-      },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
-        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
+        "ru": "Контрарного сигнала за последние сутки нет. Комментариев слишком мало, чтобы оценить перекос толпы.",
+        "en": "No contrarian signal in the last 24 hours. Too few comments to measure the crowd skew."
       }
     }
   }
