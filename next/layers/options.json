@@ -41,8 +41,8 @@
       "signal": 1,
       "metric": "RR p75",
       "note": {
-        "ru": "Скос сдвинут к колам сильнее обычного. Risk reversal 25Δ — 75-й перцентиль за 108 торг. дн. Колы дороже путов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.4.",
-        "en": "Skew leans towards calls more than usual. 25Δ risk reversal is at percentile 75 of 108 sessions. Calls are priced above puts. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.4."
+        "ru": "Скос сдвинут к колам сильнее обычного. Risk reversal 25Δ — 75-й перцентиль за 108 торг. дн. Колы дороже путов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.3.",
+        "en": "Skew leans towards calls more than usual. 25Δ risk reversal is at percentile 75 of 108 sessions. Calls are priced above puts. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.3."
       }
     },
     "KC": {
