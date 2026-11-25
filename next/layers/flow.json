@@ -2,15 +2,15 @@
   "schema": 1,
   "layer": "flow",
   "source": "Cloud Detected",
-  "report_date": "2026-11-24",
-  "valid_until": "2026-11-27",
+  "report_date": "2026-11-25",
+  "valid_until": "2026-11-28",
   "cells": {
     "NG": {
       "signal": 0,
       "metric": "×7.5",
       "note": {
-        "ru": "Всплесков объёма за сутки: 6, перевеса одной стороны нет; крупнейший — ×7.5 к среднему объёму.",
-        "en": "Volume spikes over the last day: 6, neither side dominates; the largest was ×7.5 the average volume."
+        "ru": "Всплесков объёма за сутки: 7, перевеса одной стороны нет; крупнейший — ×7.5 к среднему объёму.",
+        "en": "Volume spikes over the last day: 7, neither side dominates; the largest was ×7.5 the average volume."
       }
     },
     "CL": {
@@ -25,24 +25,24 @@
       "signal": 0,
       "metric": "×7.0",
       "note": {
-        "ru": "Всплесков объёма за сутки: 13, перевеса одной стороны нет; крупнейший — ×7.0 к среднему объёму.",
-        "en": "Volume spikes over the last day: 13, neither side dominates; the largest was ×7.0 the average volume."
+        "ru": "Всплесков объёма за сутки: 12, перевеса одной стороны нет; крупнейший — ×7.0 к среднему объёму.",
+        "en": "Volume spikes over the last day: 12, neither side dominates; the largest was ×7.0 the average volume."
       }
     },
     "SI": {
       "signal": 0,
-      "metric": "×18.6",
+      "metric": "×13.7",
       "note": {
-        "ru": "Всплесков объёма за сутки: 22, перевеса одной стороны нет; крупнейший — ×18.6 к среднему объёму.",
-        "en": "Volume spikes over the last day: 22, neither side dominates; the largest was ×18.6 the average volume."
+        "ru": "Всплесков объёма за сутки: 24, перевеса одной стороны нет; крупнейший — ×13.7 к среднему объёму.",
+        "en": "Volume spikes over the last day: 24, neither side dominates; the largest was ×13.7 the average volume."
       }
     },
     "CC": {
       "signal": 1,
       "metric": "×18.0",
       "note": {
-        "ru": "Всплесков объёма за сутки: 3, перевес на стороне покупки; крупнейший — ×18.0 к среднему объёму.",
-        "en": "Volume spikes over the last day: 3, the balance favours buyers; the largest was ×18.0 the average volume."
+        "ru": "Всплесков объёма за сутки: 4, перевес на стороне покупки; крупнейший — ×18.0 к среднему объёму.",
+        "en": "Volume spikes over the last day: 4, the balance favours buyers; the largest was ×18.0 the average volume."
       }
     },
     "KC": {
