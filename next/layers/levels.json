@@ -38,11 +38,11 @@
       }
     },
     "CC": {
-      "signal": 0,
+      "signal": 1,
       "metric": "> VWAP",
       "note": {
-        "ru": "Направленного внутридневного режима нет: рынок в диапазоне или сигналы расходятся.",
-        "en": "No directional intraday regime: the market is ranging or the signals disagree."
+        "ru": "Цена выше VWAP, скользящие выстроены вверх: внутридневной режим бычий.",
+        "en": "Price is above VWAP and the moving averages are stacked up: the intraday regime is bullish."
       }
     }
   }
