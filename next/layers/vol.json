@@ -2,55 +2,55 @@
   "schema": 1,
   "layer": "vol",
   "source": "InvestroLog Options",
-  "report_date": "2026-11-23",
-  "valid_until": "2026-11-28",
+  "report_date": "2026-11-24",
+  "valid_until": "2026-11-29",
   "cells": {
     "NG": {
       "level": 2,
-      "metric": "IV p95",
+      "metric": "IV p96",
       "note": {
-        "ru": "ATM IV 83% — 95-й перцентиль за 109 торг. дн. Историческая за 20 дн. — 43%.",
-        "en": "ATM IV 83% is at percentile 95 of 109 sessions. 20-day realised is 43%."
+        "ru": "ATM IV 86% — 96-й перцентиль за 110 торг. дн. Историческая за 20 дн. — 45%.",
+        "en": "ATM IV 86% is at percentile 96 of 110 sessions. 20-day realised is 45%."
       }
     },
     "CL": {
       "level": 0,
-      "metric": "IV p43",
+      "metric": "IV p38",
       "note": {
-        "ru": "ATM IV 47% — 43-й перцентиль за 112 торг. дн. Историческая за 20 дн. — 50%.",
-        "en": "ATM IV 47% is at percentile 43 of 112 sessions. 20-day realised is 50%."
+        "ru": "ATM IV 47% — 38-й перцентиль за 113 торг. дн. Историческая за 20 дн. — 52%.",
+        "en": "ATM IV 47% is at percentile 38 of 113 sessions. 20-day realised is 52%."
       }
     },
     "GC": {
       "level": 2,
       "metric": "IV p99",
       "note": {
-        "ru": "ATM IV 27% — 99-й перцентиль за 109 торг. дн. Историческая за 20 дн. — 34%.",
-        "en": "ATM IV 27% is at percentile 99 of 109 sessions. 20-day realised is 34%."
+        "ru": "ATM IV 29% — 99-й перцентиль за 110 торг. дн. Историческая за 20 дн. — 35%.",
+        "en": "ATM IV 29% is at percentile 99 of 110 sessions. 20-day realised is 35%."
       }
     },
     "SI": {
       "level": 2,
-      "metric": "IV p93",
+      "metric": "IV p99",
       "note": {
-        "ru": "ATM IV 46% — 93-й перцентиль за 109 торг. дн. Историческая за 20 дн. — 55%.",
-        "en": "ATM IV 46% is at percentile 93 of 109 sessions. 20-day realised is 55%."
+        "ru": "ATM IV 51% — 99-й перцентиль за 110 торг. дн. Историческая за 20 дн. — 57%.",
+        "en": "ATM IV 51% is at percentile 99 of 110 sessions. 20-day realised is 57%."
       }
     },
     "CC": {
       "level": 0,
       "metric": "IV p15",
       "note": {
-        "ru": "ATM IV 41% — 15-й перцентиль за 108 торг. дн. Историческая за 20 дн. — 40%.",
-        "en": "ATM IV 41% is at percentile 15 of 108 sessions. 20-day realised is 40%."
+        "ru": "ATM IV 41% — 15-й перцентиль за 109 торг. дн. Историческая за 20 дн. — 40%.",
+        "en": "ATM IV 41% is at percentile 15 of 109 sessions. 20-day realised is 40%."
       }
     },
     "KC": {
       "level": 0,
-      "metric": "IV p5",
+      "metric": "IV p9",
       "note": {
-        "ru": "ATM IV 36% — 5-й перцентиль за 94 торг. дн. Историческая за 20 дн. — 25%.",
-        "en": "ATM IV 36% is at percentile 5 of 94 sessions. 20-day realised is 25%."
+        "ru": "ATM IV 36% — 9-й перцентиль за 95 торг. дн. Историческая за 20 дн. — 25%.",
+        "en": "ATM IV 36% is at percentile 9 of 95 sessions. 20-day realised is 25%."
       }
     }
   }
