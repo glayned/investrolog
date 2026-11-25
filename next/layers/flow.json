@@ -25,16 +25,16 @@
       "signal": 0,
       "metric": "×7.0",
       "note": {
-        "ru": "Всплесков объёма за сутки: 12, перевеса одной стороны нет; крупнейший — ×7.0 к среднему объёму.",
-        "en": "Volume spikes over the last day: 12, neither side dominates; the largest was ×7.0 the average volume."
+        "ru": "Всплесков объёма за сутки: 13, перевеса одной стороны нет; крупнейший — ×7.0 к среднему объёму.",
+        "en": "Volume spikes over the last day: 13, neither side dominates; the largest was ×7.0 the average volume."
       }
     },
     "SI": {
       "signal": 0,
       "metric": "×18.6",
       "note": {
-        "ru": "Всплесков объёма за сутки: 24, перевеса одной стороны нет; крупнейший — ×18.6 к среднему объёму.",
-        "en": "Volume spikes over the last day: 24, neither side dominates; the largest was ×18.6 the average volume."
+        "ru": "Всплесков объёма за сутки: 23, перевеса одной стороны нет; крупнейший — ×18.6 к среднему объёму.",
+        "en": "Volume spikes over the last day: 23, neither side dominates; the largest was ×18.6 the average volume."
       }
     },
     "CC": {
