@@ -15,26 +15,29 @@
     },
     "CL": {
       "signal": 0,
-      "metric": "×4.3",
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
       "note": {
-        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×4.3 к среднему объёму. Данные по Brent.",
-        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×4.3 the average volume. Based on Brent."
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
       }
     },
     "GC": {
       "signal": 0,
       "metric": "×10.5",
       "note": {
-        "ru": "Всплесков объёма за сутки: 8, перевеса одной стороны нет; крупнейший — ×10.5 к среднему объёму.",
-        "en": "Volume spikes over the last day: 8, neither side dominates; the largest was ×10.5 the average volume."
+        "ru": "Всплесков объёма за сутки: 6, перевеса одной стороны нет; крупнейший — ×10.5 к среднему объёму.",
+        "en": "Volume spikes over the last day: 6, neither side dominates; the largest was ×10.5 the average volume."
       }
     },
     "SI": {
       "signal": 0,
       "metric": "×13.7",
       "note": {
-        "ru": "Всплесков объёма за сутки: 21, перевеса одной стороны нет; крупнейший — ×13.7 к среднему объёму.",
-        "en": "Volume spikes over the last day: 21, neither side dominates; the largest was ×13.7 the average volume."
+        "ru": "Всплесков объёма за сутки: 22, перевеса одной стороны нет; крупнейший — ×13.7 к среднему объёму.",
+        "en": "Volume spikes over the last day: 22, neither side dominates; the largest was ×13.7 the average volume."
       }
     },
     "CC": {
