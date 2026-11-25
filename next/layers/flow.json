@@ -6,11 +6,11 @@
   "valid_until": "2026-11-28",
   "cells": {
     "NG": {
-      "signal": 0,
-      "metric": "×7.5",
+      "signal": 1,
+      "metric": "×9.1",
       "note": {
-        "ru": "Всплесков объёма за сутки: 7, перевеса одной стороны нет; крупнейший — ×7.5 к среднему объёму.",
-        "en": "Volume spikes over the last day: 7, neither side dominates; the largest was ×7.5 the average volume."
+        "ru": "Всплесков объёма за сутки: 8, перевес на стороне покупки; крупнейший — ×9.1 к среднему объёму.",
+        "en": "Volume spikes over the last day: 8, the balance favours buyers; the largest was ×9.1 the average volume."
       }
     },
     "CL": {
@@ -33,8 +33,8 @@
       "signal": 0,
       "metric": "×13.7",
       "note": {
-        "ru": "Всплесков объёма за сутки: 24, перевеса одной стороны нет; крупнейший — ×13.7 к среднему объёму.",
-        "en": "Volume spikes over the last day: 24, neither side dominates; the largest was ×13.7 the average volume."
+        "ru": "Всплесков объёма за сутки: 26, перевеса одной стороны нет; крупнейший — ×13.7 к среднему объёму.",
+        "en": "Volume spikes over the last day: 26, neither side dominates; the largest was ×13.7 the average volume."
       }
     },
     "CC": {
