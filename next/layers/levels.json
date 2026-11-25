@@ -15,7 +15,7 @@
     },
     "CL": {
       "signal": 0,
-      "metric": "< VWAP",
+      "metric": "> VWAP",
       "note": {
         "ru": "Направленного внутридневного режима нет: рынок в диапазоне или сигналы расходятся.",
         "en": "No directional intraday regime: the market is ranging or the signals disagree."
