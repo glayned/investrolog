@@ -23,8 +23,8 @@
         "en": "INST p54"
       },
       "note": {
-        "ru": "Чистая позиция юрлиц MOEX — шорт, 54-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 67% из них. События за сутки: ▲1 ▼0. Данные по Brent.",
-        "en": "MOEX institutions are net short, 54th percentile over 250 trading days; retail mirrors them, 67% of retail traders are long. Events over the last day: ▲1 ▼0. Based on Brent."
+        "ru": "Чистая позиция юрлиц MOEX — шорт, 54-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 67% из них. Событий с подтверждённым направлением за сутки не было. Данные по Brent.",
+        "en": "MOEX institutions are net short, 54th percentile over 250 trading days; retail mirrors them, 67% of retail traders are long. No events with a confirmed direction over the last day. Based on Brent."
       }
     },
     "GC": {
