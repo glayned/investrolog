@@ -6,11 +6,11 @@
   "valid_until": "2026-11-29",
   "cells": {
     "NG": {
-      "signal": 0,
+      "signal": -1,
       "metric": "×5.3",
       "note": {
-        "ru": "Всплесков объёма за сутки: 9, перевеса одной стороны нет; крупнейший — ×5.3 к среднему объёму.",
-        "en": "Volume spikes over the last day: 9, neither side dominates; the largest was ×5.3 the average volume."
+        "ru": "Всплесков объёма за сутки: 8, перевес на стороне продажи; крупнейший — ×5.3 к среднему объёму.",
+        "en": "Volume spikes over the last day: 8, the balance favours sellers; the largest was ×5.3 the average volume."
       }
     },
     "CL": {
