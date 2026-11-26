@@ -2,49 +2,7 @@
   "schema": 1,
   "layer": "calendar",
   "source": "InvestroLog Calendar",
-  "report_date": "2026-11-25",
-  "valid_until": "2026-12-03",
-  "events": [
-    {
-      "title": {
-        "ru": "Core PCE",
-        "en": "Core PCE"
-      },
-      "asset": {
-        "ru": "все рынки",
-        "en": "all markets"
-      },
-      "at": "2026-11-25T13:30:00Z"
-    },
-    {
-      "title": {
-        "ru": "EIA: запасы нефти",
-        "en": "EIA crude stocks"
-      },
-      "asset": {
-        "ru": "Нефть",
-        "en": "Crude Oil"
-      },
-      "at": "2026-11-25T15:30:00Z"
-    },
-    {
-      "title": {
-        "ru": "EIA: запасы газа",
-        "en": "EIA gas storage"
-      },
-      "asset": "NG",
-      "at": "2026-11-25T17:00:00Z"
-    },
-    {
-      "title": {
-        "ru": "Baker Hughes: буровые",
-        "en": "Baker Hughes rig count"
-      },
-      "asset": {
-        "ru": "Нефть",
-        "en": "Crude Oil"
-      },
-      "at": "2026-11-25T18:00:00Z"
-    }
-  ]
+  "report_date": "2026-11-26",
+  "valid_until": "2026-12-04",
+  "events": []
 }
