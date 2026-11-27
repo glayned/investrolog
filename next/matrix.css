@@ -3,7 +3,7 @@
     --bear: #b93a2c;
     --bull-tint: rgba(28, 128, 72, 0.09);
     --bear-tint: rgba(185, 58, 44, 0.08);
-    --cmx-cols: minmax(112px, 1.3fr) repeat(7, minmax(0, 1fr)) minmax(112px, 1.3fr);
+    --cmx-cols: 92px repeat(7, minmax(0, 1fr)) minmax(112px, 1.3fr);
     --cmx-gap: 4px;
     --cmx-cell-h: 54px;
 }
@@ -460,24 +460,23 @@
 
 @media (max-width: 768px) {
     :root {
-        --cmx-cols: 46px repeat(7, minmax(0, 1fr)) 56px;
+        --cmx-cols: 32px repeat(7, minmax(0, 1fr)) 52px;
         --cmx-gap: 3px;
         --cmx-cell-h: 44px;
     }
     .cmx-wrap { padding: 16px 10px 14px; }
     .cmx-toolbar { margin-bottom: 14px; }
     .cmx-meta { font-size: 9px; letter-spacing: 1.2px; }
-    .cmx-horizon { font-size: 7px; letter-spacing: 0.6px; }
+    .cmx-horizon { padding: 0 0 6px; font-size: 7px; letter-spacing: 0.2px; }
     .cmx-col { font-size: 8px; letter-spacing: 0.4px; }
     .cmx-col .cmx-long { display: none; }
     .cmx-col .cmx-short { display: inline; }
-    /* Four-letter labels do not fit beside the dot: every column stacks it above */
-    .cmx-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
-    .cmx-col.is-live::before { margin-right: 0; }
-    .cmx-name { padding: 0 4px; }
+    .cmx-col { letter-spacing: 0.2px; white-space: nowrap; }
+    .cmx-col.is-live::before { width: 4px; height: 4px; margin-right: 3px; }
+    .cmx-name { padding: 0; align-items: center; }
     .cmx-ticker { font-size: 12px; letter-spacing: 0.5px; }
     .cmx-fullname, .cmx-metric { display: none; }
-    .cmx-sum { padding: 0 5px; gap: 6px; }
+    .cmx-sum { padding: 0 4px; gap: 6px; }
     .cmx-score { font-size: 10px; }
     .cmx-row.is-aligned::before { left: -6px; }
     .cmx-detail { grid-template-columns: 1fr; gap: 20px; padding: 20px 18px; }
@@ -489,4 +488,10 @@
     .access-col, .subscribe { padding: 22px 20px; }
     .subscribe-row { flex-wrap: wrap; }
     .subscribe-row .btn { flex: 1 1 100%; }
+}
+
+/* Below 360px a four-letter label no longer fits beside its dot: every column stacks it above */
+@media (max-width: 359px) {
+    .cmx-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+    .cmx-col.is-live::before { margin-right: 0; }
 }
