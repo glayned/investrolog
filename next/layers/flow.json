@@ -2,15 +2,15 @@
   "schema": 1,
   "layer": "flow",
   "source": "Cloud Detected",
-  "report_date": "2026-11-26",
-  "valid_until": "2026-11-29",
+  "report_date": "2026-11-27",
+  "valid_until": "2026-11-30",
   "cells": {
     "NG": {
       "signal": -1,
-      "metric": "×4.3",
+      "metric": "×4.5",
       "note": {
-        "ru": "Всплесков объёма за сутки: 4, перевес на стороне продажи; крупнейший — ×4.3 к среднему объёму.",
-        "en": "Volume spikes over the last day: 4, the balance favours sellers; the largest was ×4.3 the average volume."
+        "ru": "Всплесков объёма за сутки: 5, перевес на стороне продажи; крупнейший — ×4.5 к среднему объёму.",
+        "en": "Volume spikes over the last day: 5, the balance favours sellers; the largest was ×4.5 the average volume."
       }
     },
     "CL": {
@@ -42,18 +42,24 @@
     },
     "CC": {
       "signal": 0,
-      "metric": "×4.3",
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
       "note": {
-        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×4.3 к среднему объёму.",
-        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×4.3 the average volume."
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
       }
     },
     "KC": {
-      "signal": 1,
-      "metric": "×6.2",
+      "signal": 0,
+      "metric": {
+        "ru": "тихо",
+        "en": "quiet"
+      },
       "note": {
-        "ru": "Всплесков объёма за сутки: 2, перевес на стороне покупки; крупнейший — ×6.2 к среднему объёму.",
-        "en": "Volume spikes over the last day: 2, the balance favours buyers; the largest was ×6.2 the average volume."
+        "ru": "За сутки всплесков объёма не было.",
+        "en": "No volume spikes over the last day."
       }
     }
   }
