@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-27",
-  "captured_at": "2026-11-27T19:26:11Z",
+  "captured_at": "2026-11-27T20:06:13Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -150,7 +150,7 @@
         },
         "flow": {
           "signal": 0,
-          "metric": "×3.2"
+          "metric": "×3.4"
         },
         "levels": {
           "signal": 1,
@@ -195,7 +195,7 @@
           }
         },
         "flow": {
-          "signal": 0,
+          "signal": 1,
           "metric": "×9.3"
         },
         "levels": {
@@ -215,9 +215,9 @@
         }
       },
       "consensus": {
-        "bull": 2,
+        "bull": 3,
         "bear": 1,
-        "lead": 2,
+        "lead": 3,
         "total": 5,
         "dir": "bull",
         "aligned": false
