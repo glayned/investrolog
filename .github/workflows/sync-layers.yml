@@ -24,9 +24,15 @@ jobs:
       - name: Fetch and validate the public layer files
         run: python3 scripts/sync_layers.py
 
+      - name: Keep the snapshot of the current trading day
+        id: archive
+        # A failed snapshot must not hold back the layer files.
+        continue-on-error: true
+        run: python3 scripts/archive_matrix.py
+
       - name: Commit changed layer files
         run: |
-          git add -A next/layers
+          git add -A next/layers next/archive
           if git diff --cached --quiet; then
             echo "Layers are unchanged."
             exit 0
@@ -41,3 +47,7 @@ jobs:
             sleep 5
           done
           exit 1
+
+      - name: Report a failed snapshot
+        if: steps.archive.outcome == 'failure'
+        run: exit 1
