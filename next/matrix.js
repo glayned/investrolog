@@ -471,9 +471,9 @@
 
     const mskDay = new Intl.DateTimeFormat('en-CA', { timeZone: MSK });
 
-    /* An empty strip is stated in words, but only by a calendar written today: a stale file stays silent */
+    /* An empty strip is stated in words, but only by a calendar written on this Moscow day: a stale file stays silent */
     function emptyDay(events, writtenOn, now) {
-        if (writtenOn !== new Date(now).toISOString().slice(0, 10)) return null;
+        if (writtenOn !== mskDay.format(now)) return null;
         if (events.some(e => e.at.getTime() > now)) return null;
         return events.some(e => mskDay.format(e.at) === mskDay.format(now)) ? 'done' : 'none';
     }

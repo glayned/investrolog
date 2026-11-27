@@ -22,8 +22,12 @@ class EmptyCalendarDayTest(unittest.TestCase):
             ([pce], "2026-11-27", "2026-11-27T13:30:00Z", "done"),  # the last release of the day is out
             (["2026-11-26T13:30:00Z"], "2026-11-27", "2026-11-27T12:00:00Z", "none"),
             # 20:30 UTC of the 26th is still the 26th in Moscow, 21:30 UTC is already the 27th
-            (["2026-11-26T20:30:00Z"], "2026-11-27", "2026-11-27T00:10:00Z", "none"),
-            (["2026-11-26T21:30:00Z"], "2026-11-27", "2026-11-27T00:10:00Z", "done"),
+            (["2026-11-26T20:30:00Z"], "2026-11-27", "2026-11-27T05:10:00Z", "none"),
+            (["2026-11-26T21:30:00Z"], "2026-11-27", "2026-11-27T05:10:00Z", "done"),
+            # after Moscow midnight the file of the past Moscow day no longer speaks for "today"
+            ([], "2026-11-27", "2026-11-27T20:59:00Z", "none"),
+            ([], "2026-11-27", "2026-11-27T21:00:00Z", None),
+            ([pce], "2026-11-27", "2026-11-27T21:30:00Z", None),
         ]
         script = (
             "const mskDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow' });\n"
