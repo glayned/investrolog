@@ -33,3 +33,5 @@ jobs:
 
       - name: Test the matrix archive
         run: cd scripts && python3 test_archive_matrix.py
+      - name: Test the matrix page rules
+        run: cd scripts && python3 test_matrix_page.py
