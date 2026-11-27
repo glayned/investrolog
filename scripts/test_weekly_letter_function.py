@@ -240,6 +240,35 @@ class Sending(unittest.TestCase):
         self.assertEqual(self.run_week(bucket)["inactive"], 1)
         self.assertEqual(self.sent, [])
 
+    def test_run_stops_before_the_deadline_and_leaves_no_marker(self):
+        bucket = FakeBucket([member(f"u{n}@example.com") for n in range(3)])
+        clock = iter([True, False, False])
+        done = self.run_week(bucket, has_time=lambda: next(clock))
+        self.assertEqual((done["sent"], done["left"]), (1, 2))
+        self.assertEqual((self.run_week(bucket)["sent"], len(self.sent)), (2, 3))
+
+
+class Calling(unittest.TestCase):
+    TIMER = {"messages": [{"event_metadata": {"event_type": weekly.TIMER_EVENT}, "details": {"trigger_id": "t"}}]}
+
+    def test_only_a_timer_or_an_explicit_command_sends_to_everyone(self):
+        self.assertEqual(weekly._request(self.TIMER), {"send": "all"})
+        self.assertEqual(weekly._request({"send": "all"}).get("send"), "all")
+        for event in ({}, None, "x", {"messages": []}, {"messages": [{"event_metadata": {"event_type": "other"}}]}):
+            self.assertNotEqual(weekly._request(event).get("send"), "all")
+
+    def test_https_call_is_unwrapped(self):
+        wrapped = {"httpMethod": "POST", "body": '{"test_to": "a@example.com"}', "isBase64Encoded": False}
+        self.assertEqual(weekly._request(wrapped), {"test_to": "a@example.com"})
+        packed = {"httpMethod": "POST", "body": "eyJ0ZXN0X3RvIjogImFAZXhhbXBsZS5jb20ifQ==", "isBase64Encoded": True}
+        self.assertEqual(weekly._request(packed), {"test_to": "a@example.com"})
+        for body in ("", "not json", "[]", None):
+            self.assertEqual(weekly._request({"httpMethod": "POST", "body": body}), {})
+
+    def test_unknown_call_sends_nothing(self):
+        for event in ({}, {"httpMethod": "POST", "body": ""}, {"lang": "en"}):
+            self.assertEqual(weekly.handler(event, None)["ok"], False)
+
 
 if __name__ == "__main__":
     unittest.main()

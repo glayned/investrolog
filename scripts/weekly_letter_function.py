@@ -4,7 +4,7 @@ A Yandex Cloud Function released by hand together with
 `subscribe_function.py`, whose bucket, tokens and Postbox call it reuses. It
 has no public access: a timer or the owner invokes it.
 
-    {}                          -> the finished week goes to every active subscriber
+    a timer message, or {"send": "all"}  -> the finished week goes to every active subscriber
     {"test_to": "a@b.c"}        -> one letter to this address only, nothing is recorded
     {"test_to": ..., "lang": "en"}
     {"test_to": ..., "week": "2026-11-23"}  -> the week of that date instead of the last finished one
@@ -20,6 +20,7 @@ so a second run for the same week sends only what the first one did not.
 Environment: SUBSCRIBERS_BUCKET, TOKEN_SECRET, and optionally MAIL_FROM.
 """
 
+import base64
 import datetime as dt
 import html
 import json
@@ -37,6 +38,8 @@ MOSCOW = dt.timezone(dt.timedelta(hours=3))
 # Postbox accepts one letter a second and 200 a day; signups need a share of the day.
 SEND_PAUSE_SEC = 1.1
 RUN_LETTERS = 150
+DEADLINE_RESERVE_MS = 30_000
+TIMER_EVENT = "yandex.cloud.events.serverless.triggers.TimerMessage"
 
 BULL, BEAR, FLAT = "#3ecf7a", "#ef5b4c", "#6f6f6f"
 TINT = {"bull": "#172c21", "bear": "#301b1a"}
@@ -247,8 +250,13 @@ def unsubscribe_link(secret, ident, lang):
     return f"{sub.SITE}{TEXT[lang]['page']}?unsubscribe={token}#subscribe"
 
 
-def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=RUN_LETTERS):
-    """Send the week to every active subscriber once. Returns the counts of the run."""
+def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=RUN_LETTERS, has_time=lambda: True):
+    """Send the week to every active subscriber once. Returns the counts of the run.
+
+    The marker is written before the letter leaves, so a run that dies between
+    the two skips that address rather than mailing it twice; `has_time` stops
+    the run before the function deadline can cut it there.
+    """
     done = {"sent": 0, "already": 0, "inactive": 0, "failed": 0, "left": 0}
     prefix = f"weekly/{week['monday'].isoformat()}/"
     for key in list_keys("subscribers/"):
@@ -256,7 +264,7 @@ def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=R
         if bucket.get(f"{prefix}{ident}.json"):
             done["already"] += 1
             continue
-        if done["sent"] + done["failed"] >= limit:
+        if done["sent"] + done["failed"] >= limit or not has_time():
             done["left"] += 1
             continue
         member = bucket.get(key)
@@ -304,9 +312,33 @@ def _list_keys(bucket_name, iam_token, prefix):
         token = html.unescape(found.group(1))
 
 
+def _request(event):
+    """The call as `{"test_to": ...}` or `{"send": "all"}`; anything else is not a command to send."""
+    if not isinstance(event, dict):
+        return {}
+    if "httpMethod" in event or "body" in event:
+        # An HTTPS call without `?integration=raw` wraps the JSON into `body`.
+        try:
+            body = event.get("body") or ""
+            if event.get("isBase64Encoded"):
+                body = base64.b64decode(body).decode("utf-8")
+            event = json.loads(body)
+        except (ValueError, TypeError):
+            return {}
+        if not isinstance(event, dict):
+            return {}
+    messages = event.get("messages")
+    if isinstance(messages, list) and messages and all(
+            isinstance(m, dict) and (m.get("event_metadata") or {}).get("event_type") == TIMER_EVENT for m in messages):
+        return {"send": "all"}
+    return event
+
+
 def handler(event, context):
     now = dt.datetime.now(dt.timezone.utc)
-    event = event if isinstance(event, dict) else {}
+    event = _request(event)
+    if "test_to" not in event and event.get("send") != "all":
+        return {"ok": False, "error": "nothing to send: expected a timer, send=all or test_to"}
     iam_token = context.token["access_token"]
     secret = os.environ["TOKEN_SECRET"]
     sender = os.environ.get("MAIL_FROM", sub.MAIL_FROM)
@@ -337,5 +369,6 @@ def handler(event, context):
     bucket_name = os.environ["SUBSCRIBERS_BUCKET"]
     done = send_week(week, sub.Bucket(bucket_name, iam_token),
                      lambda prefix: _list_keys(bucket_name, iam_token, prefix),
-                     send, secret, pause=lambda: time.sleep(SEND_PAUSE_SEC))
+                     send, secret, pause=lambda: time.sleep(SEND_PAUSE_SEC),
+                     has_time=lambda: context.get_remaining_time_in_millis() > DEADLINE_RESERVE_MS)
     return {"ok": True, "week": week["monday"].isoformat(), **done}

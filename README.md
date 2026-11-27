@@ -59,7 +59,7 @@ releasing a new version: links in letters already sent are signed with it.
 `scripts/weekly_letter_function.py` is the letter with the week of the matrix for confirmed subscribers.
 It is released together with `subscribe_function.py` (it imports it) as a separate function without
 public access, with the same `SUBSCRIBERS_BUCKET` and `TOKEN_SECRET`. It reads the week from
-`/next/archive/` of the live site. An empty call sends the finished week to every active subscriber once
+`/next/archive/` of the live site. A timer message or `{"send": "all"}` sends the finished week to every active subscriber once
 (markers in `weekly/<monday>/` of the bucket); `{"test_to": "address"}` sends one letter to that address only
 (`"week": "YYYY-MM-DD"` picks the week of that date for such a test).
 
