@@ -2,8 +2,8 @@
   "schema": 1,
   "layer": "levels",
   "source": "Market Desk",
-  "report_date": "2026-11-26",
-  "valid_until": "2026-11-29",
+  "report_date": "2026-11-27",
+  "valid_until": "2026-11-30",
   "cells": {
     "NG": {
       "signal": 0,
