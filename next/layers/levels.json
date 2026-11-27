@@ -6,11 +6,14 @@
   "valid_until": "2026-11-30",
   "cells": {
     "NG": {
-      "signal": -1,
-      "metric": "< VWAP",
+      "signal": 0,
+      "metric": {
+        "ru": "у VWAP",
+        "en": "at VWAP"
+      },
       "note": {
-        "ru": "Цена ниже VWAP, скользящие выстроены вниз: внутридневной режим медвежий.",
-        "en": "Price is below VWAP and the moving averages are stacked down: the intraday regime is bearish."
+        "ru": "Направленного внутридневного режима нет: рынок в диапазоне или сигналы расходятся.",
+        "en": "No directional intraday regime: the market is ranging or the signals disagree."
       }
     },
     "CL": {
