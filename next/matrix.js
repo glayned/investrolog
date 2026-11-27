@@ -33,6 +33,8 @@
             report: date => `отчёт ${date}`,
             snapshot: stamp => `Снимок · ${stamp} МСК`,
             eventTime: time => `${time} МСК`,
+            eventsNone: 'Сегодня ключевых релизов нет',
+            eventsDone: 'Сегодня ключевых релизов больше нет',
             verdictAligned: (c, dir) => `${c.lead} из ${c.total} слоёв с данными ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir}, против — ни одного.`,
             verdictSplit: c => `Слои расходятся: ${c.bull} вверх, ${c.bear} вниз.`,
             verdictShort: (c, dir, min) => `${c.lead} из ${c.total} слоёв с данными ${c.lead === 1 ? 'смотрит' : 'смотрят'} ${dir} — для согласия нужно не меньше ${min}.`,
@@ -83,6 +85,8 @@
             report: date => `report of ${date}`,
             snapshot: stamp => `Snapshot · ${stamp} MSK`,
             eventTime: time => `${time} MSK`,
+            eventsNone: 'No key releases today',
+            eventsDone: 'No more key releases today',
             verdictAligned: (c, dir) => `${c.lead} of ${c.total} layers with data ${c.lead === 1 ? 'points' : 'point'} ${dir}, none against.`,
             verdictSplit: c => `Layers disagree: ${c.bull} up, ${c.bear} down.`,
             verdictShort: (c, dir, min) => `${c.lead} of ${c.total} layers with data ${c.lead === 1 ? 'points' : 'point'} ${dir} — consensus needs at least ${min}.`,
@@ -229,10 +233,12 @@
     /* The calendar file is public schedule only: a title, a market and a UTC time */
     function normalizeEvents(raw) {
         if (!raw || raw.schema !== 1 || raw.layer !== 'calendar' || !Array.isArray(raw.events) || expired(raw)) return [];
-        return raw.events
+        const events = raw.events
             .map(e => ({ title: text(e && e.title, 60), asset: text(e && e.asset, 24), at: new Date(e && e.at) }))
             .filter(e => e.title && !Number.isNaN(e.at.getTime()))
             .sort((a, b) => a.at - b.at);
+        events.valid = true;
+        return events;
     }
 
     /* Layer files carry the last day they may be shown; past it the data reads as missing even if the site copy was not refreshed */
@@ -463,6 +469,22 @@
         weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
 
+    /* The Moscow date as YYYY-MM-DD, built from parts: the order a locale prints them in is not a contract */
+    const mskDate = new Intl.DateTimeFormat('en-US', { timeZone: MSK, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const mskDay = {
+        format(at) {
+            const part = Object.fromEntries(mskDate.formatToParts(at).map(p => [p.type, p.value]));
+            return `${part.year}-${part.month}-${part.day}`;
+        }
+    };
+
+    /* An empty strip is stated in words, but only by a calendar written on this Moscow day: a stale file stays silent */
+    function emptyDay(events, writtenOn, now) {
+        if (writtenOn !== mskDay.format(now)) return null;
+        if (events.some(e => e.at.getTime() > now)) return null;
+        return events.some(e => mskDay.format(e.at) === mskDay.format(now)) ? 'done' : 'none';
+    }
+
     function countdown(ms) {
         const minutes = Math.floor(ms / 60000);
         const d = Math.floor(minutes / 1440), h = Math.floor((minutes % 1440) / 60), m = minutes % 60;
@@ -481,7 +503,9 @@
             el('b', { text: e.title }),
             ` ${e.asset ? `· ${e.asset} ` : ''}· ${T.eventTime(eventFormat.format(e.at))} · `,
             el('span', { class: 'cmx-in', text: countdown(e.at.getTime() - now) }))));
-        box.hidden = upcoming.length === 0;
+        const empty = emptyDay(snapshot.events, snapshot.eventsDay, now);
+        if (empty) list.replaceChildren(el('li', { text: empty === 'done' ? T.eventsDone : T.eventsNone }));
+        box.hidden = !upcoming.length && !empty;
     }
 
     function renderRegime() {
@@ -636,6 +660,8 @@
         ]);
         for (const instrument of data.instruments) instrument.consensus = consensus(instrument, data.voting);
         data.events = normalizeEvents(events);
+        /* The day the calendar was last written: only a file of today may say "nothing today" */
+        data.eventsDay = data.events.valid && typeof events.report_date === 'string' ? events.report_date : null;
         data.regime = normalizeRegime(regime);
         return data;
     }
@@ -672,7 +698,7 @@
         select((aligned || dataRows()[0]).querySelector('.cmx-name'));
         applyFilter();
         renderEvents();
-        if (snapshot.events.length) setInterval(renderEvents, 60000);
+        if (snapshot.events.length || snapshot.eventsDay) setInterval(renderEvents, 60000);
         previous.then(showPrevious);
     }).catch(error => {
         console.warn('Consensus matrix:', error);
