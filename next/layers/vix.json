@@ -2,9 +2,9 @@
   "schema": 1,
   "layer": "vix",
   "source": "VIX Term Structure",
-  "report_date": "2026-11-26",
-  "valid_until": "2026-11-30",
+  "report_date": "2026-11-27",
+  "valid_until": "2026-12-01",
   "regime": "stress",
   "curve": "backwardation",
-  "vix_percentile": 92
+  "vix_percentile": 81
 }

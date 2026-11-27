@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-27",
-  "captured_at": "2026-11-27T21:26:00Z",
+  "captured_at": "2026-11-27T21:46:25Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -33,10 +33,10 @@
     }
   },
   "regime": {
-    "report_date": "2026-11-26",
+    "report_date": "2026-11-27",
     "regime": "stress",
     "curve": "backwardation",
-    "vix_percentile": 92
+    "vix_percentile": 81
   },
   "markets": {
     "NG": {
