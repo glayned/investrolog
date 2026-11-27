@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-27",
-  "captured_at": "2026-11-27T17:26:06Z",
+  "captured_at": "2026-11-27T18:06:18Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -280,7 +280,7 @@
         },
         "sentiment": null,
         "flow": {
-          "signal": 0,
+          "signal": 1,
           "metric": "×8.2"
         },
         "levels": null,
@@ -297,11 +297,11 @@
         }
       },
       "consensus": {
-        "bull": 1,
+        "bull": 2,
         "bear": 1,
-        "lead": 1,
+        "lead": 2,
         "total": 3,
-        "dir": "flat",
+        "dir": "bull",
         "aligned": false
       }
     }
