@@ -469,7 +469,14 @@
         weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: MSK
     });
 
-    const mskDay = new Intl.DateTimeFormat('en-CA', { timeZone: MSK });
+    /* The Moscow date as YYYY-MM-DD, built from parts: the order a locale prints them in is not a contract */
+    const mskDate = new Intl.DateTimeFormat('en-US', { timeZone: MSK, year: 'numeric', month: '2-digit', day: '2-digit' });
+    const mskDay = {
+        format(at) {
+            const part = Object.fromEntries(mskDate.formatToParts(at).map(p => [p.type, p.value]));
+            return `${part.year}-${part.month}-${part.day}`;
+        }
+    };
 
     /* An empty strip is stated in words, but only by a calendar written on this Moscow day: a stale file stays silent */
     function emptyDay(events, writtenOn, now) {

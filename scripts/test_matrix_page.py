@@ -12,7 +12,10 @@ MATRIX_JS = (Path(__file__).resolve().parents[1] / "next" / "matrix.js").read_te
 @unittest.skipUnless(shutil.which("node"), "node is not installed")
 class EmptyCalendarDayTest(unittest.TestCase):
     def test_only_a_calendar_written_today_says_the_day_is_empty(self):
-        source = re.search(r"    function emptyDay\(events, writtenOn, now\) \{.*?\n    \}\n", MATRIX_JS, re.S).group(0)
+        source = "".join(re.search(pattern, MATRIX_JS, re.S).group(0) for pattern in (
+            r"    const mskDate = .*?\n    const mskDay = \{.*?\n    \};\n",
+            r"    function emptyDay\(events, writtenOn, now\) \{.*?\n    \}\n",
+        ))
         pce = "2026-11-27T13:30:00Z"
         cases = [
             ([], "2026-11-27", "2026-11-27T12:00:00Z", "none"),
@@ -30,7 +33,7 @@ class EmptyCalendarDayTest(unittest.TestCase):
             ([pce], "2026-11-27", "2026-11-27T21:30:00Z", None),
         ]
         script = (
-            "const mskDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow' });\n"
+            "const MSK = 'Europe/Moscow';\n"
             f"{source}\n"
             "const out = JSON.parse(require('fs').readFileSync(0, 'utf8')).map(([events, day, now]) =>\n"
             "  emptyDay(events.map(at => ({ at: new Date(at) })), day, new Date(now).getTime()));\n"
