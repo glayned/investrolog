@@ -8,6 +8,8 @@
     const MIN_ALIGNED = 4;
     const MAX_EVENTS = 3;
     const TERMINAL_URL = 'https://t.me/investrolog';
+    // scripts/subscribe_function.py, released by hand to Yandex Cloud Functions.
+    const SUBSCRIBE_URL = 'https://functions.yandexcloud.net/d4e10a35209hoff21u3p';
     const LANG = document.documentElement.lang === 'en' ? 'en' : 'ru';
     const STRINGS = {
         ru: {
@@ -43,7 +45,12 @@
             inDays: (d, h) => `через ${d} д ${h} ч`,
             inHours: (h, m) => `через ${h} ч ${m} мин`,
             inMinutes: m => `через ${m} мин`,
-            subscribeStub: 'Прототип: форма ещё не подключена, адрес никуда не отправлен.',
+            subscribeSent: 'Проверьте почту и подтвердите подписку.',
+            subscribeFailed: 'Не удалось отправить. Попробуйте позже.',
+            subscribeRate: 'Слишком много заявок. Попробуйте позже.',
+            subscriptionConfirmed: 'Подписка подтверждена.',
+            subscriptionUnsubscribed: 'Вы отписаны.',
+            subscriptionExpired: 'Ссылка устарела. Оставьте адрес ещё раз.',
             subscribeInvalid: 'Проверьте адрес почты.',
             unavailable: 'Снимок рынка временно недоступен. Свежие данные — в Терминале.',
             regimeTitle: 'Режим волатильности',
@@ -95,7 +102,12 @@
             inDays: (d, h) => `in ${d}d ${h}h`,
             inHours: (h, m) => `in ${h}h ${m}m`,
             inMinutes: m => `in ${m}m`,
-            subscribeStub: 'Prototype: the form is not connected yet, your address was not sent anywhere.',
+            subscribeSent: 'Check your inbox to confirm.',
+            subscribeFailed: 'Could not send. Try again later.',
+            subscribeRate: 'Too many requests. Try again later.',
+            subscriptionConfirmed: 'Subscription confirmed.',
+            subscriptionUnsubscribed: 'You are unsubscribed.',
+            subscriptionExpired: 'The link has expired. Enter your address again.',
             subscribeInvalid: 'Check the email address.',
             unavailable: 'The market snapshot is temporarily unavailable. Fresh data is in the Terminal.',
             regimeTitle: 'Volatility regime',
@@ -582,16 +594,57 @@
 
     const subscribeForm = document.getElementById('subscribe');
     if (subscribeForm) {
-        subscribeForm.addEventListener('submit', event => {
+        const input = document.getElementById('subscribeEmail');
+        const status = document.getElementById('subscribeStatus');
+        const button = subscribeForm.querySelector('button[type="submit"]');
+        const say = (text, kind) => {
+            status.textContent = text;
+            status.className = 'subscribe-status' + (kind ? ` is-${kind}` : '');
+        };
+        const post = (action, body) => fetch(`${SUBSCRIBE_URL}?action=${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        // A link in a letter opens this page with a token; the page hands it to the function.
+        const query = new URLSearchParams(location.search);
+        const linkAction = ['confirm', 'unsubscribe'].find(name => query.get(name));
+        if (linkAction) {
+            const outcomes = {
+                confirmed: [T.subscriptionConfirmed, 'ok'],
+                unsubscribed: [T.subscriptionUnsubscribed, ''],
+                expired: [T.subscriptionExpired, 'error']
+            };
+            const token = query.get(linkAction);
+            history.replaceState(null, '', location.pathname + location.hash);
+            post(linkAction, { token })
+                .then(response => (response.ok ? response.json() : {}))
+                .then(answer => say(...(outcomes[answer.result] || [T.subscribeFailed, 'error'])))
+                .catch(() => say(T.subscribeFailed, 'error'));
+        }
+        subscribeForm.addEventListener('submit', async event => {
             event.preventDefault();
-            const input = document.getElementById('subscribeEmail');
-            const status = document.getElementById('subscribeStatus');
-            const valid = input.value.trim() !== '' && input.checkValidity();
-            status.classList.toggle('is-error', !valid);
-            status.textContent = valid
-                ? T.subscribeStub
-                : T.subscribeInvalid;
-            if (!valid) input.focus();
+            if (!input.value.trim() || !input.checkValidity()) {
+                say(T.subscribeInvalid, 'error');
+                return;
+            }
+            button.disabled = true;
+            say('', '');
+            try {
+                const response = await post('subscribe', {
+                    email: input.value.trim(),
+                    lang: LANG,
+                    website: subscribeForm.elements.website.value
+                });
+                if (response.ok) say(T.subscribeSent, 'ok');
+                else if (response.status === 400) say(T.subscribeInvalid, 'error');
+                else if (response.status === 429) say(T.subscribeRate, 'error');
+                else say(T.subscribeFailed, 'error');
+            } catch (error) {
+                say(T.subscribeFailed, 'error');
+            } finally {
+                button.disabled = false;
+            }
         });
     }
 

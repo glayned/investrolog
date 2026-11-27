@@ -35,3 +35,6 @@ jobs:
         run: cd scripts && python3 test_archive_matrix.py
       - name: Test the matrix page rules
         run: cd scripts && python3 test_matrix_page.py
+
+      - name: Test the subscription function
+        run: cd scripts && python3 test_subscribe_function.py

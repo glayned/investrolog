@@ -49,6 +49,13 @@ It starts `sync-layers.yml` when a layer file changed and `update-options.yml` a
 (fine-grained, Actions read and write on this repository only), `GITHUB_REPO`, `LAYERS_BUCKET`.
 After editing the script, release a new function version; the workflow schedules stay as a fallback.
 
+`scripts/subscribe_function.py` is not run from this repository either: it is a Yandex Cloud Function
+(`matrix-subscribe`, public) in the cloud that holds the Postbox address of investrolog.pro. The form on
+`/next/` posts to it; addresses are kept in the private bucket `investrolog-matrix-subscribers`
+(`pending/` is deleted by a lifecycle rule after 30 days, `limits/` after a day) and never reach this
+repository. Settings: `SUBSCRIBERS_BUCKET`, `TOKEN_SECRET`. Keep `TOKEN_SECRET` when
+releasing a new version: links in letters already sent are signed with it.
+
 `next/archive/YYYY-MM-DD.json` is the matrix as the page showed it at 22:00 UTC of that trading day:
 the side of every layer per market, the consensus and the VIX regime, without the notes.
 `sync-layers.yml` rewrites the file of the current day on every run; after the cut-off it is final.

@@ -475,14 +475,26 @@
     clip-path: inset(50%);
 }
 .subscribe-input { flex: 1; min-width: 0; }
+/* Filled in only by bots; hidden from people and screen readers. */
+.subscribe-trap { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.subscribe-consent {
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+.subscribe-consent a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.subscribe-consent a:hover { color: var(--text-primary); }
 .subscribe-status {
-    grid-column: 1 / -1;
-    min-height: 16px;
+    margin-top: 10px;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.4px;
     color: var(--text-secondary);
 }
+/* Stays in the page while empty: a live region must exist before its text changes. */
+.subscribe-status:empty { margin-top: 0; }
+.subscribe-status.is-ok { color: var(--bull); }
 .subscribe-status.is-error { color: var(--bear); }
 
 .section-head {
@@ -529,3 +541,27 @@
     .subscribe-row { flex-wrap: wrap; }
     .subscribe-row .btn { flex: 1 1 100%; }
 }
+
+/* ── Privacy policy page ── */
+.policy { max-width: 720px; margin: 0 auto; padding: 40px 0 56px; }
+.policy-nav {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.6px;
+}
+.policy-nav a { color: var(--text-secondary); text-decoration: none; }
+.policy-nav a:hover { color: var(--text-primary); }
+.policy h1 { margin-top: 28px; font-size: 28px; font-weight: 700; letter-spacing: -0.4px; line-height: 1.2; }
+.policy h2 {
+    margin-top: 28px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+.policy p { margin-top: 8px; font-size: 15px; line-height: 1.7; }
+.policy p a { color: inherit; text-underline-offset: 3px; }
