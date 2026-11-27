@@ -336,9 +336,9 @@
             for (const layer of layers) {
                 const cell = instrument.cells[layer.id];
                 row.append(el('button', {
-                    class: `cmx-btn cmx-cell${cell.was ? ' is-changed' : ''}`, type: 'button', 'data-kind': 'cell',
+                    class: 'cmx-btn cmx-cell', type: 'button', 'data-kind': 'cell',
                     'data-layer': layer.id, 'data-s': cell.state,
-                    'aria-label': `${instrument.name}, ${layer.label}: ${stateLabel(cell)}${cell.metric ? `, ${cell.metric}` : ''}${cell.was ? `, ${T.changed}` : ''}`
+                    'aria-label': `${instrument.name}, ${layer.label}: ${stateLabel(cell)}${cell.metric ? `, ${cell.metric}` : ''}`
                 }, mark(cell), cell.metric && el('span', { class: 'cmx-metric', text: cell.metric })));
             }
 
@@ -620,14 +620,9 @@
                 return null;
             })
             : null;
-        const previousDay = loadPrevious().catch(error => {
-            console.warn('Consensus matrix: archive:', error);
-            return null;
-        });
-        const [events, regime, previous] = await Promise.all([
+        const [events, regime] = await Promise.all([
             optional(data.eventsSource, 'calendar'),
             optional(data.regimeSource, 'VIX regime'),
-            previousDay,
             ...data.layers.filter(layer => layer.source).map(async layer => {
                 applyLayer(data, layer, await optional(layer.source, `layer ${layer.id}`));
             })
@@ -635,21 +630,40 @@
         for (const instrument of data.instruments) instrument.consensus = consensus(instrument, data.voting);
         data.events = normalizeEvents(events);
         data.regime = normalizeRegime(regime);
-        applyPrevious(data, previous);
         return data;
     }
+
+    /* The archive never holds back the matrix: the marks arrive on top of a page that already works */
+    function showPrevious(previous) {
+        if (!previous || !snapshot) return;
+        applyPrevious(snapshot, previous);
+        renderDelta();
+        for (const button of grid.querySelectorAll('.cmx-cell')) {
+            const instrument = snapshot.instruments[Number(button.parentElement.dataset.r)];
+            if (!instrument.cells[button.dataset.layer].was) continue;
+            button.classList.add('is-changed');
+            button.setAttribute('aria-label', `${button.getAttribute('aria-label')}, ${T.changed}`);
+        }
+        const active = grid.querySelector('.cmx-btn.is-active');
+        if (active && !detailEl.hidden) select(active);
+    }
+
+    const previousDay = loadPrevious().catch(error => {
+        console.warn('Consensus matrix: archive:', error);
+        return null;
+    });
 
     loadSnapshot().then(data => {
         snapshot = data;
         renderMeta();
         renderRegime();
-        renderDelta();
         renderMatrix();
         const aligned = dataRows().find(row => row.classList.contains('is-aligned'));
         select((aligned || dataRows()[0]).querySelector('.cmx-name'));
         applyFilter();
         renderEvents();
         if (snapshot.events.length) setInterval(renderEvents, 60000);
+        previousDay.then(showPrevious);
     }).catch(error => {
         console.warn('Consensus matrix:', error);
         statusEl.hidden = false;
