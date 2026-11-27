@@ -2,7 +2,7 @@
   "schema": 1,
   "layer": "calendar",
   "source": "InvestroLog Calendar",
-  "report_date": "2026-11-26",
-  "valid_until": "2026-12-04",
+  "report_date": "2026-11-27",
+  "valid_until": "2026-12-05",
   "events": []
 }
