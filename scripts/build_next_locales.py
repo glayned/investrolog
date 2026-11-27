@@ -26,6 +26,7 @@ STRUCTURAL_REPLACEMENTS = (
         '<a class="language-link" data-language-link href="/next/" hreflang="ru" lang="ru">RU</a>\n'
         '<a aria-current="page" class="language-link active" data-language-link href="/next/en/" hreflang="en" lang="en">EN</a>',
     ),
+    ('<a href="/next/privacy/">', '<a href="/next/en/privacy/">'),
 )
 
 

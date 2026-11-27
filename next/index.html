@@ -189,14 +189,18 @@
 <form class="subscribe" id="subscribe" novalidate>
 <div class="subscribe-copy">
 <h3>Матрица на почту</h3>
-<p>Раз в неделю — снимок матрицы и главное по сырью. Канал связи, который не зависит от Telegram.</p>
+<p>Оставьте адрес — пришлём снимок матрицы, когда запустим еженедельное письмо.</p>
 </div>
+<div class="subscribe-side">
 <div class="subscribe-row">
 <label class="subscribe-label" for="subscribeEmail">Email</label>
 <input autocomplete="email" class="order-input subscribe-input" id="subscribeEmail" inputmode="email" maxlength="254" placeholder="you@example.com" type="email"/>
 <button class="btn" type="submit">Подписаться</button>
 </div>
+<input aria-hidden="true" autocomplete="off" class="subscribe-trap" name="website" tabindex="-1" type="text"/>
+<p class="subscribe-consent">Нажимая «Подписаться», вы принимаете <a href="/next/privacy/">политику обработки данных</a>.</p>
 <p class="subscribe-status" id="subscribeStatus" role="status"></p>
+</div>
 </form>
 </section>
 <!-- ── PROJECTS ── -->
