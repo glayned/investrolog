@@ -38,3 +38,5 @@ jobs:
 
       - name: Test the subscription function
         run: cd scripts && python3 test_subscribe_function.py
+      - name: Test the weekly letter
+        run: cd scripts && python3 test_weekly_letter_function.py
