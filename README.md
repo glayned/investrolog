@@ -62,6 +62,8 @@ public access, with the same `SUBSCRIBERS_BUCKET` and `TOKEN_SECRET`. It reads t
 `/next/archive/` of the live site. A timer message or `{"send": "all"}` sends the finished week to every active subscriber once
 (markers in `weekly/<monday>/` of the bucket); `{"test_to": "address"}` sends one letter to that address only
 (`"week": "YYYY-MM-DD"` picks the week of that date for such a test).
+One run sends at most 150 letters and stops before the function timeout; a second run on the same
+weekend (the timer ticks on Saturday and on Sunday) sends the rest.
 
 `next/archive/YYYY-MM-DD.json` is the matrix as the page showed it at 22:00 UTC of that trading day:
 the side of every layer per market, the consensus and the VIX regime, without the notes.

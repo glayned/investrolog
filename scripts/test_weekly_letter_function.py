@@ -36,8 +36,10 @@ def archive(*snapshots):
 class FakeBucket:
     def __init__(self, objects=None):
         self.objects = dict(objects or {})
+        self.reads = []
 
     def get(self, key):
+        self.reads.append(key)
         value = self.objects.get(key)
         return json.loads(json.dumps(value)) if value is not None else None
 
@@ -242,9 +244,9 @@ class Sending(unittest.TestCase):
 
     def test_run_stops_before_the_deadline_and_leaves_no_marker(self):
         bucket = FakeBucket([member(f"u{n}@example.com") for n in range(3)])
-        clock = iter([True, False, False])
+        clock = iter([True, False])
         done = self.run_week(bucket, has_time=lambda: next(clock))
-        self.assertEqual((done["sent"], done["left"]), (1, 2))
+        self.assertEqual((done["sent"], done["stopped"], len(bucket.reads)), (1, True, 2))
         self.assertEqual((self.run_week(bucket)["sent"], len(self.sent)), (2, 3))
 
 
@@ -266,8 +268,10 @@ class Calling(unittest.TestCase):
             self.assertEqual(weekly._request({"httpMethod": "POST", "body": body}), {})
 
     def test_unknown_call_sends_nothing(self):
-        for event in ({}, {"httpMethod": "POST", "body": ""}, {"lang": "en"}):
+        for event in ({}, {"lang": "en"}):
             self.assertEqual(weekly.handler(event, None)["ok"], False)
+        answer = weekly.handler({"httpMethod": "POST", "body": ""}, None)
+        self.assertEqual((answer["statusCode"], json.loads(answer["body"])["ok"]), (400, False))
 
 
 if __name__ == "__main__":

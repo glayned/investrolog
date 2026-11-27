@@ -257,14 +257,18 @@ def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=R
     the two skips that address rather than mailing it twice; `has_time` stops
     the run before the function deadline can cut it there.
     """
-    done = {"sent": 0, "already": 0, "inactive": 0, "failed": 0, "left": 0}
+    done = {"sent": 0, "already": 0, "inactive": 0, "failed": 0, "left": 0, "stopped": False}
     prefix = f"weekly/{week['monday'].isoformat()}/"
     for key in list_keys("subscribers/"):
+        if not has_time():
+            # Out of time: the rest is not even counted, the next run takes it.
+            done["stopped"] = True
+            break
         ident = key.rsplit("/", 1)[-1].removesuffix(".json")
         if bucket.get(f"{prefix}{ident}.json"):
             done["already"] += 1
             continue
-        if done["sent"] + done["failed"] >= limit or not has_time():
+        if done["sent"] + done["failed"] >= limit:
             done["left"] += 1
             continue
         member = bucket.get(key)
@@ -312,21 +316,29 @@ def _list_keys(bucket_name, iam_token, prefix):
         token = html.unescape(found.group(1))
 
 
+def _is_https(event):
+    return isinstance(event, dict) and ("httpMethod" in event or "body" in event)
+
+
+def _unwrap(event):
+    """An HTTPS call without `?integration=raw` wraps the JSON into `body`."""
+    if not _is_https(event):
+        return event
+    try:
+        body = event.get("body") or ""
+        if event.get("isBase64Encoded"):
+            body = base64.b64decode(body).decode("utf-8")
+        event = json.loads(body)
+    except (ValueError, TypeError):
+        return {}
+    return event if isinstance(event, dict) else {}
+
+
 def _request(event):
     """The call as `{"test_to": ...}` or `{"send": "all"}`; anything else is not a command to send."""
     if not isinstance(event, dict):
         return {}
-    if "httpMethod" in event or "body" in event:
-        # An HTTPS call without `?integration=raw` wraps the JSON into `body`.
-        try:
-            body = event.get("body") or ""
-            if event.get("isBase64Encoded"):
-                body = base64.b64decode(body).decode("utf-8")
-            event = json.loads(body)
-        except (ValueError, TypeError):
-            return {}
-        if not isinstance(event, dict):
-            return {}
+    event = _unwrap(event)
     messages = event.get("messages")
     if isinstance(messages, list) and messages and all(
             isinstance(m, dict) and (m.get("event_metadata") or {}).get("event_type") == TIMER_EVENT for m in messages):
@@ -335,6 +347,14 @@ def _request(event):
 
 
 def handler(event, context):
+    result = _run(event, context)
+    if _is_https(event):
+        return {"statusCode": 200 if result["ok"] else 400, "headers": {"Content-Type": "application/json"},
+                "body": json.dumps(result)}
+    return result
+
+
+def _run(event, context):
     now = dt.datetime.now(dt.timezone.utc)
     event = _request(event)
     if "test_to" not in event and event.get("send") != "all":
