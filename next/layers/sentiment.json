@@ -18,27 +18,27 @@
     },
     "CL": {
       "signal": 0,
+      "note": {
+        "ru": "Контрарного сигнала за последние сутки нет. Медведи и быки в комментариях уравновешены.",
+        "en": "No contrarian signal in the last 24 hours. Bears and bulls in the comments are balanced."
+      }
+    },
+    "GC": {
+      "signal": 0,
       "metric": {
-        "ru": "медведи 60%",
-        "en": "bears 60%"
+        "ru": "медведи 73%",
+        "en": "bears 73%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
         "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
       }
     },
-    "GC": {
-      "signal": 0,
-      "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Медведи и быки в комментариях уравновешены.",
-        "en": "No contrarian signal in the last 24 hours. Bears and bulls in the comments are balanced."
-      }
-    },
     "SI": {
       "signal": 0,
       "metric": {
-        "ru": "быки 75%",
-        "en": "bulls 75%"
+        "ru": "быки 73%",
+        "en": "bulls 73%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
