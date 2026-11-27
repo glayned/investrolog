@@ -53,3 +53,5 @@ After editing the script, release a new function version; the workflow schedules
 the side of every layer per market, the consensus and the VIX regime, without the notes.
 `sync-layers.yml` rewrites the file of the current day on every run; after the cut-off it is final.
 There are no files for Saturdays and Sundays.
+`next/archive/index.json` lists the archived days; the page reads it to compare the matrix with the last finished day
+(the "changes since" strip and the amber corner of a cell that changed side).

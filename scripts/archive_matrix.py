@@ -18,6 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE_DIR = ROOT / "next" / "archive"
 SNAPSHOT = "next/snapshot.json"
+INDEX_NAME = "index.json"
 CUTOFF_HOUR_UTC = 22
 MIN_ALIGNED = 4  # same as next/matrix.js
 METRIC_MAX = 12
@@ -147,7 +148,17 @@ def write(read, now, archive_dir=ARCHIVE_DIR):
     }
     archive_dir.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(document, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_index(archive_dir)
     return f"{day}: updated"
+
+
+def write_index(archive_dir=ARCHIVE_DIR):
+    """List the archived days in index.json: the page cannot read a folder listing."""
+    days = sorted(p.stem for p in archive_dir.glob("????-??-??.json"))
+    text = json.dumps({"schema": 1, "days": days}, ensure_ascii=False, indent=2) + "\n"
+    path = archive_dir / INDEX_NAME
+    if not path.exists() or path.read_text(encoding="utf-8") != text:
+        path.write_text(text, encoding="utf-8")
 
 
 def main():

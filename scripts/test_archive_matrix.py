@@ -107,6 +107,13 @@ class WriteTest(unittest.TestCase):
         self.assertEqual((self.dir / "2026-11-25.json").read_text(encoding="utf-8"), before)
         self.assertTrue((self.dir / "2026-11-26.json").exists())
 
+    def test_index_lists_the_archived_days(self):
+        cot = {"report_date": "2026-11-17", "cells": {"NG": {"signal": 1}}}
+        am.write(site({"cot": cot}), dt.datetime(2026, 11, 25, 12, 0, tzinfo=UTC), self.dir)
+        am.write(site({"cot": cot}), dt.datetime(2026, 11, 26, 12, 0, tzinfo=UTC), self.dir)
+        index = json.loads((self.dir / "index.json").read_text(encoding="utf-8"))
+        self.assertEqual(index, {"schema": 1, "days": ["2026-11-25", "2026-11-26"]})
+
     def test_weekend_writes_nothing(self):
         status = am.write(site(), dt.datetime(2026, 11, 28, 12, 0, tzinfo=UTC), self.dir)
         self.assertEqual(status, "weekend")
@@ -115,6 +122,8 @@ class WriteTest(unittest.TestCase):
 
 class SamePageRuleTest(unittest.TestCase):
     def test_min_aligned_matches_the_page(self):
+        self.assertEqual(int(re.search(r"const ARCHIVE_CUTOFF_HOUR_UTC = (\d+);", MATRIX_JS).group(1)),
+                         am.CUTOFF_HOUR_UTC)
         self.assertEqual(int(re.search(r"const MIN_ALIGNED = (\d+);", MATRIX_JS).group(1)), am.MIN_ALIGNED)
 
     @unittest.skipUnless(shutil.which("node"), "node is not installed")
