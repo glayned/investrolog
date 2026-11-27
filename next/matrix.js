@@ -2,6 +2,8 @@
     'use strict';
 
     const SNAPSHOT_URL = '/next/snapshot.json';
+    const ARCHIVE_URL = '/next/archive';
+    const ARCHIVE_CUTOFF_HOUR_UTC = 22; // same as scripts/archive_matrix.py
     const FETCH_TIMEOUT_MS = 8000;
     const MIN_ALIGNED = 4;
     const MAX_EVENTS = 3;
@@ -43,6 +45,13 @@
             subscribeInvalid: 'Проверьте адрес почты.',
             unavailable: 'Снимок рынка временно недоступен. Свежие данные — в Терминале.',
             regimeTitle: 'Режим волатильности',
+            deltaTitle: date => `Изменения с ${date}`,
+            deltaCells: n => `${n} ${['клетка', 'клетки', 'клеток'][n % 10 === 1 && n % 100 !== 11 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : 2]}`,
+            deltaNone: 'без изменений',
+            deltaAligned: (id, dir) => `${id}: слои сошлись ${dir}`,
+            deltaLost: id => `${id}: согласия больше нет`,
+            was: (date, label) => `Было ${date}: ${label}`,
+            changed: 'изменилось',
             regimes: { calm: 'спокойный', neutral: 'нейтральный', caution: 'настороженный', stress: 'стресс' },
             curves: {
                 contango: 'кривая VIX в контанго', flat: 'кривая VIX плоская',
@@ -86,6 +95,13 @@
             subscribeInvalid: 'Check the email address.',
             unavailable: 'The market snapshot is temporarily unavailable. Fresh data is in the Terminal.',
             regimeTitle: 'Volatility regime',
+            deltaTitle: date => `Changes since ${date}`,
+            deltaCells: n => `${n} ${n === 1 ? 'cell' : 'cells'}`,
+            deltaNone: 'no changes',
+            deltaAligned: (id, dir) => `${id}: layers aligned ${dir}`,
+            deltaLost: id => `${id}: consensus is gone`,
+            was: (date, label) => `On ${date}: ${label}`,
+            changed: 'changed',
             regimes: { calm: 'calm', neutral: 'neutral', caution: 'cautious', stress: 'stress' },
             curves: {
                 contango: 'VIX curve in contango', flat: 'VIX curve flat',
@@ -405,6 +421,10 @@
         ];
     }
 
+    function wasLine(cell) {
+        return cell.was && el('p', { class: 'cmx-detail-was', text: T.was(reportFormat.format(snapshot.previous.date), stateLabel(cell.was)) });
+    }
+
     function renderCellDetail(instrument, layer) {
         const cell = instrument.cells[layer.id];
         const chip = el('span', { class: 'cmx-state', 'data-s': cell.state }, mark(cell),
@@ -417,6 +437,7 @@
                 el('span', { class: 'cmx-detail-kicker', text: [HORIZONS[layer.horizon], layer.label, origin].filter(Boolean).join(' · ') }),
                 el('h3', { class: 'cmx-detail-title' }, el('span', { text: instrument.name }), chip),
                 note && el('p', { class: 'cmx-detail-text', text: note }),
+                wasLine(cell),
                 layer.about && el('p', { class: 'cmx-detail-about', text: layer.about })),
             closedBlock(closed || T.cellClosed, layer.url)
         ];
@@ -470,6 +491,26 @@
             el('span', { class: 'cmx-regime-title', text: T.regimeTitle }),
             el('b', { text: T.regimes[r.regime] }),
             ` · ${T.curves[r.curve]} · ${T.regimeRank(r.rank)} · ${T.regimeDate(reportFormat.format(r.reportDate))}`));
+    }
+
+    /* What moved since the last finished day of the archive: new and lost consensus first, then the number of cells */
+    function renderDelta() {
+        const p = snapshot.previous;
+        if (!p) return;
+        const gained = [], lost = [];
+        for (const instrument of snapshot.instruments) {
+            const c = instrument.consensus, before = instrument.alignedBefore;
+            if (c.aligned && before !== c.dir) gained.push(el('b', { text: T.deltaAligned(instrument.id, DIRECTION_WORDS[c.dir]) }));
+            else if (!c.aligned && before) lost.push(el('span', { text: T.deltaLost(instrument.id) }));
+        }
+        const cells = snapshot.instruments.reduce((n, i) => n + Object.values(i.cells).filter(cell => cell.was).length, 0);
+        const count = cells
+            ? el('span', null, el('i', { class: 'cmx-delta-mark', 'aria-hidden': 'true' }), T.deltaCells(cells))
+            : el('span', { text: T.deltaNone });
+        const strip = el('p', { class: 'cmx-delta' },
+            el('span', { class: 'cmx-delta-title', text: T.deltaTitle(reportFormat.format(p.date)) }));
+        strip.append(count, ...gained, ...lost);
+        grid.before(strip);
     }
 
     function renderMeta() {
@@ -542,6 +583,41 @@
         }
     }
 
+    /* The archive day closes at the cut-off: before it "the previous day" is yesterday's file, after it today's */
+    function previousDay(days, now) {
+        const current = new Date(now.getTime() + (24 - ARCHIVE_CUTOFF_HOUR_UTC) * 3600000).toISOString().slice(0, 10);
+        const earlier = (Array.isArray(days) ? days : [])
+            .filter(day => typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) && day < current).sort();
+        return earlier.length ? earlier[earlier.length - 1] : null;
+    }
+
+    async function loadPrevious() {
+        const index = await fetchJson(`${ARCHIVE_URL}/index.json`);
+        const day = previousDay(index && index.days, new Date());
+        if (!day) return null;
+        const raw = await fetchJson(`${ARCHIVE_URL}/${day}.json`);
+        if (!raw || raw.schema !== 1 || raw.date !== day || !raw.markets || typeof raw.markets !== 'object') return null;
+        return { date: new Date(`${day}T00:00:00Z`), markets: raw.markets };
+    }
+
+    /* A cell counts as changed only when both days have data: a layer that went silent is not a market move */
+    function applyPrevious(data, previous) {
+        if (!previous) return;
+        data.previous = previous;
+        for (const instrument of data.instruments) {
+            const market = previous.markets[instrument.id];
+            if (!market || !market.cells || typeof market.cells !== 'object') continue;
+            for (const layer of data.layers) {
+                const cell = instrument.cells[layer.id];
+                const was = normalizeCell(market.cells[layer.id], layer);
+                if (cell.state === 'na' || was.state === 'na') continue;
+                if (cell.state !== was.state || cell.level !== was.level) cell.was = was;
+            }
+            const c = market.consensus;
+            instrument.alignedBefore = c && c.aligned === true && (c.dir === 'bull' || c.dir === 'bear') ? c.dir : null;
+        }
+    }
+
     async function loadSnapshot() {
         const data = normalizeSnapshot(await fetchJson(SNAPSHOT_URL));
         /* Optional strips load alongside the layers, so they add no time to the first paint */
@@ -564,6 +640,29 @@
         return data;
     }
 
+    /* The archive never holds back the matrix: the marks arrive on top of a page that already works */
+    function showPrevious(previous) {
+        if (!previous || !snapshot) return;
+        applyPrevious(snapshot, previous);
+        renderDelta();
+        for (const button of grid.querySelectorAll('.cmx-cell')) {
+            const instrument = snapshot.instruments[Number(button.parentElement.dataset.r)];
+            if (!instrument.cells[button.dataset.layer].was) continue;
+            button.classList.add('is-changed');
+            button.setAttribute('aria-label', `${button.getAttribute('aria-label')}, ${T.changed}`);
+        }
+        /* The open card gets its line in place: rebuilding it would drop the keyboard focus inside */
+        const active = grid.querySelector('.cmx-cell.is-active');
+        const about = active && detailEl.querySelector('.cmx-detail-about');
+        const line = active && wasLine(snapshot.instruments[Number(active.parentElement.dataset.r)].cells[active.dataset.layer]);
+        if (line) about ? about.before(line) : detailEl.firstElementChild.append(line);
+    }
+
+    const previous = loadPrevious().catch(error => {
+        console.warn('Consensus matrix: archive:', error);
+        return null;
+    });
+
     loadSnapshot().then(data => {
         snapshot = data;
         renderMeta();
@@ -574,6 +673,7 @@
         applyFilter();
         renderEvents();
         if (snapshot.events.length) setInterval(renderEvents, 60000);
+        previous.then(showPrevious);
     }).catch(error => {
         console.warn('Consensus matrix:', error);
         statusEl.hidden = false;
