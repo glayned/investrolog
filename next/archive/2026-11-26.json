@@ -1,0 +1,312 @@
+{
+  "schema": 1,
+  "date": "2026-11-26",
+  "captured_at": "2026-11-26T20:26:18Z",
+  "layers": {
+    "cot": {
+      "votes": true,
+      "report_date": "2026-11-17"
+    },
+    "options": {
+      "votes": true,
+      "report_date": "2026-11-25"
+    },
+    "sentiment": {
+      "votes": true,
+      "report_date": "2026-11-26"
+    },
+    "flow": {
+      "votes": true,
+      "report_date": "2026-11-26"
+    },
+    "levels": {
+      "votes": true,
+      "report_date": "2026-11-26"
+    },
+    "moex": {
+      "votes": false,
+      "report_date": "2026-11-25"
+    },
+    "vol": {
+      "votes": false,
+      "report_date": "2026-11-25"
+    }
+  },
+  "regime": {
+    "report_date": "2026-11-25",
+    "regime": "stress",
+    "curve": "backwardation",
+    "vix_percentile": 92
+  },
+  "markets": {
+    "NG": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p1"
+        },
+        "options": {
+          "signal": 1,
+          "metric": "RR p96"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "медведи 59%",
+            "en": "bears 59%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×5.3"
+        },
+        "levels": {
+          "signal": 0,
+          "metric": "> VWAP"
+        },
+        "moex": {
+          "level": 0,
+          "metric": {
+            "ru": "ЮЛ p67",
+            "en": "INST p67"
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p93"
+        }
+      },
+      "consensus": {
+        "bull": 2,
+        "bear": 0,
+        "lead": 2,
+        "total": 5,
+        "dir": "bull",
+        "aligned": false
+      }
+    },
+    "CL": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p6"
+        },
+        "options": {
+          "signal": 0,
+          "metric": "RR p39"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "быки 57%",
+            "en": "bulls 57%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×6.1"
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP"
+        },
+        "moex": {
+          "level": 0,
+          "metric": {
+            "ru": "ЮЛ p54",
+            "en": "INST p54"
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "IV p23"
+        }
+      },
+      "consensus": {
+        "bull": 2,
+        "bear": 0,
+        "lead": 2,
+        "total": 5,
+        "dir": "bull",
+        "aligned": false
+      }
+    },
+    "GC": {
+      "cells": {
+        "cot": {
+          "signal": 0,
+          "metric": "p47"
+        },
+        "options": {
+          "signal": -1,
+          "metric": "RR p5"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "медведи 56%",
+            "en": "bears 56%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": {
+            "ru": "тихо",
+            "en": "quiet"
+          }
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP"
+        },
+        "moex": {
+          "level": 1,
+          "metric": {
+            "ru": "ЮЛ p87",
+            "en": "INST p87"
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p100"
+        }
+      },
+      "consensus": {
+        "bull": 1,
+        "bear": 1,
+        "lead": 1,
+        "total": 5,
+        "dir": "flat",
+        "aligned": false
+      }
+    },
+    "SI": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p13"
+        },
+        "options": {
+          "signal": -1,
+          "metric": "RR p7"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "быки 59%",
+            "en": "bulls 59%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×6.8"
+        },
+        "levels": {
+          "signal": 0,
+          "metric": {
+            "ru": "у VWAP",
+            "en": "at VWAP"
+          }
+        },
+        "moex": {
+          "level": 2,
+          "metric": {
+            "ru": "ЮЛ p1",
+            "en": "INST p1"
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p99"
+        }
+      },
+      "consensus": {
+        "bull": 1,
+        "bear": 1,
+        "lead": 1,
+        "total": 5,
+        "dir": "flat",
+        "aligned": false
+      }
+    },
+    "CC": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p9"
+        },
+        "options": {
+          "signal": 0,
+          "metric": "RR p70"
+        },
+        "sentiment": {
+          "signal": 0
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×4.3"
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP"
+        },
+        "moex": {
+          "level": 0,
+          "metric": {
+            "ru": "ЮЛ p55",
+            "en": "INST p55"
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "IV p8"
+        }
+      },
+      "consensus": {
+        "bull": 2,
+        "bear": 0,
+        "lead": 2,
+        "total": 5,
+        "dir": "bull",
+        "aligned": false
+      }
+    },
+    "KC": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p14"
+        },
+        "options": {
+          "signal": -1,
+          "metric": "RR p24"
+        },
+        "sentiment": null,
+        "flow": {
+          "signal": 1,
+          "metric": "×6.2"
+        },
+        "levels": null,
+        "moex": {
+          "level": 0,
+          "metric": {
+            "ru": "ЮЛ p41",
+            "en": "INST p41"
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "IV p2"
+        }
+      },
+      "consensus": {
+        "bull": 2,
+        "bear": 1,
+        "lead": 2,
+        "total": 3,
+        "dir": "bull",
+        "aligned": false
+      }
+    }
+  }
+}

@@ -39,6 +39,7 @@ python3 scripts/build_next_locales.py          # rebuild /next/en/
 python3 scripts/build_next_locales.py --check  # verify it is current
 python3 scripts/update_matrix_cot.py           # refresh the COT layer from CFTC
 python3 scripts/sync_layers.py                 # pull validated public layers (sentiment, levels, flow) into next/layers/
+python3 scripts/archive_matrix.py              # write today's snapshot of the matrix into next/archive/
 ```
 
 `scripts/sync_trigger.py` is not run from this repository: it is a Yandex Cloud Function
@@ -47,3 +48,8 @@ It starts `sync-layers.yml` when a layer file changed and `update-options.yml` a
 08:45 UTC, because GitHub runs `schedule` workflows hours late. Settings: `GITHUB_TOKEN`
 (fine-grained, Actions read and write on this repository only), `GITHUB_REPO`, `LAYERS_BUCKET`.
 After editing the script, release a new function version; the workflow schedules stay as a fallback.
+
+`next/archive/YYYY-MM-DD.json` is the matrix as the page showed it at 21:00 UTC of that trading day:
+the side of every layer per market, the consensus and the VIX regime, without the notes.
+`sync-layers.yml` rewrites the file of the current day on every run; after the cut-off it is final.
+There are no files for Saturdays and Sundays.

@@ -1,0 +1,305 @@
+{
+  "schema": 1,
+  "date": "2026-11-23",
+  "captured_at": "2026-11-23T20:25:45Z",
+  "layers": {
+    "cot": {
+      "votes": true,
+      "report_date": "2026-11-17"
+    },
+    "options": {
+      "votes": true,
+      "report_date": "2026-11-20"
+    },
+    "sentiment": {
+      "votes": true,
+      "report_date": "2026-11-23"
+    },
+    "flow": {
+      "votes": true,
+      "report_date": "2026-11-23"
+    },
+    "levels": {
+      "votes": true,
+      "report_date": "2026-11-23"
+    },
+    "moex": {
+      "votes": false,
+      "report_date": "2026-11-20"
+    },
+    "vol": {
+      "votes": false,
+      "report_date": "2026-11-20"
+    }
+  },
+  "regime": null,
+  "markets": {
+    "NG": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p1"
+        },
+        "options": {
+          "signal": 1,
+          "metric": "RR p100"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "быки 61%",
+            "en": "bulls 61%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×5.1"
+        },
+        "levels": {
+          "signal": 0,
+          "metric": "> VWAP"
+        },
+        "moex": {
+          "level": 1,
+          "metric": {
+            "ru": "ЮЛ p87",
+            "en": "INST p87"
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p94"
+        }
+      },
+      "consensus": {
+        "bull": 2,
+        "bear": 0,
+        "lead": 2,
+        "total": 5,
+        "dir": "bull",
+        "aligned": false
+      }
+    },
+    "CL": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p6"
+        },
+        "options": {
+          "signal": 0,
+          "metric": "RR p58"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "быки 62%",
+            "en": "bulls 62%"
+          }
+        },
+        "flow": {
+          "signal": -1,
+          "metric": "×4.6"
+        },
+        "levels": {
+          "signal": -1,
+          "metric": "< VWAP"
+        },
+        "moex": {
+          "level": 1,
+          "metric": {
+            "ru": "ЮЛ p20",
+            "en": "INST p20"
+          }
+        },
+        "vol": {
+          "level": 1,
+          "metric": "IV p50"
+        }
+      },
+      "consensus": {
+        "bull": 1,
+        "bear": 2,
+        "lead": 2,
+        "total": 5,
+        "dir": "bear",
+        "aligned": false
+      }
+    },
+    "GC": {
+      "cells": {
+        "cot": {
+          "signal": 0,
+          "metric": "p47"
+        },
+        "options": {
+          "signal": -1,
+          "metric": "RR p3"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "медведи 54%",
+            "en": "bears 54%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×15.8"
+        },
+        "levels": {
+          "signal": 0,
+          "metric": "< VWAP"
+        },
+        "moex": {
+          "level": 2,
+          "metric": {
+            "ru": "ЮЛ p96",
+            "en": "INST p96"
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p100"
+        }
+      },
+      "consensus": {
+        "bull": 0,
+        "bear": 1,
+        "lead": 1,
+        "total": 5,
+        "dir": "bear",
+        "aligned": false
+      }
+    },
+    "SI": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p13"
+        },
+        "options": {
+          "signal": -1,
+          "metric": "RR p3"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "медведи 54%",
+            "en": "bears 54%"
+          }
+        },
+        "flow": {
+          "signal": 0,
+          "metric": "×7.1"
+        },
+        "levels": {
+          "signal": 0,
+          "metric": "< VWAP"
+        },
+        "moex": {
+          "level": 2,
+          "metric": {
+            "ru": "ЮЛ p2",
+            "en": "INST p2"
+          }
+        },
+        "vol": {
+          "level": 2,
+          "metric": "IV p99"
+        }
+      },
+      "consensus": {
+        "bull": 1,
+        "bear": 1,
+        "lead": 1,
+        "total": 5,
+        "dir": "flat",
+        "aligned": false
+      }
+    },
+    "CC": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p9"
+        },
+        "options": {
+          "signal": 0,
+          "metric": "RR p74"
+        },
+        "sentiment": {
+          "signal": 0,
+          "metric": {
+            "ru": "быки 86%",
+            "en": "bulls 86%"
+          }
+        },
+        "flow": {
+          "signal": -1,
+          "metric": "×8.6"
+        },
+        "levels": {
+          "signal": 1,
+          "metric": "> VWAP"
+        },
+        "moex": {
+          "level": 0,
+          "metric": {
+            "ru": "ЮЛ p52",
+            "en": "INST p52"
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "IV p12"
+        }
+      },
+      "consensus": {
+        "bull": 2,
+        "bear": 1,
+        "lead": 2,
+        "total": 5,
+        "dir": "bull",
+        "aligned": false
+      }
+    },
+    "KC": {
+      "cells": {
+        "cot": {
+          "signal": 1,
+          "metric": "p14"
+        },
+        "options": {
+          "signal": 0,
+          "metric": "RR p68"
+        },
+        "sentiment": null,
+        "flow": {
+          "signal": 0,
+          "metric": "×3.5"
+        },
+        "levels": null,
+        "moex": {
+          "level": 0,
+          "metric": {
+            "ru": "ЮЛ p34",
+            "en": "INST p34"
+          }
+        },
+        "vol": {
+          "level": 0,
+          "metric": "IV p4"
+        }
+      },
+      "consensus": {
+        "bull": 1,
+        "bear": 0,
+        "lead": 1,
+        "total": 3,
+        "dir": "bull",
+        "aligned": false
+      }
+    }
+  }
+}
