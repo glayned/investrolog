@@ -3,7 +3,7 @@
     --bear: #b93a2c;
     --bull-tint: rgba(28, 128, 72, 0.09);
     --bear-tint: rgba(185, 58, 44, 0.08);
-    --cmx-cols: minmax(132px, 1.5fr) repeat(7, minmax(0, 1fr)) minmax(112px, 1.3fr);
+    --cmx-cols: minmax(112px, 1.3fr) repeat(7, minmax(0, 1fr)) minmax(112px, 1.3fr);
     --cmx-gap: 4px;
     --cmx-cell-h: 54px;
 }
@@ -471,6 +471,9 @@
     .cmx-col { font-size: 8px; letter-spacing: 0.4px; }
     .cmx-col .cmx-long { display: none; }
     .cmx-col .cmx-short { display: inline; }
+    /* Four-letter labels do not fit beside the dot: every column stacks it above */
+    .cmx-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+    .cmx-col.is-live::before { margin-right: 0; }
     .cmx-name { padding: 0 4px; }
     .cmx-ticker { font-size: 12px; letter-spacing: 0.5px; }
     .cmx-fullname, .cmx-metric { display: none; }
