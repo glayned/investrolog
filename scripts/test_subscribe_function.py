@@ -7,7 +7,6 @@ import urllib.parse
 import subscribe_function as sf
 
 SECRET = "test-secret"
-URL = "https://functions.example/f1"
 NOW = dt.datetime(2026, 11, 27, 12, 0, tzinfo=dt.timezone.utc)
 
 
@@ -37,7 +36,7 @@ class Flow(unittest.TestCase):
         self.letters.append((to, subject, plain, page))
 
     def submit(self, email="Trader@Example.com", now=NOW, source="1.2.3.4", **extra):
-        sf.subscribe({"email": email, **extra}, source, now, self.bucket, self.send, SECRET, URL)
+        sf.subscribe({"email": email, **extra}, source, now, self.bucket, self.send, SECRET)
 
     def record(self, email="trader@example.com"):
         return self.bucket.get(f"subscribers/{sf.address_id(email)}.json")
@@ -46,9 +45,9 @@ class Flow(unittest.TestCase):
         return self.bucket.get(f"pending/{sf.address_id(email)}.json")
 
     def link(self, letter=-1):
-        found = re.search(r"https://functions\.example/f1\?\S+", self.letters[letter][2]).group(0)
-        query = urllib.parse.parse_qs(urllib.parse.urlsplit(found).query)
-        return query["action"][0], query["token"][0]
+        found = re.search(r"https://investrolog\.pro/next/\S+", self.letters[letter][2]).group(0)
+        (action, tokens), = urllib.parse.parse_qs(urllib.parse.urlsplit(found).query).items()
+        return action, tokens[0]
 
     def follow(self, now=NOW, letter=-1):
         action, token = self.link(letter)
@@ -60,7 +59,7 @@ class Flow(unittest.TestCase):
         to, subject, plain, page = self.letters[0]
         self.assertEqual(to, "Trader@example.com")
         self.assertEqual(subject, "Confirm your matrix subscription")
-        self.assertIn("action=confirm", plain)
+        self.assertIn("https://investrolog.pro/next/en/?confirm=", plain)
         self.assertIn("Confirm subscription", page)
         self.assertIsNone(self.record())
         self.assertEqual(self.request()["email"], "Trader@example.com")
@@ -71,18 +70,18 @@ class Flow(unittest.TestCase):
 
     def test_confirmation_activates_the_address(self):
         self.submit()
-        self.assertEqual(self.follow(), ("confirmed", "ru"))
+        self.assertEqual(self.follow(), "confirmed")
         self.assertEqual(self.record()["status"], "active")
         self.assertIsNone(self.request())
         # A second click, or a mail scanner, changes nothing.
-        self.assertEqual(self.follow(), ("confirmed", "ru"))
+        self.assertEqual(self.follow(), "confirmed")
 
     def test_link_expires_after_48_hours(self):
         self.submit()
-        self.assertEqual(self.follow(NOW + dt.timedelta(hours=47, minutes=59))[0], "confirmed")
+        self.assertEqual(self.follow(NOW + dt.timedelta(hours=47, minutes=59)), "confirmed")
         self.setUp()
         self.submit()
-        self.assertEqual(self.follow(NOW + dt.timedelta(hours=48, minutes=1))[0], "expired")
+        self.assertEqual(self.follow(NOW + dt.timedelta(hours=48, minutes=1)), "expired")
         self.assertIsNone(self.record())
 
     def test_forged_and_foreign_tokens_are_refused(self):
@@ -90,8 +89,8 @@ class Flow(unittest.TestCase):
         action, token = self.link()
         for bad in (token[:-2] + "xx", token.replace("confirm", "unsubscribe", 1), "", "a.b.c.d",
                     sf.make_token("other-secret", "confirm", sf.address_id("trader@example.com"), NOW + sf.CONFIRM_TTL)):
-            self.assertEqual(sf.follow_link("confirm", bad, NOW, self.bucket, SECRET)[0], "expired")
-        self.assertEqual(sf.follow_link("unsubscribe", token, NOW, self.bucket, SECRET)[0], "expired")
+            self.assertEqual(sf.follow_link("confirm", bad, NOW, self.bucket, SECRET), "expired")
+        self.assertEqual(sf.follow_link("unsubscribe", token, NOW, self.bucket, SECRET), "expired")
         self.assertIsNone(self.record())
 
     def test_repeat_inside_ten_minutes_sends_nothing(self):
@@ -107,7 +106,7 @@ class Flow(unittest.TestCase):
         self.submit(now=NOW + dt.timedelta(hours=1))  # no exception: the form answers as for a new address
         self.assertEqual(self.letters[-1][1], "Вы уже подписаны на матрицу")
         self.assertEqual(self.record()["status"], "active")
-        self.assertEqual(self.follow(NOW + dt.timedelta(days=400))[0], "unsubscribed")
+        self.assertEqual(self.follow(NOW + dt.timedelta(days=400)), "unsubscribed")
         self.assertEqual(self.record()["status"], "unsubscribed")
 
     def test_unsubscribed_address_can_subscribe_again_but_old_link_is_dead(self):
@@ -115,10 +114,27 @@ class Flow(unittest.TestCase):
         self.follow()
         self.submit(now=NOW + dt.timedelta(hours=1))
         self.follow()
-        self.assertEqual(self.follow(letter=0)[0], "expired")
+        self.assertEqual(self.follow(letter=0), "expired")
         self.submit(now=NOW + dt.timedelta(hours=2))
-        self.assertEqual(self.follow(NOW + dt.timedelta(hours=2))[0], "confirmed")
+        # The first link is still inside its 48 hours, but it belongs to the request before the unsubscribe.
+        self.assertEqual(self.follow(NOW + dt.timedelta(hours=2), letter=0), "expired")
+        self.assertEqual(self.record()["status"], "unsubscribed")
+        self.assertEqual(self.follow(NOW + dt.timedelta(hours=2)), "confirmed")
         self.assertEqual(self.record()["status"], "active")
+
+    def test_every_letter_of_one_request_confirms_it(self):
+        self.submit()
+        self.submit(now=NOW + dt.timedelta(minutes=11))
+        self.assertEqual(self.follow(NOW + dt.timedelta(minutes=12), letter=0), "confirmed")
+
+    def test_known_address_letter_does_not_touch_the_subscriber_record(self):
+        self.submit()
+        self.follow()
+        before = self.record()
+        self.submit(now=NOW + dt.timedelta(hours=1))
+        self.submit(now=NOW + dt.timedelta(hours=1, minutes=5))
+        self.assertEqual(self.record(), before)
+        self.assertEqual(len(self.letters), 2)
 
     def test_case_and_spaces_do_not_make_a_second_record(self):
         self.submit("  trader@EXAMPLE.com ")
@@ -167,7 +183,10 @@ class Flow(unittest.TestCase):
         def broken(*_):
             raise OSError("postbox down")
         with self.assertRaises(OSError):
-            sf.subscribe({"email": "t@example.com"}, "s", NOW, self.bucket, broken, SECRET, URL)
+            sf.subscribe({"email": "t@example.com"}, "s", NOW, self.bucket, broken, SECRET)
+        # The retry a minute later is sent, not swallowed as a recent repeat.
+        self.submit("t@example.com", now=NOW + dt.timedelta(minutes=1))
+        self.assertEqual(len(self.letters), 1)
 
 
 class Letter(unittest.TestCase):
@@ -180,10 +199,6 @@ class Letter(unittest.TestCase):
                 self.assertIn("https://f/?action=x&token=a.b", plain)
                 self.assertNotIn("{", page)
 
-    def test_landing_pages(self):
-        self.assertEqual(sf.landing("confirmed", "ru"), "https://investrolog.pro/next/?subscription=confirmed#subscribe")
-        self.assertEqual(sf.landing("expired", "en"), "https://investrolog.pro/next/en/?subscription=expired#subscribe")
-
 
 class Http(unittest.TestCase):
     def test_cors_only_for_the_site(self):
@@ -194,6 +209,15 @@ class Http(unittest.TestCase):
     def test_preflight_needs_no_cloud_access(self):
         answer = sf.handler({"httpMethod": "OPTIONS", "headers": {"Origin": "https://investrolog.pro"}}, None)
         self.assertEqual(answer["statusCode"], 204)
+
+    def test_get_changes_nothing(self):
+        class Context:
+            token = {"access_token": "t"}
+        import os
+        os.environ.update(SUBSCRIBERS_BUCKET="b", TOKEN_SECRET=SECRET)
+        token = sf.make_token(SECRET, "unsubscribe", "0" * 64)
+        answer = sf.handler({"httpMethod": "GET", "queryStringParameters": {"action": "unsubscribe", "token": token}}, Context())
+        self.assertEqual(answer["statusCode"], 404)
 
 
 if __name__ == "__main__":

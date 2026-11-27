@@ -492,7 +492,8 @@
     letter-spacing: 0.4px;
     color: var(--text-secondary);
 }
-.subscribe-status:empty { display: none; }
+/* Stays in the page while empty: a live region must exist before its text changes. */
+.subscribe-status:empty { margin-top: 0; }
 .subscribe-status.is-ok { color: var(--bull); }
 .subscribe-status.is-error { color: var(--bear); }
 

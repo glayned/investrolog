@@ -601,17 +601,26 @@
             status.textContent = text;
             status.className = 'subscribe-status' + (kind ? ` is-${kind}` : '');
         };
-        // The link in a letter comes back here with the outcome in the address.
-        const outcome = new URLSearchParams(location.search).get('subscription');
-        const outcomes = {
-            confirmed: [T.subscriptionConfirmed, 'ok'],
-            unsubscribed: [T.subscriptionUnsubscribed, ''],
-            expired: [T.subscriptionExpired, 'error'],
-            error: [T.subscribeFailed, 'error']
-        };
-        if (outcome && outcomes[outcome]) {
-            say(...outcomes[outcome]);
+        const post = (action, body) => fetch(`${SUBSCRIBE_URL}?action=${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        // A link in a letter opens this page with a token; the page hands it to the function.
+        const query = new URLSearchParams(location.search);
+        const linkAction = ['confirm', 'unsubscribe'].find(name => query.get(name));
+        if (linkAction) {
+            const outcomes = {
+                confirmed: [T.subscriptionConfirmed, 'ok'],
+                unsubscribed: [T.subscriptionUnsubscribed, ''],
+                expired: [T.subscriptionExpired, 'error']
+            };
+            const token = query.get(linkAction);
             history.replaceState(null, '', location.pathname + location.hash);
+            post(linkAction, { token })
+                .then(response => (response.ok ? response.json() : {}))
+                .then(answer => say(...(outcomes[answer.result] || [T.subscribeFailed, 'error'])))
+                .catch(() => say(T.subscribeFailed, 'error'));
         }
         subscribeForm.addEventListener('submit', async event => {
             event.preventDefault();
@@ -622,14 +631,10 @@
             button.disabled = true;
             say('', '');
             try {
-                const response = await fetch(`${SUBSCRIBE_URL}?action=subscribe`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: input.value.trim(),
-                        lang: LANG,
-                        website: subscribeForm.elements.website.value
-                    })
+                const response = await post('subscribe', {
+                    email: input.value.trim(),
+                    lang: LANG,
+                    website: subscribeForm.elements.website.value
                 });
                 if (response.ok) say(T.subscribeSent, 'ok');
                 else if (response.status === 400) say(T.subscribeInvalid, 'error');

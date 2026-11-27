@@ -53,7 +53,7 @@ After editing the script, release a new function version; the workflow schedules
 (`matrix-subscribe`, public) in the cloud that holds the Postbox address of investrolog.pro. The form on
 `/next/` posts to it; addresses are kept in the private bucket `investrolog-matrix-subscribers`
 (`pending/` is deleted by a lifecycle rule after 30 days, `limits/` after a day) and never reach this
-repository. Settings: `SUBSCRIBERS_BUCKET`, `TOKEN_SECRET`, `FUNCTION_URL`. Keep `TOKEN_SECRET` when
+repository. Settings: `SUBSCRIBERS_BUCKET`, `TOKEN_SECRET`. Keep `TOKEN_SECRET` when
 releasing a new version: links in letters already sent are signed with it.
 
 `next/archive/YYYY-MM-DD.json` is the matrix as the page showed it at 22:00 UTC of that trading day:

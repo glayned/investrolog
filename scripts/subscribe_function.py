@@ -5,21 +5,24 @@ Function. It is not run from this repository: it is released by hand, like
 `sync_trigger.py`.
 
     POST ?action=subscribe    {"email", "lang", "website"}  -> confirmation email
-    GET  ?action=confirm&token=...                          -> address becomes active
-    GET  ?action=unsubscribe&token=...                      -> address is switched off
+    POST ?action=confirm      {"token"}                     -> address becomes active
+    POST ?action=unsubscribe  {"token"}                     -> address is switched off
+
+Links in letters lead to the site, and the page posts the token here. A
+plain GET changes nothing, so a mail scanner that opens every link does not
+confirm or cancel a subscription for the recipient.
 
 Addresses live in a private bucket, one object per address, named by the
 hash of the address: `pending/` until the link is followed, `subscribers/`
 after. A lifecycle rule of the bucket deletes `pending/` objects after 30
-days and the `limits/` counters after a day. Nothing about subscribers reaches the repository or the
-site. The answer to `subscribe` is the same for a new and for a known
+days and the `limits/` counters after a day. Nothing about subscribers
+reaches the repository or the site. The answer to `subscribe` is the same for a new and for a known
 address, so the form cannot be used to learn who is subscribed.
 
 Links carry no state: a token is the address hash, a purpose and an expiry
 time signed with TOKEN_SECRET.
 
-Environment: SUBSCRIBERS_BUCKET, TOKEN_SECRET, FUNCTION_URL, and optionally
-MAIL_FROM. The bucket and Postbox are called with the IAM token of the
+Environment: SUBSCRIBERS_BUCKET, TOKEN_SECRET, and optionally MAIL_FROM. The bucket and Postbox are called with the IAM token of the
 function's service account.
 """
 
@@ -130,7 +133,7 @@ def make_token(secret, purpose, ident, expires=None):
 
 
 def read_token(secret, token, purpose, now):
-    """The address hash from a valid token; None if forged, foreign or expired."""
+    """(address hash, expiry stamp) from a valid token; None if forged, foreign or expired."""
     parts = token.split(".") if isinstance(token, str) else []
     if len(parts) != 4 or parts[0] != purpose:
         return None
@@ -146,7 +149,7 @@ def read_token(secret, token, purpose, now):
         return None
     if not re.fullmatch(r"[0-9a-f]{64}", parts[1]):
         return None
-    return parts[1]
+    return parts[1], stamp
 
 
 def render_letter(kind, lang, link):
@@ -219,7 +222,7 @@ def _count(bucket, key, limit):
     return True
 
 
-def subscribe(payload, source, now, bucket, send, secret, function_url):
+def subscribe(payload, source, now, bucket, send, secret):
     """Handle the form. Returns silently for a trap hit and for a recent repeat."""
     if not isinstance(payload, dict):
         raise Refused(400, "invalid")
@@ -237,7 +240,10 @@ def subscribe(payload, source, now, bucket, send, secret, function_url):
     ident = address_id(email)
     member = bucket.get(f"subscribers/{ident}.json")
     if member and member["status"] == "active":
-        key, record = f"subscribers/{ident}.json", member
+        # The subscriber's record is not rewritten here: a write that races
+        # with an unsubscribe would bring the subscription back.
+        key = f"limits/known/{ident}.json"
+        record = bucket.get(key) or {}
         kind, action, expires = "known", "unsubscribe", None
     else:
         key = f"pending/{ident}.json"
@@ -250,41 +256,44 @@ def subscribe(payload, source, now, bucket, send, secret, function_url):
         raise Refused(429, "rate")
 
     token = make_token(secret, action, ident, expires)
-    link = f"{function_url}?{urllib.parse.urlencode({'action': action, 'token': token})}"
-    record.update(lang=lang, last_letter_at=_stamp(now))
-    bucket.put(key, record)
-    send(email, *render_letter(kind, lang, link))
+    link = f"{SITE}{'/next/en/' if lang == 'en' else '/next/'}?{action}={token}#subscribe"
+    bucket.put(key, {**record, "lang": lang, "last_letter_at": _stamp(now)})
+    try:
+        send(email, *render_letter(kind, lang, link))
+    except Exception:
+        # The letter did not leave: a retry must not be told to check the inbox.
+        bucket.put(key, {**record, "lang": lang})
+        raise
 
 
 def follow_link(action, token, now, bucket, secret):
-    """Apply a link from a letter; returns (result, language) for the landing page."""
-    ident = read_token(secret, token, action, now)
-    if not ident:
-        return "expired", "ru"
+    """Apply a link from a letter: "confirmed", "unsubscribed" or "expired"."""
+    found = read_token(secret, token, action, now)
+    if not found:
+        return "expired"
+    ident, stamp = found
     key = f"subscribers/{ident}.json"
     member = bucket.get(key)
     if action == "confirm":
         request = bucket.get(f"pending/{ident}.json")
-        if request:
+        issued = dt.datetime.fromtimestamp(stamp, dt.timezone.utc) - CONFIRM_TTL
+        # A link from before this request, e.g. one already used before an
+        # unsubscribe, must not confirm the new request.
+        if request and _stamp(issued) >= request["created_at"]:
             bucket.put(key, {"email": request["email"], "lang": request.get("lang", "ru"), "status": "active",
                              "created_at": request["created_at"], "confirmed_at": _stamp(now)})
             bucket.delete(f"pending/{ident}.json")
-            return "confirmed", request.get("lang", "ru")
-        # A second click, or a mail scanner that followed the link first.
-        if member and member["status"] == "active":
-            return "confirmed", member.get("lang", "ru")
-        return "expired", (member or {}).get("lang", "ru")
+            return "confirmed"
+        # A second click on a link that has already worked.
+        if not request and member and member["status"] == "active":
+            return "confirmed"
+        return "expired"
     if not member:
-        return "expired", "ru"
+        return "expired"
     if member["status"] != "unsubscribed":
         member.update(status="unsubscribed", unsubscribed_at=_stamp(now))
         bucket.put(key, member)
-    return "unsubscribed", member.get("lang", "ru")
-
-
-def landing(result, lang):
-    page = "/next/en/" if lang == "en" else "/next/"
-    return f"{SITE}{page}?subscription={result}#subscribe"
+    return "unsubscribed"
 
 
 def _header(event, name):
@@ -316,15 +325,7 @@ def handler(event, context):
     bucket = Bucket(os.environ["SUBSCRIBERS_BUCKET"], iam_token)
     secret = os.environ["TOKEN_SECRET"]
 
-    if method == "GET" and action in ("confirm", "unsubscribe"):
-        try:
-            result, lang = follow_link(action, query.get("token", ""), now, bucket, secret)
-        except (OSError, http.client.HTTPException, ValueError) as error:
-            print(f"{action} failed: {type(error).__name__}")
-            result, lang = "error", "ru"
-        return {"statusCode": 302, "headers": {"Location": landing(result, lang), "Cache-Control": "no-store"}, "body": ""}
-
-    if method != "POST" or action != "subscribe":
+    if method != "POST" or action not in ("subscribe", "confirm", "unsubscribe"):
         return _answer(404, {"ok": False, "error": "unknown"}, origin)
     try:
         raw = event.get("body") or ""
@@ -333,16 +334,19 @@ def handler(event, context):
         payload = json.loads(raw)
     except ValueError:
         return _answer(400, {"ok": False, "error": "invalid"}, origin)
-    source = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp", "")
-    sender = os.environ.get("MAIL_FROM", MAIL_FROM)
     try:
+        if action != "subscribe":
+            token = payload.get("token", "") if isinstance(payload, dict) else ""
+            return _answer(200, {"ok": True, "result": follow_link(action, token, now, bucket, secret)}, origin)
+        source = ((event.get("requestContext") or {}).get("identity") or {}).get("sourceIp", "")
+        sender = os.environ.get("MAIL_FROM", MAIL_FROM)
         subscribe(payload, source, now, bucket,
                   lambda to, subject, plain, page: send_letter(iam_token, sender, to, subject, plain, page),
-                  secret, os.environ["FUNCTION_URL"])
+                  secret)
     except Refused as refused:
         return _answer(refused.status, {"ok": False, "error": refused.code}, origin)
     except (OSError, http.client.HTTPException, ValueError) as error:
         # No address in the log: only the kind of failure.
-        print(f"subscribe failed: {type(error).__name__}")
+        print(f"{action} failed: {type(error).__name__}")
         return _answer(502, {"ok": False, "error": "unavailable"}, origin)
     return _answer(200, {"ok": True}, origin)
