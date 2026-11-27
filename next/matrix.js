@@ -252,8 +252,9 @@
         if (valid) layer.live = { source: text(raw.source, 24), reportDate };
     }
 
-    function liveLabel(layer) {
-        return [layer.live.source, T.report(reportFormat.format(layer.live.reportDate))].filter(Boolean).join(', ');
+    function liveLabel(layer, compact) {
+        const date = reportFormat.format(layer.live.reportDate);
+        return [layer.live.source, compact ? date : T.report(date)].filter(Boolean).join(', ');
     }
 
     /* Counted over the layers that have data; MIN_ALIGNED on one side still means at least that many have it */
@@ -480,7 +481,7 @@
             demo.textContent = live.length ? T.demoExcept(live.map(layer => layer.label).join(', ')) : T.demoBadge;
         }
         if (!stamp) return;
-        if (live.length) stamp.textContent = live.map(layer => `${layer.label}: ${liveLabel(layer)}`).join(' · ');
+        if (live.length) stamp.textContent = live.map(layer => `${layer.label}: ${liveLabel(layer, layer.id !== 'cot')}`).join(' · ');
         else stamp.textContent = snapshot.generatedAt ? T.snapshot(stampFormat.format(snapshot.generatedAt)) : '';
     }
 
