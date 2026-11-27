@@ -33,11 +33,11 @@
       }
     },
     "SI": {
-      "signal": -1,
-      "metric": "×6.8",
+      "signal": 0,
+      "metric": "×3.2",
       "note": {
-        "ru": "Всплесков объёма за сутки: 2, перевес на стороне продажи; крупнейший — ×6.8 к среднему объёму.",
-        "en": "Volume spikes over the last day: 2, the balance favours sellers; the largest was ×6.8 the average volume."
+        "ru": "Всплесков объёма за сутки: 1, перевеса одной стороны нет; крупнейший — ×3.2 к среднему объёму.",
+        "en": "Volume spikes over the last day: 1, neither side dominates; the largest was ×3.2 the average volume."
       }
     },
     "CC": {
