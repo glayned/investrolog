@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-27",
-  "captured_at": "2026-11-27T18:26:08Z",
+  "captured_at": "2026-11-27T19:06:12Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -150,10 +150,7 @@
         },
         "flow": {
           "signal": 0,
-          "metric": {
-            "ru": "тихо",
-            "en": "quiet"
-          }
+          "metric": "×3.2"
         },
         "levels": {
           "signal": 1,
