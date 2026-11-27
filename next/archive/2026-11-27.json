@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-27",
-  "captured_at": "2026-11-27T17:06:10Z",
+  "captured_at": "2026-11-27T17:26:06Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -52,8 +52,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 55%",
-            "en": "bears 55%"
+            "ru": "медведи 61%",
+            "en": "bears 61%"
           }
         },
         "flow": {
@@ -98,8 +98,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 56%",
-            "en": "bulls 56%"
+            "ru": "быки 57%",
+            "en": "bulls 57%"
           }
         },
         "flow": {
@@ -144,8 +144,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 51%",
-            "en": "bears 51%"
+            "ru": "медведи 56%",
+            "en": "bears 56%"
           }
         },
         "flow": {
@@ -193,8 +193,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 56%",
-            "en": "bulls 56%"
+            "ru": "быки 57%",
+            "en": "bulls 57%"
           }
         },
         "flow": {
