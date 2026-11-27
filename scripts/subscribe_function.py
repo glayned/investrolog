@@ -192,7 +192,7 @@ class Bucket:
             pass
 
 
-def send_letter(iam_token, sender, to, subject, plain, page):
+def send_letter(iam_token, sender, to, subject, plain, page, headers=None):
     body = {
         "FromEmailAddress": sender,
         "Destination": {"ToAddresses": [to]},
@@ -202,6 +202,8 @@ def send_letter(iam_token, sender, to, subject, plain, page):
                      "Html": {"Data": page, "Charset": "UTF-8"}},
         }},
     }
+    if headers:
+        body["Content"]["Simple"]["Headers"] = headers
     request = urllib.request.Request(
         POSTBOX_URL, method="POST", data=json.dumps(body).encode("utf-8"),
         headers={"X-YaCloud-SubjectToken": iam_token, "Content-Type": "application/json"})
