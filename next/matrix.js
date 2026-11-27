@@ -421,6 +421,10 @@
         ];
     }
 
+    function wasLine(cell) {
+        return cell.was && el('p', { class: 'cmx-detail-was', text: T.was(reportFormat.format(snapshot.previous.date), stateLabel(cell.was)) });
+    }
+
     function renderCellDetail(instrument, layer) {
         const cell = instrument.cells[layer.id];
         const chip = el('span', { class: 'cmx-state', 'data-s': cell.state }, mark(cell),
@@ -433,7 +437,7 @@
                 el('span', { class: 'cmx-detail-kicker', text: [HORIZONS[layer.horizon], layer.label, origin].filter(Boolean).join(' · ') }),
                 el('h3', { class: 'cmx-detail-title' }, el('span', { text: instrument.name }), chip),
                 note && el('p', { class: 'cmx-detail-text', text: note }),
-                cell.was && el('p', { class: 'cmx-detail-was', text: T.was(reportFormat.format(snapshot.previous.date), stateLabel(cell.was)) }),
+                wasLine(cell),
                 layer.about && el('p', { class: 'cmx-detail-about', text: layer.about })),
             closedBlock(closed || T.cellClosed, layer.url)
         ];
@@ -580,14 +584,17 @@
     }
 
     /* The archive day closes at the cut-off: before it "the previous day" is yesterday's file, after it today's */
-    async function loadPrevious() {
-        const now = new Date();
+    function previousDay(days, now) {
         const current = new Date(now.getTime() + (24 - ARCHIVE_CUTOFF_HOUR_UTC) * 3600000).toISOString().slice(0, 10);
-        const index = await fetchJson(`${ARCHIVE_URL}/index.json`);
-        const days = (Array.isArray(index && index.days) ? index.days : [])
+        const earlier = (Array.isArray(days) ? days : [])
             .filter(day => typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day) && day < current).sort();
-        if (!days.length) return null;
-        const day = days[days.length - 1];
+        return earlier.length ? earlier[earlier.length - 1] : null;
+    }
+
+    async function loadPrevious() {
+        const index = await fetchJson(`${ARCHIVE_URL}/index.json`);
+        const day = previousDay(index && index.days, new Date());
+        if (!day) return null;
         const raw = await fetchJson(`${ARCHIVE_URL}/${day}.json`);
         if (!raw || raw.schema !== 1 || raw.date !== day || !raw.markets || typeof raw.markets !== 'object') return null;
         return { date: new Date(`${day}T00:00:00Z`), markets: raw.markets };
@@ -644,11 +651,14 @@
             button.classList.add('is-changed');
             button.setAttribute('aria-label', `${button.getAttribute('aria-label')}, ${T.changed}`);
         }
-        const active = grid.querySelector('.cmx-btn.is-active');
-        if (active && !detailEl.hidden) select(active);
+        /* The open card gets its line in place: rebuilding it would drop the keyboard focus inside */
+        const active = grid.querySelector('.cmx-cell.is-active');
+        const about = active && detailEl.querySelector('.cmx-detail-about');
+        const line = active && wasLine(snapshot.instruments[Number(active.parentElement.dataset.r)].cells[active.dataset.layer]);
+        if (line) about ? about.before(line) : detailEl.firstElementChild.append(line);
     }
 
-    const previousDay = loadPrevious().catch(error => {
+    const previous = loadPrevious().catch(error => {
         console.warn('Consensus matrix: archive:', error);
         return null;
     });
@@ -663,7 +673,7 @@
         applyFilter();
         renderEvents();
         if (snapshot.events.length) setInterval(renderEvents, 60000);
-        previousDay.then(showPrevious);
+        previous.then(showPrevious);
     }).catch(error => {
         console.warn('Consensus matrix:', error);
         statusEl.hidden = false;

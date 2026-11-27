@@ -143,6 +143,38 @@ class SamePageRuleTest(unittest.TestCase):
                               capture_output=True, text=True, check=True)
         self.assertEqual(json.loads(done.stdout), [am.consensus(list(c)) for c in combos])
 
+    @unittest.skipUnless(shutil.which("node"), "node is not installed")
+    def test_the_page_compares_with_the_last_finished_day(self):
+        source = re.search(r"    function previousDay\(days, now\) \{.*?\n    \}\n", MATRIX_JS, re.S).group(0)
+        days = ["2026-11-19", "2026-11-20", "2026-11-23", "2026-11-24"]
+        cases = [
+            ("2026-11-20T21:59:00Z", days[:2], "2026-11-19"),  # Friday before the cut-off
+            ("2026-11-20T22:00:00Z", days[:2], "2026-11-20"),  # Friday evening: the day is finished
+            ("2026-11-22T12:00:00Z", days[:2], "2026-11-20"),  # Sunday
+            ("2026-11-23T08:00:00Z", days[:2], "2026-11-20"),  # Monday before its first snapshot
+            ("2026-11-23T21:59:00Z", days[:3], "2026-11-20"),  # Monday: its own file is not "previous"
+            ("2026-11-23T22:00:00Z", days[:3], "2026-11-23"),
+            ("2026-11-23T22:10:00Z", days, "2026-11-23"),      # Tuesday's file already exists
+            ("2026-11-19T12:00:00Z", days[:1], None),          # nothing earlier
+            ("2026-11-23T12:00:00Z", ["junk", 5, None], None),
+            ("2026-11-23T12:00:00Z", None, None),
+        ]
+        script = (
+            f"const ARCHIVE_CUTOFF_HOUR_UTC = {am.CUTOFF_HOUR_UTC};\n{source}\n"
+            "const out = JSON.parse(require('fs').readFileSync(0, 'utf8'))"
+            ".map(([now, days]) => previousDay(days, new Date(now)));\n"
+            "console.log(JSON.stringify(out));\n"
+        )
+        done = subprocess.run(["node", "-e", script], input=json.dumps([c[:2] for c in cases]),
+                              capture_output=True, text=True, check=True)
+        self.assertEqual(json.loads(done.stdout), [c[2] for c in cases])
+        # The writer and the page agree on which day is still open
+        for now, _, _ in cases:
+            moment = dt.datetime.fromisoformat(now.replace("Z", "+00:00"))
+            open_day = am.archive_day(moment)
+            if open_day:
+                self.assertNotEqual(str(open_day), json.loads(done.stdout)[[c[0] for c in cases].index(now)])
+
 
 if __name__ == "__main__":
     unittest.main()
