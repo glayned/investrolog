@@ -565,3 +565,9 @@
 }
 .policy p { margin-top: 8px; font-size: 15px; line-height: 1.7; }
 .policy p a { color: inherit; text-underline-offset: 3px; }
+
+/* Narrow phones: the typed logo code and the header controls must both fit inside the container */
+@media (max-width: 380px) {
+    .code-text { font-size: 12px; }
+    .header-controls { gap: 6px; }
+}

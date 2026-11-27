@@ -7,7 +7,7 @@
     const FETCH_TIMEOUT_MS = 8000;
     const MIN_ALIGNED = 4;
     const MAX_EVENTS = 3;
-    const TERMINAL_URL = 'https://t.me/investrolog';
+    const TERMINAL_URL = 'https://t.me/DiTradeApp';
     // scripts/subscribe_function.py, released by hand to Yandex Cloud Functions.
     const SUBSCRIBE_URL = 'https://functions.yandexcloud.net/d4e10a35209hoff21u3p';
     const LANG = document.documentElement.lang === 'en' ? 'en' : 'ru';
