@@ -27,6 +27,7 @@ import json
 import os
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -35,9 +36,11 @@ import subscribe_function as sub
 ARCHIVE_URL = f"{sub.SITE}/next/archive"
 MARKETS = ("NG", "CL", "GC", "SI", "CC", "KC")
 MOSCOW = dt.timezone(dt.timedelta(hours=3))
-# Postbox accepts one letter a second and 200 a day; signups need a share of the day.
+# Postbox accepts one letter a second and 200 a day. The run draws from the daily
+# counter of the signup letters (`sub.DAILY_LETTERS`) and stops below its limit,
+# so confirmations keep a share of the day.
 SEND_PAUSE_SEC = 1.1
-RUN_LETTERS = 150
+RUN_LETTERS = 100
 DEADLINE_RESERVE_MS = 30_000
 TIMER_EVENT = "yandex.cloud.events.serverless.triggers.TimerMessage"
 
@@ -117,14 +120,27 @@ def _consensus(raw):
     return {"dir": raw["dir"], "lead": lead, "total": total, "aligned": aligned}
 
 
+class ArchiveUnavailable(Exception):
+    """The archive did not answer: nothing is known about the week, so nothing is sent."""
+
+
 def read_week(fetch, monday):
-    """Snapshots of the week: `{"monday", "days": [per-day dict or None] * 5, "regime"}`, or None without data."""
-    index = fetch("index.json") or {}
+    """Snapshots of the week: `{"monday", "days": [per-day dict or None] * 5, "regime"}`, or None without data.
+
+    `fetch` returns None for a file the archive does not have and raises
+    `ArchiveUnavailable` when it could not be read: a day that failed to load
+    must not go out as an empty column.
+    """
+    index = fetch("index.json")
+    if not isinstance(index, dict):
+        raise ArchiveUnavailable("index.json")
     known = set(index.get("days") or [])
     days, regime = [], None
     for offset in range(5):
         date = (monday + dt.timedelta(days=offset)).isoformat()
         snapshot = fetch(f"{date}.json") if date in known else None
+        if date in known and snapshot is None:
+            raise ArchiveUnavailable(f"{date}.json")
         if not isinstance(snapshot, dict) or snapshot.get("date") != date:
             days.append(None)
             continue
@@ -250,7 +266,8 @@ def unsubscribe_link(secret, ident, lang):
     return f"{sub.SITE}{TEXT[lang]['page']}?unsubscribe={token}#subscribe"
 
 
-def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=RUN_LETTERS, has_time=lambda: True):
+def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=RUN_LETTERS, has_time=lambda: True,
+              take_quota=lambda: True):
     """Send the week to every active subscriber once. Returns the counts of the run.
 
     The marker is written before the letter leaves, so a run that dies between
@@ -275,6 +292,10 @@ def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=R
         if not member or member.get("status") != "active" or not sub.normalize_email(member.get("email")):
             done["inactive"] += 1
             continue
+        if not take_quota():
+            # The day's letters are used up: the next run takes the rest.
+            done["stopped"] = True
+            break
         lang = "en" if member.get("lang") == "en" else "ru"
         link = unsubscribe_link(secret, ident, lang)
         bucket.put(f"{prefix}{ident}.json", {"sent_at": sub._stamp(dt.datetime.now(dt.timezone.utc))})
@@ -289,12 +310,20 @@ def send_week(week, bucket, list_keys, send, secret, pause=lambda: None, limit=R
     return done
 
 
-def _fetch_archive(name):
-    try:
-        with urllib.request.urlopen(f"{ARCHIVE_URL}/{name}", timeout=sub.TIMEOUT_SEC) as response:
-            return json.loads(response.read())
-    except (OSError, ValueError):
-        return None
+def _fetch_archive(name, tries=3):
+    """The file, or None when the archive has no such file; raises when it cannot be read."""
+    for attempt in range(tries):
+        try:
+            with urllib.request.urlopen(f"{ARCHIVE_URL}/{name}", timeout=sub.TIMEOUT_SEC) as response:
+                return json.loads(response.read())
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                return None
+        except (OSError, ValueError):
+            pass
+        if attempt + 1 < tries:
+            time.sleep(2)
+    raise ArchiveUnavailable(name)
 
 
 def _list_keys(bucket_name, iam_token, prefix):
@@ -349,7 +378,7 @@ def _request(event):
 def handler(event, context):
     result = _run(event, context)
     if _is_https(event):
-        return {"statusCode": 200 if result["ok"] else 400, "headers": {"Content-Type": "application/json"},
+        return {"statusCode": 200 if result["ok"] else result.get("status", 400), "headers": {"Content-Type": "application/json"},
                 "body": json.dumps(result)}
     return result
 
@@ -369,9 +398,12 @@ def _run(event, context):
         except (TypeError, ValueError):
             return {"ok": False, "error": "invalid week"}
         monday -= dt.timedelta(days=monday.weekday())
-    week = read_week(_fetch_archive, monday)
+    try:
+        week = read_week(_fetch_archive, monday)
+    except ArchiveUnavailable as missing:
+        return {"ok": False, "status": 503, "error": f"archive unavailable: {missing}"}
     if not week:
-        return {"ok": False, "error": "no snapshots for the week"}
+        return {"ok": False, "status": 404, "error": "no snapshots for the week"}
 
     def send(to, subject, plain, page, link):
         sub.send_letter(iam_token, sender, to, subject, plain, page,
@@ -387,8 +419,11 @@ def _run(event, context):
         return {"ok": True, "week": week["monday"].isoformat(), "test": True}
 
     bucket_name = os.environ["SUBSCRIBERS_BUCKET"]
-    done = send_week(week, sub.Bucket(bucket_name, iam_token),
+    bucket = sub.Bucket(bucket_name, iam_token)
+    done = send_week(week, bucket,
                      lambda prefix: _list_keys(bucket_name, iam_token, prefix),
                      send, secret, pause=lambda: time.sleep(SEND_PAUSE_SEC),
-                     has_time=lambda: context.get_remaining_time_in_millis() > DEADLINE_RESERVE_MS)
+                     has_time=lambda: context.get_remaining_time_in_millis() > DEADLINE_RESERVE_MS,
+                     take_quota=lambda: sub._count(
+                         bucket, f"limits/{dt.datetime.now(dt.timezone.utc):%Y-%m-%d}/letters.json", RUN_LETTERS))
     return {"ok": True, "week": week["monday"].isoformat(), **done}

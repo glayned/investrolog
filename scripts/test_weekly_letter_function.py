@@ -79,7 +79,17 @@ class ReadWeek(unittest.TestCase):
 
     def test_no_snapshots_means_no_letter(self):
         self.assertIsNone(weekly.read_week(archive(snapshot("2026-11-16")), MONDAY))
-        self.assertIsNone(weekly.read_week(lambda name: None, MONDAY))
+
+    def test_unreadable_archive_stops_the_letter(self):
+        def broken_day(name):
+            if name == "2026-11-25.json":
+                raise weekly.ArchiveUnavailable(name)
+            return archive(snapshot("2026-11-23"), snapshot("2026-11-25"))(name)
+
+        absent_day = {"index.json": {"days": ["2026-11-23", "2026-11-25"]}, "2026-11-23.json": snapshot("2026-11-23")}
+        for fetch in (lambda name: None, broken_day, absent_day.get):
+            with self.assertRaises(weekly.ArchiveUnavailable):
+                weekly.read_week(fetch, MONDAY)
 
     def test_a_snapshot_with_another_date_inside_is_ignored(self):
         files = {"index.json": {"days": ["2026-11-23"]}, "2026-11-23.json": snapshot("2026-11-20")}
@@ -241,6 +251,13 @@ class Sending(unittest.TestCase):
         bucket = FakeBucket({"subscribers/x.json": {"status": "active", "email": "broken"}})
         self.assertEqual(self.run_week(bucket)["inactive"], 1)
         self.assertEqual(self.sent, [])
+
+    def test_run_stops_when_the_day_has_no_letters_left(self):
+        bucket = FakeBucket([member(f"u{n}@example.com") for n in range(3)])
+        quota = iter([True, False])
+        done = self.run_week(bucket, take_quota=lambda: next(quota))
+        self.assertEqual((done["sent"], done["stopped"]), (1, True))
+        self.assertEqual(len([key for key in bucket.objects if key.startswith("weekly/")]), 1)
 
     def test_run_stops_before_the_deadline_and_leaves_no_marker(self):
         bucket = FakeBucket([member(f"u{n}@example.com") for n in range(3)])
