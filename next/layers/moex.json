@@ -12,8 +12,8 @@
         "en": "INST p58"
       },
       "note": {
-        "ru": "Чистая позиция юрлиц MOEX — шорт, 58-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 66% из них. События за сутки: ▲1 ▼1.",
-        "en": "MOEX institutions are net short, 58th percentile over 250 trading days; retail mirrors them, 66% of retail traders are long. Events over the last day: ▲1 ▼1."
+        "ru": "Чистая позиция юрлиц MOEX — шорт, 58-й перцентиль за 250 торг. дн.; физлица зеркально, в лонге 66% из них. События за сутки: ▲0 ▼2.",
+        "en": "MOEX institutions are net short, 58th percentile over 250 trading days; retail mirrors them, 66% of retail traders are long. Events over the last day: ▲0 ▼2."
       }
     },
     "CL": {
