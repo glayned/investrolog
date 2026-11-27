@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "layer": "sentiment",
-  "source": "Sentinel",
+  "source": "Track",
   "report_date": "2026-11-27",
   "valid_until": "2026-11-29",
   "cells": {
     "NG": {
       "signal": 0,
       "metric": {
-        "ru": "медведи 58%",
-        "en": "bears 58%"
+        "ru": "медведи 53%",
+        "en": "bears 53%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
@@ -18,20 +18,16 @@
     },
     "CL": {
       "signal": 0,
-      "metric": {
-        "ru": "медведи 51%",
-        "en": "bears 51%"
-      },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
-        "en": "No contrarian signal in the last 24 hours. Bears dominate the comments."
+        "ru": "Контрарного сигнала за последние сутки нет. Медведи и быки в комментариях уравновешены.",
+        "en": "No contrarian signal in the last 24 hours. Bears and bulls in the comments are balanced."
       }
     },
     "GC": {
       "signal": 0,
       "metric": {
-        "ru": "медведи 55%",
-        "en": "bears 55%"
+        "ru": "медведи 54%",
+        "en": "bears 54%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают медведи.",
@@ -41,8 +37,8 @@
     "SI": {
       "signal": 0,
       "metric": {
-        "ru": "быки 54%",
-        "en": "bulls 54%"
+        "ru": "быки 56%",
+        "en": "bulls 56%"
       },
       "note": {
         "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
