@@ -7,6 +7,7 @@ has no public access: a timer or the owner invokes it.
     {}                          -> the finished week goes to every active subscriber
     {"test_to": "a@b.c"}        -> one letter to this address only, nothing is recorded
     {"test_to": ..., "lang": "en"}
+    {"test_to": ..., "week": "2026-11-23"}  -> the week of that date instead of the last finished one
 
 The letter is built from the public archive of daily snapshots
 (`/next/archive/`): for each market the direction of the consensus column on
@@ -309,7 +310,14 @@ def handler(event, context):
     iam_token = context.token["access_token"]
     secret = os.environ["TOKEN_SECRET"]
     sender = os.environ.get("MAIL_FROM", sub.MAIL_FROM)
-    week = read_week(_fetch_archive, week_start(now))
+    monday = week_start(now)
+    if "test_to" in event and event.get("week"):
+        try:
+            monday = dt.date.fromisoformat(event["week"])
+        except (TypeError, ValueError):
+            return {"ok": False, "error": "invalid week"}
+        monday -= dt.timedelta(days=monday.weekday())
+    week = read_week(_fetch_archive, monday)
     if not week:
         return {"ok": False, "error": "no snapshots for the week"}
 
