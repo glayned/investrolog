@@ -30,3 +30,6 @@ jobs:
 
       - name: Test the layer sync
         run: cd scripts && python3 test_sync_layers.py
+
+      - name: Test the matrix archive
+        run: cd scripts && python3 test_archive_matrix.py
