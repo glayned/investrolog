@@ -30,7 +30,7 @@ S3_HOST = "storage.yandexcloud.net"
 S3_REGION = "ru-central1"
 DB_KEY = "options_history.db"
 DB_MAX_BYTES = 2 * 1024 ** 3
-SOURCE = "InvestroLog Options"
+SOURCES = {"options": "Settle", "vol": "Options Desk"}
 TICKERS = ("NG", "CL", "GC", "SI", "CC", "KC")
 # The reading is a previous-close one: after a weekend with a holiday it is up to 5 days old.
 MAX_AGE_DAYS = 5
@@ -209,7 +209,7 @@ def build_layers(db, today):
     # One date per layer: the oldest among its cells, so none looks fresher than it is.
     # valid_until: the page hides the layer after that day even if this script stopped running.
     return {
-        layer_id: {"schema": 1, "layer": layer_id, "source": SOURCE,
+        layer_id: {"schema": 1, "layer": layer_id, "source": SOURCES[layer_id],
                    "report_date": min(dates[layer_id]).isoformat(),
                    "valid_until": (min(dates[layer_id]) + dt.timedelta(days=MAX_AGE_DAYS)).isoformat(),
                    "cells": layer_cells}
