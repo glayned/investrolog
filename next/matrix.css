@@ -480,6 +480,8 @@
     .cmx-sum { padding: 0 4px; gap: 6px; }
     .cmx-score { font-size: 10px; }
     .cmx-row.is-aligned::before { left: -6px; }
+    .cmx-legend { justify-content: space-between; gap: 8px 10px; letter-spacing: 0.2px; }
+    .cmx-legend-item { gap: 5px; white-space: nowrap; }
     .cmx-detail { grid-template-columns: 1fr; gap: 20px; padding: 20px 18px; }
     .cmx-closed { padding: 18px 0 0; border-left: 0; border-top: 1px solid var(--border); }
     .cmx-closed .btn { flex: 1 1 auto; }
