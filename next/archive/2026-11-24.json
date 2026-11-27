@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-24",
-  "captured_at": "2026-11-24T20:46:03Z",
+  "captured_at": "2026-11-24T21:46:15Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -33,10 +33,10 @@
     }
   },
   "regime": {
-    "report_date": "2026-11-23",
+    "report_date": "2026-11-24",
     "regime": "stress",
     "curve": "backwardation",
-    "vix_percentile": 89
+    "vix_percentile": 88
   },
   "markets": {
     "NG": {
@@ -52,8 +52,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 54%",
-            "en": "bears 54%"
+            "ru": "медведи 60%",
+            "en": "bears 60%"
           }
         },
         "flow": {
@@ -98,8 +98,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 63%",
-            "en": "bears 63%"
+            "ru": "медведи 62%",
+            "en": "bears 62%"
           }
         },
         "flow": {
@@ -188,11 +188,7 @@
           "metric": "RR p15"
         },
         "sentiment": {
-          "signal": 0,
-          "metric": {
-            "ru": "медведи 52%",
-            "en": "bears 52%"
-          }
+          "signal": 0
         },
         "flow": {
           "signal": 0,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Keep one snapshot of the matrix per trading day in next/archive/.
 
-A day's file holds what the page showed at the 21:00 UTC cut-off: the side
+A day's file holds what the page showed at the 22:00 UTC cut-off: the side
 of every layer for every market, the consensus and the VIX regime. Every
 run rewrites the file of the current day; once the cut-off passes, runs
 write the next day's file and the finished one is never touched again.
@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE_DIR = ROOT / "next" / "archive"
 SNAPSHOT = "next/snapshot.json"
-CUTOFF_HOUR_UTC = 21
+CUTOFF_HOUR_UTC = 22
 MIN_ALIGNED = 4  # same as next/matrix.js
 METRIC_MAX = 12
 SIDES = {1: "bull", -1: "bear", 0: "flat"}

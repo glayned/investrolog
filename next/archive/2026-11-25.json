@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-25",
-  "captured_at": "2026-11-25T20:26:11Z",
+  "captured_at": "2026-11-25T21:46:19Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -33,10 +33,10 @@
     }
   },
   "regime": {
-    "report_date": "2026-11-24",
+    "report_date": "2026-11-25",
     "regime": "stress",
     "curve": "backwardation",
-    "vix_percentile": 88
+    "vix_percentile": 92
   },
   "markets": {
     "NG": {
@@ -52,8 +52,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 58%",
-            "en": "bears 58%"
+            "ru": "медведи 56%",
+            "en": "bears 56%"
           }
         },
         "flow": {
@@ -98,8 +98,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 69%",
-            "en": "bulls 69%"
+            "ru": "быки 66%",
+            "en": "bulls 66%"
           }
         },
         "flow": {
@@ -147,8 +147,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 51%",
-            "en": "bulls 51%"
+            "ru": "быки 52%",
+            "en": "bulls 52%"
           }
         },
         "flow": {
@@ -193,8 +193,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 63%",
-            "en": "bulls 63%"
+            "ru": "быки 67%",
+            "en": "bulls 67%"
           }
         },
         "flow": {
@@ -239,8 +239,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 75%",
-            "en": "bulls 75%"
+            "ru": "быки 80%",
+            "en": "bulls 80%"
           }
         },
         "flow": {
@@ -248,7 +248,7 @@
           "metric": "×4.9"
         },
         "levels": {
-          "signal": 0,
+          "signal": 1,
           "metric": "> VWAP"
         },
         "moex": {
@@ -264,11 +264,11 @@
         }
       },
       "consensus": {
-        "bull": 1,
+        "bull": 2,
         "bear": 1,
-        "lead": 1,
+        "lead": 2,
         "total": 5,
-        "dir": "flat",
+        "dir": "bull",
         "aligned": false
       }
     },

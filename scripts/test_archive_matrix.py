@@ -34,14 +34,14 @@ def site(layers=None, demo=False):
 
 class ArchiveDayTest(unittest.TestCase):
     def test_the_day_ends_at_the_cutoff(self):
-        friday = dt.datetime(2026, 11, 27, 20, 59, tzinfo=UTC)
+        friday = dt.datetime(2026, 11, 27, 21, 59, tzinfo=UTC)
         self.assertEqual(am.archive_day(friday), dt.date(2026, 11, 27))
-        self.assertEqual(am.archive_day(dt.datetime(2026, 11, 26, 21, 0, tzinfo=UTC)), dt.date(2026, 11, 27))
+        self.assertEqual(am.archive_day(dt.datetime(2026, 11, 26, 22, 0, tzinfo=UTC)), dt.date(2026, 11, 27))
 
     def test_weekend_has_no_file(self):
-        self.assertIsNone(am.archive_day(dt.datetime(2026, 11, 27, 21, 0, tzinfo=UTC)))
-        self.assertIsNone(am.archive_day(dt.datetime(2026, 11, 29, 20, 59, tzinfo=UTC)))
-        self.assertEqual(am.archive_day(dt.datetime(2026, 11, 29, 21, 0, tzinfo=UTC)), dt.date(2026, 11, 30))
+        self.assertIsNone(am.archive_day(dt.datetime(2026, 11, 27, 22, 0, tzinfo=UTC)))
+        self.assertIsNone(am.archive_day(dt.datetime(2026, 11, 29, 21, 59, tzinfo=UTC)))
+        self.assertEqual(am.archive_day(dt.datetime(2026, 11, 29, 22, 0, tzinfo=UTC)), dt.date(2026, 11, 30))
 
 
 class BuildTest(unittest.TestCase):
@@ -100,10 +100,10 @@ class WriteTest(unittest.TestCase):
 
     def test_after_the_cutoff_the_finished_day_is_left_alone(self):
         cot = {"report_date": "2026-11-17", "cells": {"NG": {"signal": 1}}}
-        am.write(site({"cot": cot}), dt.datetime(2026, 11, 25, 20, 45, tzinfo=UTC), self.dir)
+        am.write(site({"cot": cot}), dt.datetime(2026, 11, 25, 21, 45, tzinfo=UTC), self.dir)
         before = (self.dir / "2026-11-25.json").read_text(encoding="utf-8")
         cot["cells"]["NG"]["signal"] = -1
-        am.write(site({"cot": cot}), dt.datetime(2026, 11, 25, 21, 5, tzinfo=UTC), self.dir)
+        am.write(site({"cot": cot}), dt.datetime(2026, 11, 25, 22, 5, tzinfo=UTC), self.dir)
         self.assertEqual((self.dir / "2026-11-25.json").read_text(encoding="utf-8"), before)
         self.assertTrue((self.dir / "2026-11-26.json").exists())
 

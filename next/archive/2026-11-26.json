@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "date": "2026-11-26",
-  "captured_at": "2026-11-26T20:26:18Z",
+  "captured_at": "2026-11-26T21:46:16Z",
   "layers": {
     "cot": {
       "votes": true,
@@ -33,7 +33,7 @@
     }
   },
   "regime": {
-    "report_date": "2026-11-25",
+    "report_date": "2026-11-26",
     "regime": "stress",
     "curve": "backwardation",
     "vix_percentile": 92
@@ -52,12 +52,12 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 59%",
-            "en": "bears 59%"
+            "ru": "медведи 57%",
+            "en": "bears 57%"
           }
         },
         "flow": {
-          "signal": 0,
+          "signal": -1,
           "metric": "×5.3"
         },
         "levels": {
@@ -78,7 +78,7 @@
       },
       "consensus": {
         "bull": 2,
-        "bear": 0,
+        "bear": 1,
         "lead": 2,
         "total": 5,
         "dir": "bull",
@@ -96,11 +96,7 @@
           "metric": "RR p39"
         },
         "sentiment": {
-          "signal": 0,
-          "metric": {
-            "ru": "быки 57%",
-            "en": "bulls 57%"
-          }
+          "signal": 0
         },
         "flow": {
           "signal": 0,
@@ -144,8 +140,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "медведи 56%",
-            "en": "bears 56%"
+            "ru": "медведи 61%",
+            "en": "bears 61%"
           }
         },
         "flow": {
@@ -193,8 +189,8 @@
         "sentiment": {
           "signal": 0,
           "metric": {
-            "ru": "быки 59%",
-            "en": "bulls 59%"
+            "ru": "быки 62%",
+            "en": "bulls 62%"
           }
         },
         "flow": {

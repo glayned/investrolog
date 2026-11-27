@@ -49,7 +49,7 @@ It starts `sync-layers.yml` when a layer file changed and `update-options.yml` a
 (fine-grained, Actions read and write on this repository only), `GITHUB_REPO`, `LAYERS_BUCKET`.
 After editing the script, release a new function version; the workflow schedules stay as a fallback.
 
-`next/archive/YYYY-MM-DD.json` is the matrix as the page showed it at 21:00 UTC of that trading day:
+`next/archive/YYYY-MM-DD.json` is the matrix as the page showed it at 22:00 UTC of that trading day:
 the side of every layer per market, the consensus and the VIX regime, without the notes.
 `sync-layers.yml` rewrites the file of the current day on every run; after the cut-off it is final.
 There are no files for Saturdays and Sundays.
