@@ -21,9 +21,13 @@
     },
     "GC": {
       "signal": 0,
+      "metric": {
+        "ru": "быки 56%",
+        "en": "bulls 56%"
+      },
       "note": {
-        "ru": "Контрарного сигнала за последние сутки нет. Комментариев слишком мало, чтобы оценить перекос толпы.",
-        "en": "No contrarian signal in the last 24 hours. Too few comments to measure the crowd skew."
+        "ru": "Контрарного сигнала за последние сутки нет. Среди комментариев преобладают быки.",
+        "en": "No contrarian signal in the last 24 hours. Bulls dominate the comments."
       }
     },
     "SI": {
