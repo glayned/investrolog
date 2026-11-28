@@ -116,7 +116,7 @@ def render(source, lang):
         html = sub_once(r"l\.replace\('/en/'\+", "l.replace('/en/about/'+", html)
         html = sub_once(
             r"a===l\.origin\+'/en/'\)return",
-            "a===l.origin+'/en/'||a===l.origin+'/en/about/')return",
+            "a===l.origin+'/en/'||a===l.origin+'/en/about/'||a===l.origin+'/next/')return",
             html,
         )
     return html

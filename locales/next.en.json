@@ -4,8 +4,6 @@
     "Газ · Нефть · Металлы · Какао · Кофе": "Gas · Oil · Metals · Cocoa · Coffee",
     "Матрица данных и рыночных реакций": "A matrix of data and market reactions",
     "Шесть сырьевых рынков и пять независимых слоёв данных: позиционирование, опционы, сентимент, поток объёма, уровни. Сигнал возникает там, где слои согласуются.": "Six commodity markets and five independent data layers: positioning, options, sentiment, volume flow, levels. A signal appears where the layers agree.",
-    "Рассылка на email": "Email newsletter",
-    "Рассылка": "Newsletter",
     "Сегодня": "Today",
     "Матрица согласия": "Consensus matrix",
     "Каждая клетка — независимый слой данных по одному рынку. Нажмите на клетку, чтобы прочитать её; нажмите на тикер, чтобы увидеть рынок целиком.": "Each cell is one independent data layer for one market. Click a cell to read it; click a ticker to see the whole market.",
@@ -43,6 +41,7 @@
     "Источники матрицы": "Sources of the matrix",
     "Модули терминала": "Terminal modules",
     "Для заказчиков": "For clients",
-    "Разработка на заказ": "Custom development"
+    "Разработка на заказ": "Custom development",
+    "О проекте": "About"
   }
 }

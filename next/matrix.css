@@ -566,6 +566,9 @@
 .policy p { margin-top: 8px; font-size: 15px; line-height: 1.7; }
 .policy p a { color: inherit; text-underline-offset: 3px; }
 
+/* A section not yet revealed sits 50px lower (see .section in styles.css); keep its label in view after the hero anchor jump */
+#access { scroll-margin-top: 50px; }
+
 /* Narrow phones: the typed logo code and the header controls must both fit inside the container */
 @media (max-width: 380px) {
     .code-text { font-size: 12px; }
