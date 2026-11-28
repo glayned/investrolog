@@ -19,6 +19,9 @@ jobs:
       - name: Verify generated pages and SEO
         run: python3 scripts/build_locales.py --check
 
+      - name: Verify the generated About pages
+        run: python3 scripts/build_about.py --check
+
       - name: Verify the generated English prototype page
         run: python3 scripts/build_next_locales.py --check
 

@@ -28,6 +28,15 @@ Verify that the committed English page is current:
 python3 scripts/build_locales.py --check
 ```
 
+## About pages (`/about/`, `/en/about/`)
+
+Generated from `index.html` and `en/index.html`: the hero is replaced by a compact intro; skills, projects, contacts and the order form are kept as is. Rebuild after `build_locales.py` whenever those sections change:
+
+```bash
+python3 scripts/build_about.py          # rebuild /about/ and /en/about/
+python3 scripts/build_about.py --check  # verify they are current
+```
+
 ## Home page prototype (`/next/`)
 
 - `/next/` is the Russian prototype page; `/next/en/` is generated from it.
