@@ -2,55 +2,55 @@
   "schema": 1,
   "layer": "vol",
   "source": "Options Desk",
-  "report_date": "2026-11-25",
-  "valid_until": "2026-11-30",
+  "report_date": "2026-11-27",
+  "valid_until": "2026-12-02",
   "cells": {
     "NG": {
       "level": 2,
-      "metric": "IV p93",
+      "metric": "IV p89",
       "note": {
-        "ru": "ATM IV 83% — 93-й перцентиль за 111 торг. дн. Историческая за 20 дн. — 45%.",
-        "en": "ATM IV 83% is at percentile 93 of 111 sessions. 20-day realised is 45%."
+        "ru": "ATM IV 78% — 89-й перцентиль за 112 торг. дн. Историческая за 20 дн. — 48%.",
+        "en": "ATM IV 78% is at percentile 89 of 112 sessions. 20-day realised is 48%."
       }
     },
     "CL": {
       "level": 0,
-      "metric": "IV p23",
+      "metric": "IV p13",
       "note": {
-        "ru": "ATM IV 45% — 23-й перцентиль за 114 торг. дн. Историческая за 20 дн. — 51%.",
-        "en": "ATM IV 45% is at percentile 23 of 114 sessions. 20-day realised is 51%."
+        "ru": "ATM IV 43% — 13-й перцентиль за 115 торг. дн. Историческая за 20 дн. — 51%.",
+        "en": "ATM IV 43% is at percentile 13 of 115 sessions. 20-day realised is 51%."
       }
     },
     "GC": {
       "level": 2,
-      "metric": "IV p100",
+      "metric": "IV p97",
       "note": {
-        "ru": "ATM IV 31% — 100-й перцентиль за 111 торг. дн. Историческая за 20 дн. — 35%. Ближний контракт дороже следующего: рынок платит за риск ближайших дней.",
-        "en": "ATM IV 31% is at percentile 100 of 111 sessions. 20-day realised is 35%. The front contract is priced above the next one: the market pays for near-term risk."
+        "ru": "ATM IV 28% — 97-й перцентиль за 112 торг. дн. Историческая за 20 дн. — 37%.",
+        "en": "ATM IV 28% is at percentile 97 of 112 sessions. 20-day realised is 37%."
       }
     },
     "SI": {
       "level": 2,
-      "metric": "IV p99",
+      "metric": "IV p98",
       "note": {
-        "ru": "ATM IV 54% — 99-й перцентиль за 111 торг. дн. Историческая за 20 дн. — 57%. Ближний контракт дороже следующего: рынок платит за риск ближайших дней.",
-        "en": "ATM IV 54% is at percentile 99 of 111 sessions. 20-day realised is 57%. The front contract is priced above the next one: the market pays for near-term risk."
+        "ru": "ATM IV 52% — 98-й перцентиль за 112 торг. дн. Историческая за 20 дн. — 65%. Ближний контракт дороже следующего: рынок платит за риск ближайших дней.",
+        "en": "ATM IV 52% is at percentile 98 of 112 sessions. 20-day realised is 65%. The front contract is priced above the next one: the market pays for near-term risk."
       }
     },
     "CC": {
       "level": 0,
-      "metric": "IV p8",
+      "metric": "IV p14",
       "note": {
-        "ru": "ATM IV 39% — 8-й перцентиль за 110 торг. дн. Историческая за 20 дн. — 39%.",
-        "en": "ATM IV 39% is at percentile 8 of 110 sessions. 20-day realised is 39%."
+        "ru": "ATM IV 40% — 14-й перцентиль за 111 торг. дн. Историческая за 20 дн. — 40%.",
+        "en": "ATM IV 40% is at percentile 14 of 111 sessions. 20-day realised is 40%."
       }
     },
     "KC": {
       "level": 0,
-      "metric": "IV p2",
+      "metric": "IV p13",
       "note": {
-        "ru": "ATM IV 35% — 2-й перцентиль за 96 торг. дн. Историческая за 20 дн. — 27%.",
-        "en": "ATM IV 35% is at percentile 2 of 96 sessions. 20-day realised is 27%."
+        "ru": "ATM IV 37% — 13-й перцентиль за 97 торг. дн. Историческая за 20 дн. — 28%. Ближний контракт дороже следующего: рынок платит за риск ближайших дней.",
+        "en": "ATM IV 37% is at percentile 13 of 97 sessions. 20-day realised is 28%. The front contract is priced above the next one: the market pays for near-term risk."
       }
     }
   }

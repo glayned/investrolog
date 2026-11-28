@@ -2,55 +2,55 @@
   "schema": 1,
   "layer": "options",
   "source": "Settle",
-  "report_date": "2026-11-25",
-  "valid_until": "2026-11-30",
+  "report_date": "2026-11-27",
+  "valid_until": "2026-12-02",
   "cells": {
     "NG": {
       "signal": 1,
       "metric": "RR p96",
       "note": {
-        "ru": "Скос сдвинут к колам сильнее обычного. Risk reversal 25Δ — 96-й перцентиль за 111 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 1.1.",
-        "en": "Skew leans towards calls more than usual. 25Δ risk reversal is at percentile 96 of 111 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 1.1."
+        "ru": "Скос сдвинут к колам сильнее обычного. Risk reversal 25Δ — 96-й перцентиль за 112 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 1.1.",
+        "en": "Skew leans towards calls more than usual. 25Δ risk reversal is at percentile 96 of 112 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 1.1."
       }
     },
     "CL": {
-      "signal": 0,
-      "metric": "RR p39",
+      "signal": -1,
+      "metric": "RR p22",
       "note": {
-        "ru": "Скос около своей нормы. Risk reversal 25Δ — 39-й перцентиль за 114 торг. дн. Колы дороже путов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.9.",
-        "en": "Skew is near its usual level. 25Δ risk reversal is at percentile 39 of 114 sessions. Calls are priced above puts. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.9."
+        "ru": "Скос сдвинут к путам сильнее обычного. Risk reversal 25Δ — 22-й перцентиль за 115 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 0.9.",
+        "en": "Skew leans towards puts more than usual. 25Δ risk reversal is at percentile 22 of 115 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 0.9."
       }
     },
     "GC": {
       "signal": -1,
-      "metric": "RR p5",
+      "metric": "RR p4",
       "note": {
-        "ru": "Скос сдвинут к путам сильнее обычного. Risk reversal 25Δ — 5-й перцентиль за 111 торг. дн. Путы дороже колов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 0.6.",
-        "en": "Skew leans towards puts more than usual. 25Δ risk reversal is at percentile 5 of 111 sessions. Puts are priced above calls. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 0.6."
+        "ru": "Скос сдвинут к путам сильнее обычного. Risk reversal 25Δ — 4-й перцентиль за 112 торг. дн. Путы дороже колов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 0.6.",
+        "en": "Skew leans towards puts more than usual. 25Δ risk reversal is at percentile 4 of 112 sessions. Puts are priced above calls. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 0.6."
       }
     },
     "SI": {
       "signal": -1,
-      "metric": "RR p7",
+      "metric": "RR p11",
       "note": {
-        "ru": "Скос сдвинут к путам сильнее обычного. Risk reversal 25Δ — 7-й перцентиль за 111 торг. дн. Путы дороже колов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.4.",
-        "en": "Skew leans towards puts more than usual. 25Δ risk reversal is at percentile 7 of 111 sessions. Puts are priced above calls. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.4."
+        "ru": "Скос сдвинут к путам сильнее обычного. Risk reversal 25Δ — 11-й перцентиль за 112 торг. дн. Путы дороже колов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.4.",
+        "en": "Skew leans towards puts more than usual. 25Δ risk reversal is at percentile 11 of 112 sessions. Puts are priced above calls. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.4."
       }
     },
     "CC": {
       "signal": 0,
-      "metric": "RR p70",
+      "metric": "RR p68",
       "note": {
-        "ru": "Скос около своей нормы. Risk reversal 25Δ — 70-й перцентиль за 110 торг. дн. Колы дороже путов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.4.",
-        "en": "Skew is near its usual level. 25Δ risk reversal is at percentile 70 of 110 sessions. Calls are priced above puts. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.4."
+        "ru": "Скос около своей нормы. Risk reversal 25Δ — 68-й перцентиль за 111 торг. дн. Колы дороже путов. Цена выше gamma flip: длинная гамма, движения гасятся. Путов к колам по открытому интересу: 0.4.",
+        "en": "Skew is near its usual level. 25Δ risk reversal is at percentile 68 of 111 sessions. Calls are priced above puts. Price is above the gamma flip: long gamma, moves get dampened. Put/call open interest ratio: 0.4."
       }
     },
     "KC": {
-      "signal": -1,
-      "metric": "RR p24",
+      "signal": 0,
+      "metric": "RR p43",
       "note": {
-        "ru": "Скос сдвинут к путам сильнее обычного. Risk reversal 25Δ — 24-й перцентиль за 96 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 1.2.",
-        "en": "Skew leans towards puts more than usual. 25Δ risk reversal is at percentile 24 of 96 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 1.2."
+        "ru": "Скос около своей нормы. Risk reversal 25Δ — 43-й перцентиль за 97 торг. дн. Колы дороже путов. Цена ниже gamma flip: короткая гамма, движения усиливаются. Путов к колам по открытому интересу: 1.2.",
+        "en": "Skew is near its usual level. 25Δ risk reversal is at percentile 43 of 97 sessions. Calls are priced above puts. Price is below the gamma flip: short gamma, moves get amplified. Put/call open interest ratio: 1.2."
       }
     }
   }
