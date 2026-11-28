@@ -536,7 +536,6 @@
     .cmx-closed .btn { flex: 1 1 auto; }
     .cmx-line { grid-template-columns: 74px 14px minmax(0, 1fr); }
     .section-head { margin-bottom: 36px; }
-    .section-head-stack { flex-direction: column; align-items: flex-start; gap: 20px; }
     .access-grid, .subscribe { grid-template-columns: 1fr; }
     .access-col, .subscribe { padding: 22px 20px; }
     .subscribe-row { flex-wrap: wrap; }
@@ -566,6 +565,9 @@
 }
 .policy p { margin-top: 8px; font-size: 15px; line-height: 1.7; }
 .policy p a { color: inherit; text-underline-offset: 3px; }
+
+/* A section not yet revealed sits 50px lower (see .section in styles.css); keep its label in view after the hero anchor jump */
+#access { scroll-margin-top: 50px; }
 
 /* Narrow phones: the typed logo code and the header controls must both fit inside the container */
 @media (max-width: 380px) {
