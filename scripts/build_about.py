@@ -114,6 +114,11 @@ def render(source, lang):
     html = sub_once(r"</head>", f"{STYLE}\n</head>", html)
     if lang == "ru":
         html = sub_once(r"l\.replace\('/en/'\+", "l.replace('/en/about/'+", html)
+        html = sub_once(
+            r"a===l\.origin\+'/en/'\)return",
+            "a===l.origin+'/en/'||a===l.origin+'/en/about/')return",
+            html,
+        )
     return html
 
 
